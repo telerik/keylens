@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+reports/
+keylens-report/
+
+# Coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test Artifacts
+tests/integration/screenshots/
+tests/integration/reports/
+
+# VitePress
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Temporary Files
+tmp/
+.tmp/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# npm pack output
+*.tgz

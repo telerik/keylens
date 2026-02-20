@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Keylens Configuration",
+  "description": "Configuration file for Keylens keyboard navigation testing.",
+  "type": "object",
+  "properties": {
+    "urls": {
+      "type": "array",
+      "items": { "type": "string", "format": "uri" },
+      "description": "URLs to audit."
+    },
+    "viewport": {
+      "type": "object",
+      "properties": {
+        "width": { "type": "number", "default": 1280 },
+        "height": { "type": "number", "default": 720 }
+      }
+    },
+    "maxTabs": {
+      "type": "number",
+      "default": 500,
+      "description": "Max Tab presses before aborting."
+    },
+    "tabTimeout": {
+      "type": "number",
+      "default": 3000
+    },
+    "waitForSelector": {
+      "type": "string",
+      "description": "CSS selector to wait for before starting."
+    },
+    "waitAfterLoad": {
+      "type": "number",
+      "default": 1000
+    },
+    "tabDelay": {
+      "type": "number",
+      "default": 250,
+      "minimum": 10,
+      "description": "Delay in ms between tab presses to let focus settle."
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "keyboardTrap": { "type": "boolean", "default": true },
+        "unreachableElements": { "type": "boolean", "default": true },
+        "focusOrderMismatch": { "type": "boolean", "default": true },
+        "tabindexAbuse": { "type": "boolean", "default": true },
+        "missingFocusIndicator": { "type": "boolean", "default": true },
+        "skipLink": { "type": "boolean", "default": true },
+        "focusNotObscured": { "type": "boolean", "default": true },
+        "focusAfterInteraction": { "type": "boolean", "default": true }
+      }
+    },
+    "reporters": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["cli", "json", "html", "markdown"] },
+      "default": ["cli"]
+    },
+    "outputDir": {
+      "type": "string",
+      "default": "./keylens-report"
+    },
+    "browser": {
+      "type": "string",
+      "enum": ["chromium", "firefox", "webkit"],
+      "default": "chromium"
+    },
+    "captureElementScreenshots": {
+      "type": "boolean",
+      "default": false,
+      "description": "Capture per-element screenshots during tab crawl for focus indicator diffing."
+    },
+    "interactions": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable post-click interaction testing on buttons."
+    },
+    "ai": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "provider": {
+          "type": "string",
+          "enum": ["anthropic"],
+          "default": "anthropic"
+        },
+        "apiKey": { "type": "string" },
+        "model": { "type": "string" },
+        "features": {
+          "type": "object",
+          "properties": {
+            "focusOrderValidation": { "type": "boolean", "default": true },
+            "fixSuggestions": { "type": "boolean", "default": true },
+            "widgetClassification": { "type": "boolean", "default": false },
+            "reportSummary": { "type": "boolean", "default": true },
+            "focusIndicatorQuality": { "type": "boolean", "default": false },
+            "accessibleNameInference": { "type": "boolean", "default": false },
+            "crossPagePatterns": { "type": "boolean", "default": true }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "description": "Batch and element limits for AI features.",
+          "properties": {
+            "batchSize": { "type": "number", "default": 10, "minimum": 1, "description": "Fix suggestion chunk size." },
+            "maxWidgets": { "type": "number", "default": 20, "minimum": 1, "description": "Max widgets for classification." },
+            "maxElements": { "type": "number", "default": 10, "minimum": 1, "description": "Max elements per AI feature call (name inference, focus scoring, cross-page)." }
+          }
+        }
+      }
+    },
+    "navigationTimeout": {
+      "type": "number",
+      "default": 30000,
+      "description": "Timeout in ms for page navigation (default: 30000)."
+    },
+    "headed": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

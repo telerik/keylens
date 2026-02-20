@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Keylens Selectors Test Fixture</title>
+    <style>
+      .hidden-el {
+        display: none;
+      }
+      .vis-hidden {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Elements for GET_UNIQUE_SELECTOR_SCRIPT tests -->
+    <div id="unique-id">Element with ID</div>
+    <div class="cls-a cls-b">Element with classes</div>
+    <div id="parent">
+      <span class="nested">Nested element</span>
+    </div>
+    <div>
+      <p>First paragraph</p>
+      <p>Second paragraph</p>
+    </div>
+
+    <!-- Elements for GET_INTERACTIVE_ELEMENTS_SCRIPT tests -->
+    <a href="/link1">Link 1</a>
+    <a href="/link2">Link 2</a>
+    <button>Button 1</button>
+    <button disabled>Disabled Button</button>
+    <input type="text" aria-label="Text input" />
+    <input type="hidden" value="hidden" />
+    <select aria-label="Select box">
+      <option>A</option>
+    </select>
+    <textarea aria-label="Text area"></textarea>
+    <div role="button">ARIA Button</div>
+    <div role="checkbox" tabindex="0">ARIA Checkbox</div>
+
+    <!-- Hidden interactive — should be excluded -->
+    <button class="hidden-el">Hidden Button</button>
+    <a href="/hidden" class="vis-hidden">Hidden Link</a>
+
+    <!-- Disabled fieldset -->
+    <fieldset disabled>
+      <legend>
+        <button id="legend-btn">Legend Button (should be included)</button>
+      </legend>
+      <input type="text" aria-label="Disabled fieldset input" />
+      <button>Fieldset disabled button</button>
+    </fieldset>
+
+    <!-- Elements for GET_FOCUSED_ELEMENT_INFO_SCRIPT tests -->
+    <button id="info-btn" aria-label="Info Button Label">Info Button</button>
+    <a href="/titled" title="Title Attr Link" id="titled-link">Titled Link</a>
+  </body>
+</html>
