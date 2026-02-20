@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keylens Test Fixture — Intentional A11y Issues</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+      }
+      nav {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #f0f0f0;
+      }
+      .no-outline:focus {
+        outline: none;
+      }
+      .trap {
+        padding: 1rem;
+        border: 2px solid red;
+        margin: 1rem 0;
+      }
+      .hidden-interactive {
+        display: flex;
+        gap: 0.5rem;
+        margin: 1rem 0;
+      }
+      main {
+        max-width: 800px;
+      }
+      .card {
+        border: 1px solid #ddd;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ISSUE: No skip link -->
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/products">Products</a>
+      <a href="/blog">Blog</a>
+      <a href="/contact">Contact</a>
+    </nav>
+
+    <main>
+      <h1>Keylens Test Page</h1>
+      <p>
+        This page has intentional keyboard accessibility issues for testing.
+      </p>
+
+      <!-- ISSUE: Missing focus indicator -->
+      <a href="/signup" class="no-outline" style="outline: none"
+        >Sign Up (no focus outline)</a
+      >
+
+      <!-- ISSUE: Positive tabindex -->
+      <button tabindex="5">I have tabindex=5 (bad!)</button>
+      <button tabindex="1">I have tabindex=1 (also bad!)</button>
+
+      <!-- ISSUE: Keyboard trap -->
+      <div class="trap">
+        <p>Keyboard trap zone:</p>
+        <input
+          type="text"
+          id="trap-input"
+          placeholder="Focus gets trapped here"
+        />
+        <script>
+          document
+            .getElementById("trap-input")
+            .addEventListener("keydown", (e) => {
+              if (e.key === "Tab") {
+                e.preventDefault(); // Trap!
+              }
+            });
+        </script>
+      </div>
+
+      <!-- ISSUE: Unreachable interactive elements (div used as button) -->
+      <div class="hidden-interactive">
+        <div
+          onclick="alert('clicked')"
+          style="
+            cursor: pointer;
+            padding: 0.5rem;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+          "
+        >
+          Click me (div, not a button — not focusable)
+        </div>
+      </div>
+
+      <!-- Good: Proper interactive elements -->
+      <div class="card">
+        <h2>Proper Elements</h2>
+        <button>Real Button</button>
+        <a href="/test">Real Link</a>
+        <input type="text" placeholder="Real Input" />
+        <select>
+          <option>Option 1</option>
+          <option>Option 2</option>
+        </select>
+      </div>
+    </main>
+  </body>
+</html>
