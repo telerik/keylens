@@ -62,17 +62,17 @@ Run a keyboard navigation accessibility audit on a single URL.
 
 **Input:**
 
-| Parameter              | Type                                      | Required | Description                                                                  |
-| ---------------------- | ----------------------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `url`                  | string                                    | Yes      | URL to audit                                                                 |
-| `options.browser`      | `"chromium"` \| `"firefox"` \| `"webkit"` | No       | Browser engine (default: chromium)                                           |
-| `options.viewport`     | `{ width?, height? }`                     | No       | Viewport dimensions                                                          |
-| `options.maxTabs`      | number                                    | No       | Maximum tab presses (default: 500)                                           |
-| `options.screenshots`  | boolean                                   | No       | Enable screenshot-based focus indicator detection                            |
-| `options.interactions` | boolean                                   | No       | Enable post-click interaction testing                                        |
-| `options.ai`           | boolean                                   | No       | Enable AI analysis (requires API key)                                        |
-| `options.reporters`    | `("cli" \| "json" \| "html" \| "markdown")[]` | No       | Output formats to generate. Use `["html"]` to save an HTML report to disk.   |
-| `options.outputDir`    | string                                    | No       | Directory for `json`/`html` report files (default: current working directory)|
+| Parameter              | Type                                          | Required | Description                                                                   |
+| ---------------------- | --------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
+| `url`                  | string                                        | Yes      | URL to audit                                                                  |
+| `options.browser`      | `"chromium"` \| `"firefox"` \| `"webkit"`     | No       | Browser engine (default: chromium)                                            |
+| `options.viewport`     | `{ width?, height? }`                         | No       | Viewport dimensions                                                           |
+| `options.maxTabs`      | number                                        | No       | Maximum tab presses (default: 500)                                            |
+| `options.screenshots`  | boolean                                       | No       | Enable screenshot-based focus indicator detection                             |
+| `options.interactions` | boolean                                       | No       | Enable post-click interaction testing                                         |
+| `options.ai`           | boolean                                       | No       | Enable AI analysis (requires API key)                                         |
+| `options.reporters`    | `("cli" \| "json" \| "html" \| "markdown")[]` | No       | Output formats to generate. Use `["html"]` to save an HTML report to disk.    |
+| `options.outputDir`    | string                                        | No       | Directory for `json`/`html` report files (default: current working directory) |
 
 **Output:** Full `AuditReport` JSON (screenshots stripped).
 
@@ -98,9 +98,9 @@ Audit multiple URLs with cross-page pattern detection.
 
 **Input:**
 
-| Parameter | Type            | Required | Description    |
-| --------- | --------------- | -------- | -------------- |
-| `urls`    | string[]        | Yes      | URLs to audit  |
+| Parameter | Type            | Required | Description                                            |
+| --------- | --------------- | -------- | ------------------------------------------------------ |
+| `urls`    | string[]        | Yes      | URLs to audit                                          |
 | `options` | (same as above) | No       | Shared options (including `reporters` and `outputDir`) |
 
 **Output:** `MultiPageReport` JSON with aggregate summary and cross-page patterns. If `reporters` includes `"html"`, an interactive tabbed multi-page report is also saved to disk.

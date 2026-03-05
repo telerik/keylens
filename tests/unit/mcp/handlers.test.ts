@@ -17,7 +17,12 @@ import {
   makeCrawlResult,
   makeInteractiveElement,
 } from "@tests/helpers/factories.js";
-import type { AuditReport, MultiPageReport, CrawlResult, RuleResult } from "@/types/index.js";
+import type {
+  AuditReport,
+  MultiPageReport,
+  CrawlResult,
+  RuleResult,
+} from "@/types/index.js";
 
 // ─── Mocks ──────────────────────────────────────────────────────
 
@@ -203,7 +208,9 @@ describe("compactReport", () => {
     const compact = compactReport(report);
 
     // compactElement does not include outerHTML
-    expect((compact.focusSequence![0] as Record<string, unknown>).outerHTML).toBeUndefined();
+    expect(
+      (compact.focusSequence![0] as Record<string, unknown>).outerHTML,
+    ).toBeUndefined();
   });
 
   it("removes boundingRect, pageRect, computedFocusStyles from elements", () => {
@@ -212,7 +219,11 @@ describe("compactReport", () => {
         makeFocusedElement({
           boundingRect: { x: 10, y: 20, width: 100, height: 40 },
           pageRect: { x: 10, y: 20, width: 100, height: 40 },
-          computedFocusStyles: { outline: "2px solid blue", boxShadow: "none", border: "none" },
+          computedFocusStyles: {
+            outline: "2px solid blue",
+            boxShadow: "none",
+            border: "none",
+          },
         }),
       ],
     });
@@ -239,7 +250,9 @@ describe("compactReport", () => {
     const compact = compactReport(report);
 
     expect((compact as Record<string, unknown>).pageScreenshot).toBeUndefined();
-    expect((compact.focusSequence![0] as Record<string, unknown>).focusedScreenshot).toBeUndefined();
+    expect(
+      (compact.focusSequence![0] as Record<string, unknown>).focusedScreenshot,
+    ).toBeUndefined();
   });
 
   it("removes the config object", () => {
@@ -265,7 +278,11 @@ describe("compactReport", () => {
               severity: "warning" as const,
               message: "Positive tabindex",
               elements: [
-                { selector: "input.search", outerHTML: '<input tabindex="5">', tabPosition: 1 },
+                {
+                  selector: "input.search",
+                  outerHTML: '<input tabindex="5">',
+                  tabPosition: 1,
+                },
               ],
               impact: "Medium",
             },
@@ -304,7 +321,9 @@ describe("compactReport", () => {
     const compact = compactReport(report);
 
     expect(compact.widgetClassifications![0]!.element.outerHTML).toBe("");
-    expect(compact.widgetClassifications![0]!.element.selector).toBe("div.modal");
+    expect(compact.widgetClassifications![0]!.element.selector).toBe(
+      "div.modal",
+    );
   });
 
   it("strips outerHTML from accessibleNameSuggestions", () => {
@@ -333,9 +352,19 @@ describe("compactReport", () => {
   it("preserves essential fields", () => {
     const report = makeAuditReport({
       url: "https://example.com",
-      summary: { totalErrors: 2, totalWarnings: 1, totalInfo: 0, passed: 5, failed: 2 },
+      summary: {
+        totalErrors: 2,
+        totalWarnings: 1,
+        totalInfo: 0,
+        passed: 5,
+        failed: 2,
+      },
       focusSequence: [
-        makeFocusedElement({ selector: "button.save", role: "button", accessibleName: "Save" }),
+        makeFocusedElement({
+          selector: "button.save",
+          role: "button",
+          accessibleName: "Save",
+        }),
       ],
       aiSummary: "Good overall",
     });
@@ -364,7 +393,9 @@ describe("compactMultiPageReport", () => {
 
     const compact = compactMultiPageReport(report);
 
-    expect((compact.pages[0] as Record<string, unknown>).focusSequence).toBeUndefined();
+    expect(
+      (compact.pages[0] as Record<string, unknown>).focusSequence,
+    ).toBeUndefined();
   });
 
   it("keeps per-page url, summary, and violations", () => {
@@ -391,7 +422,13 @@ describe("compactMultiPageReport", () => {
         makeAuditReport({
           url: "https://a.com",
           rules,
-          summary: { totalErrors: 1, totalWarnings: 0, totalInfo: 0, passed: 6, failed: 1 },
+          summary: {
+            totalErrors: 1,
+            totalWarnings: 0,
+            totalInfo: 0,
+            passed: 6,
+            failed: 1,
+          },
         }),
       ],
     });
@@ -417,7 +454,9 @@ describe("compactMultiPageReport", () => {
                   ruleName: "Tabindex Abuse",
                   severity: "warning" as const,
                   message: "Positive tabindex",
-                  elements: [{ selector: "input", outerHTML: '<input tabindex="5">' }],
+                  elements: [
+                    { selector: "input", outerHTML: '<input tabindex="5">' },
+                  ],
                   impact: "Medium",
                 },
               ],
@@ -437,7 +476,13 @@ describe("compactMultiPageReport", () => {
 
   it("preserves top-level aggregate summary and AI fields", () => {
     const report = makeMultiPageReport({
-      summary: { totalPages: 2, totalErrors: 3, totalWarnings: 1, totalInfo: 0, pagesWithErrors: 2 },
+      summary: {
+        totalPages: 2,
+        totalErrors: 3,
+        totalWarnings: 1,
+        totalInfo: 0,
+        pagesWithErrors: 2,
+      },
       aiSummary: "Cross-page summary",
       crossPagePatterns: [
         {
@@ -495,10 +540,14 @@ describe("handleAudit", () => {
       config: { browser: "chromium" },
       focusSequence: [
         makeFocusedElement({
-          outerHTML: '<button>Click</button>',
+          outerHTML: "<button>Click</button>",
           boundingRect: { x: 0, y: 0, width: 100, height: 40 },
           pageRect: { x: 0, y: 0, width: 100, height: 40 },
-          computedFocusStyles: { outline: "2px solid", boxShadow: "none", border: "none" },
+          computedFocusStyles: {
+            outline: "2px solid",
+            boxShadow: "none",
+            border: "none",
+          },
         }),
       ],
     });
@@ -542,7 +591,9 @@ describe("handleAudit", () => {
               ruleName: "Tabindex Abuse",
               severity: "warning" as const,
               message: "Positive tabindex",
-              elements: [{ selector: "input.s", outerHTML: '<input tabindex="5">' }],
+              elements: [
+                { selector: "input.s", outerHTML: '<input tabindex="5">' },
+              ],
               impact: "Medium",
             },
           ],
@@ -715,9 +766,7 @@ describe("handleClassifyWidgets", () => {
     ];
     mockCrawlOnly.mockResolvedValue(
       makeCrawlResult({
-        interactiveElements: [
-          makeInteractiveElement({ role: "dialog" }),
-        ],
+        interactiveElements: [makeInteractiveElement({ role: "dialog" })],
       }),
     );
     mockAIInstance.classifyWidgets.mockResolvedValue(classifications);
@@ -749,9 +798,7 @@ describe("handleValidateFocusOrder", () => {
   });
 
   it("calls crawlOnly instead of full audit", async () => {
-    mockCrawlOnly.mockResolvedValue(
-      makeCrawlResult({ focusSequence: [] }),
-    );
+    mockCrawlOnly.mockResolvedValue(makeCrawlResult({ focusSequence: [] }));
 
     await handleValidateFocusOrder({ url: "https://test.com" });
 

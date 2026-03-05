@@ -57,8 +57,7 @@ export function computeScore(report: AuditReport): number {
 
     // Deduction: full weight × severity × proportion, with a minimum penalty
     // of 30% of the weight (so even 1 affected element noticeably impacts score)
-    const deduction =
-      weight * severityMultiplier * Math.max(proportion, 0.3);
+    const deduction = weight * severityMultiplier * Math.max(proportion, 0.3);
 
     earned += Math.max(weight - deduction, 0);
   }

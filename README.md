@@ -175,16 +175,16 @@ keylens audit https://example.com --config keylens.config.json
 
 ## Rules
 
-| Rule                      | Severity | WCAG       | Description                                      |
-| ------------------------- | -------- | ---------- | ------------------------------------------------ |
-| `keyboard-trap`           | Error    | 2.1.2      | Detects elements that trap keyboard focus        |
-| `unreachable-elements`    | Error    | 2.1.1      | Finds interactive elements not reachable via Tab |
-| `focus-order-mismatch`    | Warning  | 2.4.3      | Flags when tab order diverges from visual layout |
-| `tabindex-abuse`          | Warning  | 2.4.3      | Detects positive `tabindex` values               |
-| `missing-focus-indicator` | Warning  | 2.4.7      | Finds elements with suppressed focus styles      |
-| `skip-link`               | Warning  | 2.4.1      | Validates skip navigation link presence          |
-| `focus-not-obscured`      | Error    | 2.4.11     | Detects focused elements hidden by overlays      |
-| `focus-after-interaction` | Warning  | 2.4.3/2.4.7| Focus not lost after clicking buttons            |
+| Rule                      | Severity | WCAG        | Description                                      |
+| ------------------------- | -------- | ----------- | ------------------------------------------------ |
+| `keyboard-trap`           | Error    | 2.1.2       | Detects elements that trap keyboard focus        |
+| `unreachable-elements`    | Error    | 2.1.1       | Finds interactive elements not reachable via Tab |
+| `focus-order-mismatch`    | Warning  | 2.4.3       | Flags when tab order diverges from visual layout |
+| `tabindex-abuse`          | Warning  | 2.4.3       | Detects positive `tabindex` values               |
+| `missing-focus-indicator` | Warning  | 2.4.7       | Finds elements with suppressed focus styles      |
+| `skip-link`               | Warning  | 2.4.1       | Validates skip navigation link presence          |
+| `focus-not-obscured`      | Error    | 2.4.11      | Detects focused elements hidden by overlays      |
+| `focus-after-interaction` | Warning  | 2.4.3/2.4.7 | Focus not lost after clicking buttons            |
 
 ## AI Features
 

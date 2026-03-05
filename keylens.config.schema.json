@@ -54,7 +54,10 @@
     },
     "reporters": {
       "type": "array",
-      "items": { "type": "string", "enum": ["cli", "json", "html", "markdown"] },
+      "items": {
+        "type": "string",
+        "enum": ["cli", "json", "html", "markdown"]
+      },
       "default": ["cli"]
     },
     "outputDir": {
@@ -103,9 +106,24 @@
           "type": "object",
           "description": "Batch and element limits for AI features.",
           "properties": {
-            "batchSize": { "type": "number", "default": 10, "minimum": 1, "description": "Fix suggestion chunk size." },
-            "maxWidgets": { "type": "number", "default": 20, "minimum": 1, "description": "Max widgets for classification." },
-            "maxElements": { "type": "number", "default": 10, "minimum": 1, "description": "Max elements per AI feature call (name inference, focus scoring, cross-page)." }
+            "batchSize": {
+              "type": "number",
+              "default": 10,
+              "minimum": 1,
+              "description": "Fix suggestion chunk size."
+            },
+            "maxWidgets": {
+              "type": "number",
+              "default": 20,
+              "minimum": 1,
+              "description": "Max widgets for classification."
+            },
+            "maxElements": {
+              "type": "number",
+              "default": 10,
+              "minimum": 1,
+              "description": "Max elements per AI feature call (name inference, focus scoring, cross-page)."
+            }
           }
         }
       }

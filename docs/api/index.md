@@ -68,11 +68,11 @@ const crawlResult = await crawlOnly("https://example.com", DEFAULT_CONFIG);
 console.log(`Found ${crawlResult.focusSequence.length} focusable elements`);
 ```
 
-| Parameter | Type              | Description      |
-| --------- | ----------------- | ---------------- |
-| `url`     | `string`          | The URL to crawl |
-| `config`  | `KeylensConfig`   | Configuration    |
-| Returns   | `Promise<CrawlResult>` | Raw crawl data |
+| Parameter | Type                   | Description      |
+| --------- | ---------------------- | ---------------- |
+| `url`     | `string`               | The URL to crawl |
+| `config`  | `KeylensConfig`        | Configuration    |
+| Returns   | `Promise<CrawlResult>` | Raw crawl data   |
 
 ### `AIAnalyzer`
 
@@ -273,13 +273,13 @@ Returned by `audit()`. Contains everything about a single-page audit.
 
 **`summary` object:**
 
-| Field           | Type     | Description                 |
-| --------------- | -------- | --------------------------- |
-| `totalErrors`   | `number` | Error-severity violations   |
-| `totalWarnings` | `number` | Warning-severity violations |
-| `totalInfo`     | `number` | Info-severity violations    |
-| `passed`        | `number` | Rules that passed           |
-| `failed`        | `number` | Rules that failed           |
+| Field           | Type     | Description                               |
+| --------------- | -------- | ----------------------------------------- |
+| `totalErrors`   | `number` | Error-severity violations                 |
+| `totalWarnings` | `number` | Warning-severity violations               |
+| `totalInfo`     | `number` | Info-severity violations                  |
+| `passed`        | `number` | Rules that passed                         |
+| `failed`        | `number` | Rules that failed                         |
 | `score`         | `number` | Deterministic accessibility score (0–100) |
 
 #### `MultiPageReport`
@@ -298,14 +298,14 @@ Returned by `auditMultiple()`.
 
 **`summary` object:**
 
-| Field             | Type     | Description                    |
-| ----------------- | -------- | ------------------------------ |
-| `totalPages`      | `number` | Number of pages audited        |
-| `totalErrors`     | `number` | Errors across all pages        |
-| `totalWarnings`   | `number` | Warnings across all pages      |
-| `totalInfo`       | `number` | Info findings across all pages |
-| `pagesWithErrors` | `number` | Pages with at least one error  |
-| `score`           | `number` | Aggregate accessibility score (0–100)     |
+| Field             | Type     | Description                           |
+| ----------------- | -------- | ------------------------------------- |
+| `totalPages`      | `number` | Number of pages audited               |
+| `totalErrors`     | `number` | Errors across all pages               |
+| `totalWarnings`   | `number` | Warnings across all pages             |
+| `totalInfo`       | `number` | Info findings across all pages        |
+| `pagesWithErrors` | `number` | Pages with at least one error         |
+| `score`           | `number` | Aggregate accessibility score (0–100) |
 
 ---
 
@@ -331,24 +331,24 @@ Raw data from the Playwright tab crawl. Passed to rules for evaluation.
 
 An element in the tab sequence, captured during the crawl.
 
-| Field                 | Type              | Description                                                               |
-| --------------------- | ----------------- | ------------------------------------------------------------------------- |
-| `tabIndex`            | `number`          | Position in tab sequence (1-indexed)                                      |
-| `selector`            | `string`          | CSS selector path                                                         |
-| `tagName`             | `string`          | HTML tag name                                                             |
-| `role`                | `string`          | Computed ARIA role                                                        |
-| `accessibleName`      | `string`          | Computed accessible name                                                  |
-| `boundingRect`        | `BoundingRect`    | Viewport-relative bounding box                                            |
-| `tabindexAttr`        | `number \| null`  | The `tabindex` attribute value                                            |
-| `hasFocusIndicator`   | `boolean \| null` | Whether a visible focus style was detected                                |
-| `isObscured`          | `boolean?`        | Whether the element is hidden by overlays                                 |
-| `focusedScreenshot`   | `string?`         | Base64 PNG of focused state (`--screenshots`)                             |
-| `unfocusedScreenshot` | `string?`         | Base64 PNG of unfocused state                                             |
-| `pageRect`            | `BoundingRect?`   | Absolute page coordinates (with scroll)                                   |
-| `computedFocusStyles` | `object?`         | `{ outline, boxShadow, border }` captured while focused (`--screenshots`) |
-| `ariaAttributes`      | `Record<string, string>?` | All aria-* attributes on this element                                     |
-| `parentContext`       | `string?`         | Nearest landmark ancestor                                                 |
-| `outerHTML`           | `string`          | Truncated outer HTML                                                      |
+| Field                 | Type                      | Description                                                               |
+| --------------------- | ------------------------- | ------------------------------------------------------------------------- |
+| `tabIndex`            | `number`                  | Position in tab sequence (1-indexed)                                      |
+| `selector`            | `string`                  | CSS selector path                                                         |
+| `tagName`             | `string`                  | HTML tag name                                                             |
+| `role`                | `string`                  | Computed ARIA role                                                        |
+| `accessibleName`      | `string`                  | Computed accessible name                                                  |
+| `boundingRect`        | `BoundingRect`            | Viewport-relative bounding box                                            |
+| `tabindexAttr`        | `number \| null`          | The `tabindex` attribute value                                            |
+| `hasFocusIndicator`   | `boolean \| null`         | Whether a visible focus style was detected                                |
+| `isObscured`          | `boolean?`                | Whether the element is hidden by overlays                                 |
+| `focusedScreenshot`   | `string?`                 | Base64 PNG of focused state (`--screenshots`)                             |
+| `unfocusedScreenshot` | `string?`                 | Base64 PNG of unfocused state                                             |
+| `pageRect`            | `BoundingRect?`           | Absolute page coordinates (with scroll)                                   |
+| `computedFocusStyles` | `object?`                 | `{ outline, boxShadow, border }` captured while focused (`--screenshots`) |
+| `ariaAttributes`      | `Record<string, string>?` | All aria-\* attributes on this element                                    |
+| `parentContext`       | `string?`                 | Nearest landmark ancestor                                                 |
+| `outerHTML`           | `string`                  | Truncated outer HTML                                                      |
 
 #### `InteractiveElement`
 
@@ -384,8 +384,8 @@ Outcome of the skip link functional test.
 
 The outcome of running a single rule.
 
-| Field        | Type              | Description               |
-| ------------ | ----------------- | ------------------------- |
+| Field             | Type              | Description               |
+| ----------------- | ----------------- | ------------------------- |
 | `ruleId`          | `string`          | Rule identifier           |
 | `ruleName`        | `string?`         | Human-readable rule name  |
 | `ruleDescription` | `string?`         | Rule description          |
@@ -521,13 +521,13 @@ AI-generated quality score for a focus indicator.
 
 Structured AI-generated report summary.
 
-| Field              | Type                             | Description                           |
-| ------------------ | -------------------------------- | ------------------------------------- |
-| `overview`         | `string`                         | 2-3 sentence overall assessment       |
-| `criticalIssues`   | `string[]`                       | Most critical issues found            |
-| `prioritizedFixes` | `Array<{ fix, effort, impact }>` | Ordered fixes with effort/impact      |
+| Field              | Type                             | Description                                             |
+| ------------------ | -------------------------------- | ------------------------------------------------------- |
+| `overview`         | `string`                         | 2-3 sentence overall assessment                         |
+| `criticalIssues`   | `string[]`                       | Most critical issues found                              |
+| `prioritizedFixes` | `Array<{ fix, effort, impact }>` | Ordered fixes with effort/impact                        |
 | `aiSeverityRating` | `number`                         | AI usability severity rating (1-100, non-deterministic) |
-| `recommendation`   | `string`                         | One-sentence next step recommendation |
+| `recommendation`   | `string`                         | One-sentence next step recommendation                   |
 
 #### `CrossPagePattern`
 

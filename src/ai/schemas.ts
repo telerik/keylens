@@ -131,10 +131,7 @@ export const crossPagePatternBatchSchema = z.array(crossPagePatternItemSchema);
  * Safely parse a JSON string and validate it against a Zod schema.
  * Returns `null` if the string is not valid JSON or doesn't match the schema.
  */
-export function safeParseJSON<T>(
-  raw: string,
-  schema: z.ZodType<T>,
-): T | null {
+export function safeParseJSON<T>(raw: string, schema: z.ZodType<T>): T | null {
   try {
     const data: unknown = JSON.parse(raw);
     const result = schema.safeParse(data);
