@@ -31,25 +31,47 @@ Keylens launches a real browser, presses Tab through your entire page, and repor
 
 ## Getting Started
 
+### Prerequisites
+
+> **Private alpha:** Keylens is currently distributed through GitHub Packages. These one-time setup steps are required before installing.
+
+1. **Authenticate with GitHub**
+
+   ```bash
+   gh auth login --scopes read:packages
+   ```
+
+2. **Configure the @telerik registry**
+
+   ```bash
+   echo "@telerik:registry=https://npm.pkg.github.com" >> ~/.npmrc
+   ```
+
+3. **Write the auth token to `~/.npmrc`**
+
+   ```bash
+   echo "//npm.pkg.github.com/:_authToken=$(gh auth token)" >> ~/.npmrc
+   ```
+
 ### Quick Scan
 
 No installation required:
 
 ```bash
-npx keylens audit https://your-site.com
+npx @telerik/keylens@dev audit https://your-site.com
 ```
 
 ### Install Globally
 
 ```bash
-npm install -g @telerik/keylens
+npm install -g @telerik/keylens@dev
 keylens audit https://your-site.com
 ```
 
 ### Install in a Project
 
 ```bash
-npm install --save-dev @telerik/keylens
+npm install --save-dev @telerik/keylens@dev
 ```
 
 ```json
@@ -229,7 +251,7 @@ Add to your MCP client config (e.g., `claude_desktop_config.json`):
   "mcpServers": {
     "keylens": {
       "command": "npx",
-      "args": ["-y", "@telerik/keylens", "mcp"],
+      "args": ["-y", "@telerik/keylens@dev", "mcp"],
       "env": {
         "ANTHROPIC_API_KEY": "sk-ant-..."
       }
@@ -284,7 +306,7 @@ The skill files are included in the npm package under `skill/`.
 
 ```yaml
 - name: Keyboard Navigation Audit
-  run: npx keylens audit https://localhost:3000 --output json
+  run: npx @telerik/keylens@dev audit https://localhost:3000 --output json
 ```
 
 Keylens exits with code 1 when errors are found, making it easy to fail CI builds.
@@ -297,7 +319,7 @@ Keylens exits with code 1 when errors are found, making it easy to fail CI build
 - name: Wait for server
   run: npx wait-on http://localhost:3000
 - name: Audit
-  run: npx keylens audit http://localhost:3000
+  run: npx @telerik/keylens@dev audit http://localhost:3000
 ```
 
 ## How It Works

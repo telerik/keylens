@@ -1,11 +1,44 @@
 # Getting Started
 
+## Prerequisites
+
+### GitHub Packages Authentication
+
+> **Private alpha:** Keylens is currently distributed through GitHub Packages. These one-time setup steps are required before installing.
+
+1. **Authenticate with GitHub**
+
+   ```bash
+   gh auth login --scopes read:packages
+   ```
+
+2. **Configure the @telerik registry**
+
+   ```bash
+   echo "@telerik:registry=https://npm.pkg.github.com" >> ~/.npmrc
+   ```
+
+3. **Write the auth token to `~/.npmrc`**
+
+   ```bash
+   echo "//npm.pkg.github.com/:_authToken=$(gh auth token)" >> ~/.npmrc
+   ```
+
+### Runtime Requirements
+
+- **Node.js 22+** is required.
+- Keylens uses [Playwright](https://playwright.dev) to drive browsers. On first run, it will prompt you to install browser binaries if needed:
+
+```bash
+npx playwright install chromium
+```
+
 ## Quick Start
 
 Run a keyboard navigation audit on any URL without installing anything:
 
 ```bash
-npx @telerik/keylens audit https://your-site.com
+npx @telerik/keylens@dev audit https://your-site.com
 ```
 
 ## Installation
@@ -13,13 +46,13 @@ npx @telerik/keylens audit https://your-site.com
 ### Global
 
 ```bash
-npm install -g @telerik/keylens
+npm install -g @telerik/keylens@dev
 ```
 
 ### Project Dependency
 
 ```bash
-npm install --save-dev @telerik/keylens
+npm install --save-dev @telerik/keylens@dev
 ```
 
 Add a script to your `package.json`:
@@ -30,15 +63,6 @@ Add a script to your `package.json`:
     "test:keyboard": "keylens audit http://localhost:3000"
   }
 }
-```
-
-## Prerequisites
-
-- **Node.js 22+** is required.
-- Keylens uses [Playwright](https://playwright.dev) to drive browsers. On first run, it will prompt you to install browser binaries if needed:
-
-```bash
-npx playwright install chromium
 ```
 
 ## Your First Audit
