@@ -168,7 +168,11 @@ export async function crawlPage(
     let interactionResults: InteractionResult[] | undefined;
     if (config.interactions) {
       logger.info("Testing post-click interactions...");
-      interactionResults = await crawlInteractions(page, focusSequence, config.tabDelay);
+      interactionResults = await crawlInteractions(
+        page,
+        focusSequence,
+        config.tabDelay,
+      );
       logger.debug(
         `Tested ${interactionResults!.length} interactions, ${interactionResults!.filter((r) => !r.focusReasonable).length} issue(s)`,
       );
@@ -199,7 +203,10 @@ export async function crawlPage(
  * Test skip link functionality by tabbing through the first few elements,
  * finding a skip link, pressing Enter, and verifying focus moves to main content.
  */
-async function testSkipLink(page: Page, tabDelay: number): Promise<SkipLinkResult> {
+async function testSkipLink(
+  page: Page,
+  tabDelay: number,
+): Promise<SkipLinkResult> {
   // Click body to reset sequential focus navigation starting point
   await page.mouse.click(0, 0);
   await page.waitForTimeout(tabDelay);
@@ -407,7 +414,10 @@ async function crawlTabOrder(
       focusedScreenshot,
       computedFocusStyles: computedFocusStyles ?? undefined,
       outerHTML: elementInfo.outerHTML,
-      ariaAttributes: Object.keys(elementInfo.ariaAttributes).length > 0 ? elementInfo.ariaAttributes : undefined,
+      ariaAttributes:
+        Object.keys(elementInfo.ariaAttributes).length > 0
+          ? elementInfo.ariaAttributes
+          : undefined,
       parentContext: elementInfo.parentContext ?? undefined,
     };
 

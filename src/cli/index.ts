@@ -49,14 +49,21 @@ program
   .option("--wait-for <selector>", "wait for this CSS selector before auditing")
   .option("--wait <ms>", "wait this many ms after page load", "1000")
   .option("--max-tabs <n>", "maximum tab presses", "500")
-  .option("--tab-delay <ms>", "delay between tab presses in ms (min: 10)", "250")
+  .option(
+    "--tab-delay <ms>",
+    "delay between tab presses in ms (min: 10)",
+    "250",
+  )
   .option(
     "--viewport <WxH>",
     "viewport dimensions (e.g., 1280x720)",
     "1280x720",
   )
   .option("--ai", "enable AI-powered analysis", false)
-  .option("--ai-model <model>", "AI model to use (default: claude-sonnet-4-20250514)")
+  .option(
+    "--ai-model <model>",
+    "AI model to use (default: claude-sonnet-4-20250514)",
+  )
   .option("--timeout <ms>", "navigation timeout in ms", "30000")
   .option(
     "--screenshots",

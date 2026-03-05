@@ -417,9 +417,7 @@ describe("reportMultiCLI", () => {
     reportMultiCLI(report);
 
     const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(allOutput).toContain(
-      "Overall the site has good keyboard support.",
-    );
+    expect(allOutput).toContain("Overall the site has good keyboard support.");
   });
 
   it("should render structured AI summary in multi-page report", () => {

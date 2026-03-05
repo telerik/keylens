@@ -719,22 +719,34 @@ describe("AIAnalyzer", () => {
       const response = JSON.stringify([
         {
           violationIndex: 1,
-          summary: "Add tabindex=\"0\"",
+          summary: 'Add tabindex="0"',
           wcagRef: "2.1.1",
           explanation: "Make the div focusable",
           estimatedEffort: "low",
         },
       ]);
-      const transport = { query: vi.fn().mockResolvedValue(response), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({ enabled: true, transport }));
+      const transport = {
+        query: vi.fn().mockResolvedValue(response),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
 
       const violations: RuleViolation[] = [
-        { ruleId: "unreachable", ruleName: "Unreachable", severity: "error", message: "Not reachable", elements: [], impact: "High" },
+        {
+          ruleId: "unreachable",
+          ruleName: "Unreachable",
+          severity: "error",
+          message: "Not reachable",
+          elements: [],
+          impact: "High",
+        },
       ];
       await ai.generateFixSuggestions(violations);
 
       expect(violations[0].fixSuggestion).toEqual({
-        summary: "Add tabindex=\"0\"",
+        summary: 'Add tabindex="0"',
         wcagRef: "2.1.1",
         explanation: "Make the div focusable",
         estimatedEffort: "low",
@@ -742,11 +754,23 @@ describe("AIAnalyzer", () => {
     });
 
     it("should fall back to raw string when transport returns invalid JSON", async () => {
-      const transport = { query: vi.fn().mockResolvedValue("Just add tabindex"), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({ enabled: true, transport }));
+      const transport = {
+        query: vi.fn().mockResolvedValue("Just add tabindex"),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
 
       const violations: RuleViolation[] = [
-        { ruleId: "test", ruleName: "Test", severity: "error", message: "Issue", elements: [], impact: "High" },
+        {
+          ruleId: "test",
+          ruleName: "Test",
+          severity: "error",
+          message: "Issue",
+          elements: [],
+          impact: "High",
+        },
       ];
       await ai.generateFixSuggestions(violations);
 
@@ -761,8 +785,13 @@ describe("AIAnalyzer", () => {
         issues: [],
         overallAssessment: "good",
       });
-      const transport = { query: vi.fn(), queryVision: vi.fn().mockResolvedValue(response) };
-      const ai = await createAnalyzer(makeAIConfig({ enabled: true, transport }));
+      const transport = {
+        query: vi.fn(),
+        queryVision: vi.fn().mockResolvedValue(response),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
 
       const result = await ai.validateFocusOrder(
         [makeFocusedElement({ tabIndex: 1 })],
@@ -782,7 +811,9 @@ describe("AIAnalyzer", () => {
         query: vi.fn().mockResolvedValue("Focus order looks fine"),
         queryVision: vi.fn().mockResolvedValue("not json"),
       };
-      const ai = await createAnalyzer(makeAIConfig({ enabled: true, transport }));
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
 
       const result = await ai.validateFocusOrder(
         [makeFocusedElement({ tabIndex: 1 })],
@@ -799,21 +830,38 @@ describe("AIAnalyzer", () => {
       const response = JSON.stringify({
         overview: "Good keyboard accessibility overall.",
         criticalIssues: ["Missing skip link"],
-        prioritizedFixes: [{ fix: "Add skip link", effort: "low", impact: "high" }],
+        prioritizedFixes: [
+          { fix: "Add skip link", effort: "low", impact: "high" },
+        ],
         aiSeverityRating: 78,
         recommendation: "Add a skip link.",
       });
-      const transport = { query: vi.fn().mockResolvedValue(response), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({ enabled: true, transport }));
+      const transport = {
+        query: vi.fn().mockResolvedValue(response),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
 
       const result = await ai.generateSummary(makeAuditReport());
 
-      expect(result).toEqual(expect.objectContaining({ aiSeverityRating: 78, overview: "Good keyboard accessibility overall." }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          aiSeverityRating: 78,
+          overview: "Good keyboard accessibility overall.",
+        }),
+      );
     });
 
     it("should return plain string when transport returns non-JSON", async () => {
-      const transport = { query: vi.fn().mockResolvedValue("Overall the page is accessible."), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({ enabled: true, transport }));
+      const transport = {
+        query: vi.fn().mockResolvedValue("Overall the page is accessible."),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
 
       const result = await ai.generateSummary(makeAuditReport());
 
@@ -828,18 +876,30 @@ describe("AIAnalyzer", () => {
           index: 1,
           pattern: "tabs",
           confidence: 0.95,
-          expectedKeyboard: [{ key: "ArrowRight", expectedBehavior: "Move to next tab" }],
+          expectedKeyboard: [
+            { key: "ArrowRight", expectedBehavior: "Move to next tab" },
+          ],
         },
       ]);
-      const transport = { query: vi.fn().mockResolvedValue(response), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({
-        enabled: true,
-        transport,
-        features: {
-          focusOrderValidation: true, fixSuggestions: true, widgetClassification: true,
-          reportSummary: true, focusIndicatorQuality: false, accessibleNameInference: false, crossPagePatterns: true,
-        },
-      }));
+      const transport = {
+        query: vi.fn().mockResolvedValue(response),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({
+          enabled: true,
+          transport,
+          features: {
+            focusOrderValidation: true,
+            fixSuggestions: true,
+            widgetClassification: true,
+            reportSummary: true,
+            focusIndicatorQuality: false,
+            accessibleNameInference: false,
+            crossPagePatterns: true,
+          },
+        }),
+      );
 
       const result = await ai.classifyWidgets([
         makeInteractiveElement({ role: "tablist", accessibleName: "Settings" }),
@@ -854,15 +914,25 @@ describe("AIAnalyzer", () => {
       const response = JSON.stringify([
         { index: 1, pattern: "menu", confidence: 0.3, expectedKeyboard: [] },
       ]);
-      const transport = { query: vi.fn().mockResolvedValue(response), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({
-        enabled: true,
-        transport,
-        features: {
-          focusOrderValidation: true, fixSuggestions: true, widgetClassification: true,
-          reportSummary: true, focusIndicatorQuality: false, accessibleNameInference: false, crossPagePatterns: true,
-        },
-      }));
+      const transport = {
+        query: vi.fn().mockResolvedValue(response),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({
+          enabled: true,
+          transport,
+          features: {
+            focusOrderValidation: true,
+            fixSuggestions: true,
+            widgetClassification: true,
+            reportSummary: true,
+            focusIndicatorQuality: false,
+            accessibleNameInference: false,
+            crossPagePatterns: true,
+          },
+        }),
+      );
 
       const result = await ai.classifyWidgets([
         makeInteractiveElement({ role: "tablist" }),
@@ -875,17 +945,32 @@ describe("AIAnalyzer", () => {
   describe("inferAccessibleNames (happy path)", () => {
     it("should return typed AccessibleNameSuggestion[] via transport", async () => {
       const response = JSON.stringify([
-        { index: 1, suggestedLabel: "Close dialog", confidence: 0.9, reasoning: "X icon button closes modal" },
-      ]);
-      const transport = { query: vi.fn().mockResolvedValue(response), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({
-        enabled: true,
-        transport,
-        features: {
-          focusOrderValidation: true, fixSuggestions: true, widgetClassification: false,
-          reportSummary: true, focusIndicatorQuality: false, accessibleNameInference: true, crossPagePatterns: true,
+        {
+          index: 1,
+          suggestedLabel: "Close dialog",
+          confidence: 0.9,
+          reasoning: "X icon button closes modal",
         },
-      }));
+      ]);
+      const transport = {
+        query: vi.fn().mockResolvedValue(response),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({
+          enabled: true,
+          transport,
+          features: {
+            focusOrderValidation: true,
+            fixSuggestions: true,
+            widgetClassification: false,
+            reportSummary: true,
+            focusIndicatorQuality: false,
+            accessibleNameInference: true,
+            crossPagePatterns: true,
+          },
+        }),
+      );
 
       const result = await ai.inferAccessibleNames(
         [makeInteractiveElement({ accessibleName: "" })],
@@ -900,17 +985,32 @@ describe("AIAnalyzer", () => {
   describe("scoreFocusIndicatorQuality (happy path)", () => {
     it("should return typed FocusIndicatorScore[] via vision transport", async () => {
       const response = JSON.stringify([
-        { elementIndex: 1, score: 9, contrast: "sufficient", visibility: "clear" },
-      ]);
-      const transport = { query: vi.fn(), queryVision: vi.fn().mockResolvedValue(response) };
-      const ai = await createAnalyzer(makeAIConfig({
-        enabled: true,
-        transport,
-        features: {
-          focusOrderValidation: true, fixSuggestions: true, widgetClassification: false,
-          reportSummary: true, focusIndicatorQuality: true, accessibleNameInference: false, crossPagePatterns: true,
+        {
+          elementIndex: 1,
+          score: 9,
+          contrast: "sufficient",
+          visibility: "clear",
         },
-      }));
+      ]);
+      const transport = {
+        query: vi.fn(),
+        queryVision: vi.fn().mockResolvedValue(response),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({
+          enabled: true,
+          transport,
+          features: {
+            focusOrderValidation: true,
+            fixSuggestions: true,
+            widgetClassification: false,
+            reportSummary: true,
+            focusIndicatorQuality: true,
+            accessibleNameInference: false,
+            crossPagePatterns: true,
+          },
+        }),
+      );
 
       const result = await ai.scoreFocusIndicatorQuality([
         makeFocusedElement({
@@ -937,15 +1037,25 @@ describe("AIAnalyzer", () => {
           suggestion: "Standardize navigation tab order",
         },
       ]);
-      const transport = { query: vi.fn().mockResolvedValue(response), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({
-        enabled: true,
-        transport,
-        features: {
-          focusOrderValidation: true, fixSuggestions: true, widgetClassification: false,
-          reportSummary: true, focusIndicatorQuality: false, accessibleNameInference: false, crossPagePatterns: true,
-        },
-      }));
+      const transport = {
+        query: vi.fn().mockResolvedValue(response),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({
+          enabled: true,
+          transport,
+          features: {
+            focusOrderValidation: true,
+            fixSuggestions: true,
+            widgetClassification: false,
+            reportSummary: true,
+            focusIndicatorQuality: false,
+            accessibleNameInference: false,
+            crossPagePatterns: true,
+          },
+        }),
+      );
 
       // Need 2 pages with shared elements at different tab positions to trigger heuristic
       const report = makeMultiPageReport({
@@ -974,15 +1084,25 @@ describe("AIAnalyzer", () => {
     });
 
     it("should fall back to heuristic-only patterns when AI returns invalid JSON", async () => {
-      const transport = { query: vi.fn().mockResolvedValue("not valid json"), queryVision: vi.fn() };
-      const ai = await createAnalyzer(makeAIConfig({
-        enabled: true,
-        transport,
-        features: {
-          focusOrderValidation: true, fixSuggestions: true, widgetClassification: false,
-          reportSummary: true, focusIndicatorQuality: false, accessibleNameInference: false, crossPagePatterns: true,
-        },
-      }));
+      const transport = {
+        query: vi.fn().mockResolvedValue("not valid json"),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({
+          enabled: true,
+          transport,
+          features: {
+            focusOrderValidation: true,
+            fixSuggestions: true,
+            widgetClassification: false,
+            reportSummary: true,
+            focusIndicatorQuality: false,
+            accessibleNameInference: false,
+            crossPagePatterns: true,
+          },
+        }),
+      );
 
       const report = makeMultiPageReport({
         pages: [

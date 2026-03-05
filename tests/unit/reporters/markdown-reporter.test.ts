@@ -316,7 +316,10 @@ describe("reportMarkdown", () => {
         pattern: "combobox",
         confidence: 0.92,
         expectedKeyboard: [
-          { key: "ArrowDown", expectedBehavior: "Open list or move to next option" },
+          {
+            key: "ArrowDown",
+            expectedBehavior: "Open list or move to next option",
+          },
         ],
       },
     ];
@@ -454,7 +457,10 @@ describe("reportMarkdown", () => {
           role: "button",
           accessibleName: "Toggle",
           selector: "button.toggle",
-          ariaAttributes: { "aria-expanded": "false", "aria-controls": "panel" },
+          ariaAttributes: {
+            "aria-expanded": "false",
+            "aria-controls": "panel",
+          },
           parentContext: "nav",
         }),
       ],

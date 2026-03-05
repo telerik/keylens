@@ -12,9 +12,17 @@ import {
 
 describe("safeParseJSON", () => {
   it("returns parsed data for valid JSON matching schema", () => {
-    const json = JSON.stringify({ summary: "ok", issues: [], overallAssessment: "good" });
+    const json = JSON.stringify({
+      summary: "ok",
+      issues: [],
+      overallAssessment: "good",
+    });
     const result = safeParseJSON(json, focusOrderResultSchema);
-    expect(result).toEqual({ summary: "ok", issues: [], overallAssessment: "good" });
+    expect(result).toEqual({
+      summary: "ok",
+      issues: [],
+      overallAssessment: "good",
+    });
   });
 
   it("returns null for invalid JSON", () => {
@@ -42,7 +50,10 @@ describe("fixSuggestionBatchSchema", () => {
         estimatedEffort: "low",
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), fixSuggestionBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      fixSuggestionBatchSchema,
+    );
     expect(result).toHaveLength(1);
     expect(result![0].summary).toBe("Add tabindex");
   });
@@ -59,14 +70,19 @@ describe("fixSuggestionBatchSchema", () => {
         codeAfter: "<button>",
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), fixSuggestionBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      fixSuggestionBatchSchema,
+    );
     expect(result).not.toBeNull();
     expect(result![0].codeBefore).toBe("<div>");
   });
 
   it("rejects item missing required fields", () => {
     const data = [{ violationIndex: 1, summary: "Fix" }];
-    expect(safeParseJSON(JSON.stringify(data), fixSuggestionBatchSchema)).toBeNull();
+    expect(
+      safeParseJSON(JSON.stringify(data), fixSuggestionBatchSchema),
+    ).toBeNull();
   });
 });
 
@@ -96,7 +112,9 @@ describe("focusOrderResultSchema", () => {
       issues: [],
       overallAssessment: "terrible",
     };
-    expect(safeParseJSON(JSON.stringify(data), focusOrderResultSchema)).toBeNull();
+    expect(
+      safeParseJSON(JSON.stringify(data), focusOrderResultSchema),
+    ).toBeNull();
   });
 });
 
@@ -149,7 +167,10 @@ describe("widgetClassificationBatchSchema", () => {
         expectedKeyboard: [{ key: "Escape", expectedBehavior: "Close dialog" }],
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), widgetClassificationBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      widgetClassificationBatchSchema,
+    );
     expect(result).not.toBeNull();
     expect(result![0].pattern).toBe("dialog");
   });
@@ -163,7 +184,9 @@ describe("widgetClassificationBatchSchema", () => {
         expectedKeyboard: [],
       },
     ];
-    expect(safeParseJSON(JSON.stringify(data), widgetClassificationBatchSchema)).toBeNull();
+    expect(
+      safeParseJSON(JSON.stringify(data), widgetClassificationBatchSchema),
+    ).toBeNull();
   });
 });
 
@@ -177,7 +200,10 @@ describe("accessibleNameBatchSchema", () => {
         reasoning: "Button submits form",
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), accessibleNameBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      accessibleNameBatchSchema,
+    );
     expect(result).not.toBeNull();
     expect(result![0].suggestedLabel).toBe("Submit form");
   });
@@ -192,7 +218,10 @@ describe("accessibleNameBatchSchema", () => {
         reasoning: "Contains nav links",
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), accessibleNameBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      accessibleNameBatchSchema,
+    );
     expect(result).not.toBeNull();
     expect(result![0].suggestedRole).toBe("navigation");
   });
@@ -208,7 +237,10 @@ describe("focusIndicatorScoreBatchSchema", () => {
         visibility: "clear",
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), focusIndicatorScoreBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      focusIndicatorScoreBatchSchema,
+    );
     expect(result).not.toBeNull();
     expect(result![0].score).toBe(8);
   });
@@ -222,7 +254,9 @@ describe("focusIndicatorScoreBatchSchema", () => {
         visibility: "clear",
       },
     ];
-    expect(safeParseJSON(JSON.stringify(data), focusIndicatorScoreBatchSchema)).toBeNull();
+    expect(
+      safeParseJSON(JSON.stringify(data), focusIndicatorScoreBatchSchema),
+    ).toBeNull();
   });
 
   it("allows optional recommendation", () => {
@@ -235,7 +269,10 @@ describe("focusIndicatorScoreBatchSchema", () => {
         recommendation: "Increase outline width",
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), focusIndicatorScoreBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      focusIndicatorScoreBatchSchema,
+    );
     expect(result![0].recommendation).toBe("Increase outline width");
   });
 });
@@ -251,7 +288,10 @@ describe("crossPagePatternBatchSchema", () => {
         suggestion: "Align tab order",
       },
     ];
-    const result = safeParseJSON(JSON.stringify(data), crossPagePatternBatchSchema);
+    const result = safeParseJSON(
+      JSON.stringify(data),
+      crossPagePatternBatchSchema,
+    );
     expect(result).not.toBeNull();
     expect(result![0].type).toBe("inconsistent-order");
   });
@@ -266,7 +306,9 @@ describe("crossPagePatternBatchSchema", () => {
         suggestion: "...",
       },
     ];
-    expect(safeParseJSON(JSON.stringify(data), crossPagePatternBatchSchema)).toBeNull();
+    expect(
+      safeParseJSON(JSON.stringify(data), crossPagePatternBatchSchema),
+    ).toBeNull();
   });
 
   it("validates empty array as valid", () => {
