@@ -23,7 +23,7 @@
     "url": "git+https://github.com/telerik/keylens.git"
   },
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com"
   },
   "license": "MIT",
   "author": "Progress Software Corporation",
@@ -88,6 +88,12 @@
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^20.4.1",
     "@eslint/js": "^9.39.2",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
+    "@semantic-release/npm": "^12.0.2",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@types/node": "^25.2.3",
     "@types/pngjs": "^6.0.5",
     "@vitest/coverage-v8": "^4.0.18",
@@ -95,6 +101,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
+    "semantic-release": "^24.2.9",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

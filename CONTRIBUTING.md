@@ -122,7 +122,7 @@ Create `tests/unit/rules/my-new-rule.test.ts` with test cases covering pass and 
 
 ## Pull Request Guidelines
 
-1. **Branch from `main`** — use descriptive branch names like `feat/roving-tabindex-rule` or `fix/crawl-timeout`.
+1. **Branch from `develop`** — use descriptive branch names like `feat/roving-tabindex-rule` or `fix/crawl-timeout`.
 2. **Write tests** — every new rule and feature should have tests.
 3. **Run the full check** before opening a PR:
    ```bash
