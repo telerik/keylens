@@ -64,27 +64,22 @@ export async function audit(
     // Run independent AI analyses in parallel for performance
     const allViolations = ruleResults.flatMap((r) => r.violations);
 
-    const [
-      ,
-      focusOrderAnalysis,
-      classifications,
-      nameSuggestions,
-      fiScores,
-    ] = await Promise.all([
-      ai.generateFixSuggestions(allViolations),
-      ai.validateFocusOrder(
-        crawlResult.focusSequence,
-        crawlResult.pageScreenshot,
-        crawlResult.pageDimensions,
-      ),
-      ai.classifyWidgets(crawlResult.interactiveElements),
-      ai.inferAccessibleNames(
-        crawlResult.interactiveElements,
-        crawlResult.pageScreenshot,
-        crawlResult.pageDimensions,
-      ),
-      ai.scoreFocusIndicatorQuality(crawlResult.focusSequence),
-    ]);
+    const [, focusOrderAnalysis, classifications, nameSuggestions, fiScores] =
+      await Promise.all([
+        ai.generateFixSuggestions(allViolations),
+        ai.validateFocusOrder(
+          crawlResult.focusSequence,
+          crawlResult.pageScreenshot,
+          crawlResult.pageDimensions,
+        ),
+        ai.classifyWidgets(crawlResult.interactiveElements),
+        ai.inferAccessibleNames(
+          crawlResult.interactiveElements,
+          crawlResult.pageScreenshot,
+          crawlResult.pageDimensions,
+        ),
+        ai.scoreFocusIndicatorQuality(crawlResult.focusSequence),
+      ]);
 
     if (focusOrderAnalysis) {
       aiFocusOrderAnalysis = focusOrderAnalysis;
@@ -205,9 +200,12 @@ export async function auditMultiple(
       totalWarnings: pages.reduce((sum, p) => sum + p.summary.totalWarnings, 0),
       totalInfo: pages.reduce((sum, p) => sum + p.summary.totalInfo, 0),
       pagesWithErrors: pages.filter((p) => p.summary.totalErrors > 0).length,
-      score: pages.length > 0
-        ? Math.round(pages.reduce((sum, p) => sum + p.summary.score, 0) / pages.length)
-        : 0,
+      score:
+        pages.length > 0
+          ? Math.round(
+              pages.reduce((sum, p) => sum + p.summary.score, 0) / pages.length,
+            )
+          : 0,
     },
   };
 

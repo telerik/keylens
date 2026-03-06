@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master, develop]
+    branches: [develop]
   pull_request:
     branches: [master, develop]
   workflow_call:
@@ -45,11 +45,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:coverage
-      - name: Upload coverage
-        if: matrix.node-version == 22
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage/lcov.info
 
   build:
     name: Build

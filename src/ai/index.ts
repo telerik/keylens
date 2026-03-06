@@ -119,24 +119,24 @@ export class AIAnalyzer {
         // Try to parse batch response
         const parsed = safeParseJSON(response, fixSuggestionBatchSchema);
         if (parsed) {
-            for (const item of parsed) {
-              const idx = item.violationIndex - 1;
-              const violation = chunk[idx];
-              if (violation && item.summary && item.wcagRef && item.explanation) {
-                const { violationIndex: _vi, ...suggestion } = item;
-                void _vi;
-                violation.fixSuggestion = suggestion;
-              }
+          for (const item of parsed) {
+            const idx = item.violationIndex - 1;
+            const violation = chunk[idx];
+            if (violation && item.summary && item.wcagRef && item.explanation) {
+              const { violationIndex: _vi, ...suggestion } = item;
+              void _vi;
+              violation.fixSuggestion = suggestion;
             }
-            // Fill in any missing ones with a fallback
-            for (const violation of chunk) {
-              if (!violation.fixSuggestion) {
-                logger.debug(
-                  `No structured fix in batch response for ${violation.ruleId}`,
-                );
-              }
+          }
+          // Fill in any missing ones with a fallback
+          for (const violation of chunk) {
+            if (!violation.fixSuggestion) {
+              logger.debug(
+                `No structured fix in batch response for ${violation.ruleId}`,
+              );
             }
-            continue;
+          }
+          continue;
         }
 
         // Fallback: assign entire response to first violation in chunk
@@ -627,7 +627,10 @@ Scoring guide:
       }> = [];
       for (const el of elementsToScore) {
         images.push({ base64: el.focusedScreenshot!, mediaType: "image/png" });
-        images.push({ base64: el.unfocusedScreenshot!, mediaType: "image/png" });
+        images.push({
+          base64: el.unfocusedScreenshot!,
+          mediaType: "image/png",
+        });
       }
 
       const response = await this.queryVision(prompt, images);
@@ -884,7 +887,10 @@ For each finding, classify it and provide a fix suggestion. Respond with ONLY a 
       .map((v, i) => {
         const elements = v.elements
           .slice(0, 2)
-          .map((el) => `    Selector: ${el.selector}\n    HTML: ${el.outerHTML?.slice(0, OUTER_HTML_LIMIT)}`)
+          .map(
+            (el) =>
+              `    Selector: ${el.selector}\n    HTML: ${el.outerHTML?.slice(0, OUTER_HTML_LIMIT)}`,
+          )
           .join("\n\n");
 
         return `Violation ${i + 1}:
@@ -963,14 +969,16 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
    * Query the Anthropic Claude API with text only.
    */
   private async queryAnthropic(prompt: string): Promise<string> {
-    const client = await this.getAnthropicClient() as AnthropicClient;
+    const client = (await this.getAnthropicClient()) as AnthropicClient;
     const message: AnthropicMessage = await client.messages.create({
       model: this.config.model || "claude-sonnet-4-20250514",
       max_tokens: 1024,
       messages: [{ role: "user", content: prompt }],
     });
 
-    const textBlock = message.content.find((block: AnthropicContentBlock) => block.type === "text");
+    const textBlock = message.content.find(
+      (block: AnthropicContentBlock) => block.type === "text",
+    );
     return textBlock?.text ?? "";
   }
 
@@ -1009,14 +1017,16 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
     }
     content.push({ type: "text", text: prompt });
 
-    const client = await this.getAnthropicClient() as AnthropicClient;
+    const client = (await this.getAnthropicClient()) as AnthropicClient;
     const message: AnthropicMessage = await client.messages.create({
       model: this.config.model || "claude-sonnet-4-20250514",
       max_tokens: 2048,
       messages: [{ role: "user", content }],
     });
 
-    const textBlock = message.content.find((block: AnthropicContentBlock) => block.type === "text");
+    const textBlock = message.content.find(
+      (block: AnthropicContentBlock) => block.type === "text",
+    );
     return textBlock?.text ?? "";
   }
 

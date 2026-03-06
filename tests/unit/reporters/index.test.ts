@@ -182,7 +182,11 @@ describe("runMultiReporters", () => {
     const runMultiReporters = await getRunMultiReporters();
     const report = makeMultiReport();
 
-    await runMultiReporters(report, ["cli", "json", "html", "markdown"], "./output");
+    await runMultiReporters(
+      report,
+      ["cli", "json", "html", "markdown"],
+      "./output",
+    );
 
     expect(mockMultiCLI).toHaveBeenCalledTimes(1);
     expect(mockMultiJSON).toHaveBeenCalledTimes(1);

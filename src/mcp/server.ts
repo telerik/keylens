@@ -42,7 +42,7 @@ const auditOptionsSchema = z
       .optional()
       .describe(
         'Output report formats to generate. Supported values: "cli", "json", "html". ' +
-        'Use "html" to save an interactive HTML focus-map report to disk.',
+          'Use "html" to save an interactive HTML focus-map report to disk.',
       ),
     outputDir: z
       .string()

@@ -1,6 +1,12 @@
 import { join } from "path";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { audit, auditMultiple, crawlOnly, AIAnalyzer, DEFAULT_CONFIG } from "../index.js";
+import {
+  audit,
+  auditMultiple,
+  crawlOnly,
+  AIAnalyzer,
+  DEFAULT_CONFIG,
+} from "../index.js";
 import type {
   KeylensConfig,
   AuditReport,
@@ -63,9 +69,7 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
     }
   }
 
-  const aiKey =
-    process.env.KEYLENS_AI_API_KEY ||
-    process.env.ANTHROPIC_API_KEY;
+  const aiKey = process.env.KEYLENS_AI_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (aiKey) {
     config.ai = { ...config.ai, apiKey: aiKey };
   }
@@ -208,9 +212,7 @@ export function compactReport(report: AuditReport) {
     // AI fields (pass through as-is — they're already text/structured)
     aiSummary: report.aiSummary,
     aiFocusOrderAnalysis: report.aiFocusOrderAnalysis,
-    widgetClassifications: compactClassifications(
-      report.widgetClassifications,
-    ),
+    widgetClassifications: compactClassifications(report.widgetClassifications),
     accessibleNameSuggestions: compactNameSuggestions(
       report.accessibleNameSuggestions,
     ),
@@ -366,9 +368,7 @@ export async function handleClassifyWidgets(
     }));
 
     return {
-      content: [
-        { type: "text", text: JSON.stringify(compact) },
-      ],
+      content: [{ type: "text", text: JSON.stringify(compact) }],
     };
   } catch (error) {
     return {

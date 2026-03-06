@@ -46,8 +46,12 @@ function renderSummary(report: AuditReport): string {
   const lines: string[] = [];
   lines.push("## Summary");
   lines.push("");
-  lines.push("| Errors | Warnings | Info | Rules Passed | Rules Failed | Score |");
-  lines.push("| ------ | -------- | ---- | ------------ | ------------ | ----- |");
+  lines.push(
+    "| Errors | Warnings | Info | Rules Passed | Rules Failed | Score |",
+  );
+  lines.push(
+    "| ------ | -------- | ---- | ------------ | ------------ | ----- |",
+  );
   lines.push(
     `| ${s.totalErrors} | ${s.totalWarnings} | ${s.totalInfo} | ${s.passed} | ${s.failed} | ${s.score}/100 |`,
   );
@@ -173,7 +177,8 @@ function renderRules(report: AuditReport): string {
         if (v.elements.length > 0) {
           lines.push("  - **Elements:**");
           for (const el of v.elements) {
-            const pos = el.tabPosition != null ? ` (tab #${el.tabPosition})` : "";
+            const pos =
+              el.tabPosition != null ? ` (tab #${el.tabPosition})` : "";
             lines.push(`    - \`${esc(truncate(el.selector, 80))}\`${pos}`);
           }
         }
@@ -296,7 +301,9 @@ function renderAIAnalysis(report: AuditReport): string {
   ) {
     lines.push("### Accessible Name Suggestions");
     lines.push("");
-    lines.push("| Element | Suggested Label | Suggested Role | Confidence | Reasoning |");
+    lines.push(
+      "| Element | Suggested Label | Suggested Role | Confidence | Reasoning |",
+    );
     lines.push("| --- | --- | --- | --- | --- |");
     for (const s of report.accessibleNameSuggestions) {
       const elLabel = esc(s.element.role || s.element.tagName);
@@ -412,8 +419,12 @@ function buildMultiPageMarkdown(report: MultiPageReport): string {
   const s = report.summary;
   lines.push("## Aggregate Summary");
   lines.push("");
-  lines.push("| Total Pages | Errors | Warnings | Info | Pages with Errors | Score |");
-  lines.push("| ----------- | ------ | -------- | ---- | ----------------- | ----- |");
+  lines.push(
+    "| Total Pages | Errors | Warnings | Info | Pages with Errors | Score |",
+  );
+  lines.push(
+    "| ----------- | ------ | -------- | ---- | ----------------- | ----- |",
+  );
   lines.push(
     `| ${s.totalPages} | ${s.totalErrors} | ${s.totalWarnings} | ${s.totalInfo} | ${s.pagesWithErrors} | ${s.score}/100 |`,
   );
@@ -435,7 +446,9 @@ function buildMultiPageMarkdown(report: MultiPageReport): string {
   if (report.crossPagePatterns && report.crossPagePatterns.length > 0) {
     lines.push("## Cross-Page Patterns");
     lines.push("");
-    lines.push("| Type | Severity | Description | Affected Pages | Suggestion |");
+    lines.push(
+      "| Type | Severity | Description | Affected Pages | Suggestion |",
+    );
     lines.push("| --- | --- | --- | --- | --- |");
     for (const p of report.crossPagePatterns) {
       const pages = p.affectedPages.map((u) => `\`${esc(u)}\``).join(", ");

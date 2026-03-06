@@ -4,7 +4,7 @@ export default defineConfig({
   title: "Keylens",
   description:
     "Keyboard navigation testing CLI. See your site through the lens of keyboard users.",
-  base: "/keylens/",
+  base: "/",
   head: [["link", { rel: "icon", type: "image/svg+xml", href: "/logo.svg" }]],
   themeConfig: {
     nav: [

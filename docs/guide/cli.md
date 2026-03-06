@@ -6,25 +6,25 @@
 
 Run a keyboard navigation audit on one or more URLs. The URL argument is optional — when omitted, Keylens reads URLs from the config file's `urls` array.
 
-| Flag                       | Default            | Description                                        |
-| -------------------------- | ------------------ | -------------------------------------------------- |
-| `-c, --config <path>`      | —                  | Path to config file                                |
+| Flag                       | Default            | Description                                                    |
+| -------------------------- | ------------------ | -------------------------------------------------------------- |
+| `-c, --config <path>`      | —                  | Path to config file                                            |
 | `-o, --output <reporters>` | `cli`              | Reporters (comma-separated: `cli`, `json`, `html`, `markdown`) |
-| `-d, --output-dir <dir>`   | `./keylens-report` | Output directory for reports                       |
-| `-b, --browser <name>`     | `chromium`         | Browser engine: `chromium`, `firefox`, `webkit`    |
-| `--headed`                 | `false`            | Run with a visible browser window                  |
-| `--wait-for <selector>`    | —                  | Wait for CSS selector before auditing              |
-| `--wait <ms>`              | `1000`             | Wait after page load (ms)                          |
-| `--max-tabs <n>`           | `500`              | Max Tab presses before stopping                    |
-| `--tab-delay <ms>`         | `250`              | Delay between tab presses in ms (min: 10)          |
-| `--viewport <WxH>`         | `1280x720`         | Viewport dimensions                                |
-| `--timeout <ms>`           | `30000`            | Navigation timeout in ms                           |
-| `--screenshots`            | `false`            | Capture per-element focused/unfocused screenshots  |
-| `--interactions`           | `false`            | Test focus behavior after clicking buttons         |
-| `--ai`                     | `false`            | Enable AI analysis                                 |
-| `--ai-model <model>`       | —                  | AI model to use (overrides config)                 |
-| `-q, --quiet`              | `false`            | Suppress non-essential output                      |
-| `-v, --verbose`            | `false`            | Enable debug output                                |
+| `-d, --output-dir <dir>`   | `./keylens-report` | Output directory for reports                                   |
+| `-b, --browser <name>`     | `chromium`         | Browser engine: `chromium`, `firefox`, `webkit`                |
+| `--headed`                 | `false`            | Run with a visible browser window                              |
+| `--wait-for <selector>`    | —                  | Wait for CSS selector before auditing                          |
+| `--wait <ms>`              | `1000`             | Wait after page load (ms)                                      |
+| `--max-tabs <n>`           | `500`              | Max Tab presses before stopping                                |
+| `--tab-delay <ms>`         | `250`              | Delay between tab presses in ms (min: 10)                      |
+| `--viewport <WxH>`         | `1280x720`         | Viewport dimensions                                            |
+| `--timeout <ms>`           | `30000`            | Navigation timeout in ms                                       |
+| `--screenshots`            | `false`            | Capture per-element focused/unfocused screenshots              |
+| `--interactions`           | `false`            | Test focus behavior after clicking buttons                     |
+| `--ai`                     | `false`            | Enable AI analysis                                             |
+| `--ai-model <model>`       | —                  | AI model to use (overrides config)                             |
+| `-q, --quiet`              | `false`            | Suppress non-essential output                                  |
+| `-v, --verbose`            | `false`            | Enable debug output                                            |
 
 #### `--screenshots`
 
