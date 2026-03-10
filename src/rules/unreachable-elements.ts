@@ -27,6 +27,7 @@ export class UnreachableElementsRule implements Rule {
         elements: unreached.map((el) => ({
           selector: el.selector,
           outerHTML: el.outerHTML,
+          accessibleName: el.accessibleName || undefined,
         })),
         wcag: this.wcag,
         impact:

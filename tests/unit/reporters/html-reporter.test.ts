@@ -173,6 +173,221 @@ describe("HTML Reporter", () => {
     expect(html).toContain("1 issue(s)");
     expect(html).toContain("Elements are broken");
     expect(html).toContain("div.broken");
+    expect(html).toContain("element-item");
+    expect(html).toContain("selector-text");
+  });
+
+  it("should render tab position badges when tabPosition is present", async () => {
+    const reportHTML = await getReportHTML();
+    const rule: RuleResult = {
+      ruleId: "focus-order-mismatch",
+      passed: false,
+      violations: [
+        {
+          ruleId: "focus-order-mismatch",
+          ruleName: "Focus Order Mismatch",
+          severity: "warning",
+          message: "3 element(s) have mismatched focus order.",
+          elements: [
+            { selector: "a.first", outerHTML: "<a>first</a>", tabPosition: 5 },
+            {
+              selector: "a.second",
+              outerHTML: "<a>second</a>",
+              tabPosition: 12,
+            },
+            { selector: "a.third", outerHTML: "<a>third</a>", tabPosition: 1 },
+          ],
+          impact: "Medium",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain("tab-pos");
+    expect(html).toContain("#5");
+    expect(html).toContain("#12");
+    expect(html).toContain("#1");
+  });
+
+  it("should collapse elements when more than 3 using details/summary", async () => {
+    const reportHTML = await getReportHTML();
+    const elements = Array.from({ length: 7 }, (_, i) => ({
+      selector: `div.el-${i}`,
+      outerHTML: `<div>el-${i}</div>`,
+    }));
+    const rule: RuleResult = {
+      ruleId: "many-elements",
+      passed: false,
+      violations: [
+        {
+          ruleId: "many-elements",
+          ruleName: "Many Elements",
+          severity: "warning",
+          message: "7 elements found.",
+          elements,
+          impact: "Medium",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    // First 3 visible
+    expect(html).toContain("div.el-0");
+    expect(html).toContain("div.el-1");
+    expect(html).toContain("div.el-2");
+    // Rest in collapsible
+    expect(html).toContain("<details>");
+    expect(html).toContain("Show 4 more elements");
+    expect(html).toContain("div.el-3");
+    expect(html).toContain("div.el-6");
+  });
+
+  it("should not use details/summary when 3 or fewer elements", async () => {
+    const reportHTML = await getReportHTML();
+    const rule: RuleResult = {
+      ruleId: "few-elements",
+      passed: false,
+      violations: [
+        {
+          ruleId: "few-elements",
+          ruleName: "Few Elements",
+          severity: "warning",
+          message: "2 elements found.",
+          elements: [
+            { selector: "a.one", outerHTML: "<a>one</a>" },
+            { selector: "a.two", outerHTML: "<a>two</a>" },
+          ],
+          impact: "Medium",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain("a.one");
+    expect(html).toContain("a.two");
+    expect(html).not.toContain("<details>");
+    expect(html).not.toContain("Show");
+  });
+
+  it("should render WCAG reference badges on violations", async () => {
+    const reportHTML = await getReportHTML();
+    const rule: RuleResult = {
+      ruleId: "wcag-rule",
+      passed: false,
+      violations: [
+        {
+          ruleId: "wcag-rule",
+          ruleName: "WCAG Rule",
+          severity: "error",
+          message: "Has WCAG ref",
+          elements: [],
+          impact: "High",
+          wcag: ["2.4.7", "2.1.1"],
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain("wcag-badge");
+    expect(html).toContain("WCAG 2.4.7");
+    expect(html).toContain("WCAG 2.1.1");
+    expect(html).toContain("focus-visible");
+    expect(html).toContain("keyboard");
+  });
+
+  it("should render impact text on violations", async () => {
+    const reportHTML = await getReportHTML();
+    const rule: RuleResult = {
+      ruleId: "impact-rule",
+      passed: false,
+      violations: [
+        {
+          ruleId: "impact-rule",
+          ruleName: "Impact Rule",
+          severity: "warning",
+          message: "Something wrong",
+          elements: [],
+          impact: "Keyboard users cannot navigate past this element.",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain("Keyboard users cannot navigate past this element.");
+    expect(html).toContain("impact");
+  });
+
+  it("should render rule name and description when available", async () => {
+    const reportHTML = await getReportHTML();
+    const rule: RuleResult = {
+      ruleId: "my-rule",
+      passed: false,
+      ruleName: "My Friendly Rule",
+      ruleDescription: "Checks for something important.",
+      violations: [
+        {
+          ruleId: "my-rule",
+          ruleName: "My Friendly Rule",
+          severity: "warning",
+          message: "Found issue",
+          elements: [],
+          impact: "Medium",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain("My Friendly Rule");
+    expect(html).toContain("Checks for something important.");
+    expect(html).toContain("rule-meta");
+  });
+
+  it("should render accessible name in element items", async () => {
+    const reportHTML = await getReportHTML();
+    const rule: RuleResult = {
+      ruleId: "name-rule",
+      passed: false,
+      violations: [
+        {
+          ruleId: "name-rule",
+          ruleName: "Name Rule",
+          severity: "warning",
+          message: "Has names",
+          elements: [
+            {
+              selector: "button.submit",
+              outerHTML: "<button>Submit</button>",
+              accessibleName: "Submit Form",
+            },
+            {
+              selector: "a.link",
+              outerHTML: "<a>Link</a>",
+            },
+          ],
+          impact: "Medium",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain("element-name");
+    expect(html).toContain("Submit Form");
+    // Element without accessibleName should not have the name span
+    expect(html).toContain("a.link");
   });
 
   it("should render fix suggestions when present", async () => {

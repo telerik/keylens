@@ -333,6 +333,7 @@ export interface RuleViolation {
     selector: string;
     outerHTML: string;
     tabPosition?: number;
+    accessibleName?: string;
   }>;
 
   /** WCAG success criteria reference */

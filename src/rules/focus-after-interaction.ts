@@ -41,6 +41,7 @@ export class FocusAfterInteractionRule implements Rule {
           {
             selector: r.element.selector,
             outerHTML: `<${r.element.tagName} role="${r.element.role}">${r.element.accessibleName}</${r.element.tagName}>`,
+            accessibleName: r.element.accessibleName || undefined,
           },
         ],
         wcag: this.wcag,

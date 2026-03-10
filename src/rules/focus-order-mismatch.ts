@@ -69,6 +69,7 @@ export class FocusOrderMismatchRule implements Rule {
           selector: m.element.selector,
           outerHTML: m.element.outerHTML,
           tabPosition: m.focusPosition,
+          accessibleName: m.element.accessibleName || undefined,
         })),
         wcag: this.wcag,
         impact:

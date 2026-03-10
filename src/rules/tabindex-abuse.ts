@@ -31,6 +31,7 @@ export class TabindexAbuseRule implements Rule {
         elements: positiveTabindex.map((el) => ({
           selector: el.selector,
           outerHTML: el.outerHTML,
+          accessibleName: el.accessibleName || undefined,
         })),
         wcag: this.wcag,
         impact:

@@ -91,6 +91,7 @@ export class MissingFocusIndicatorRule implements Rule {
           selector: el.selector,
           outerHTML: el.outerHTML,
           tabPosition: el.tabIndex,
+          accessibleName: el.accessibleName || undefined,
         })),
         wcag: this.wcag,
         impact:
@@ -132,6 +133,7 @@ export class MissingFocusIndicatorRule implements Rule {
             selector: el.selector,
             outerHTML: el.outerHTML,
             tabPosition: el.tabIndex,
+            accessibleName: el.accessibleName || undefined,
           })),
           wcag: this.wcag,
           impact:

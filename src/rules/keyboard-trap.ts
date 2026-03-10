@@ -36,6 +36,7 @@ export class KeyboardTrapRule implements Rule {
               selector: curr.selector,
               outerHTML: curr.outerHTML,
               tabPosition: curr.tabIndex,
+              accessibleName: curr.accessibleName || undefined,
             },
           ],
           wcag: this.wcag,
