@@ -608,7 +608,21 @@ function COMMON_STYLES(statusColor: string): string {
     .rule-name { font-weight: 600; font-size: 1rem; min-width: 0; }
     .violation { background: #0f172a; border-radius: 0.375rem; padding: 1rem; margin-top: 0.75rem; }
     .violation .message { color: #f1f5f9; margin-bottom: 0.5rem; }
-    .violation .elements { font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #94a3b8; }
+    .violation .elements { font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #94a3b8; overflow-wrap: break-word; word-break: break-all; }
+    .violation .element-item { padding: 0.375rem 0.5rem; border-bottom: 1px solid #1e293b; }
+    .violation .element-item:last-child { border-bottom: none; }
+    .violation .element-head { display: flex; align-items: baseline; gap: 0.5rem; }
+    .violation .tab-pos { color: #38bdf8; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+    .violation .selector-text { min-width: 0; color: #94a3b8; margin-top: 0.125rem; word-break: break-all; }
+    .violation details { margin-top: 0.25rem; }
+    .violation details summary { cursor: pointer; color: #64748b; font-size: 0.8rem; padding: 0.375rem 0.5rem; }
+    .violation details summary:hover { color: #94a3b8; }
+    .violation .impact { color: #64748b; font-size: 0.8rem; font-style: italic; margin-top: 0.375rem; }
+    .violation .wcag-badges { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.375rem; }
+    .violation .wcag-badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; background: #38bdf811; color: #38bdf8; border: 1px solid #38bdf833; text-decoration: none; }
+    .violation .wcag-badge:hover { background: #38bdf822; }
+    .rule-meta { color: #94a3b8; font-size: 0.8rem; margin-top: 0.25rem; }
+    .element-name { color: #22c55e; font-size: 0.75rem; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
     .violation .fix { background: #164e63; border-radius: 0.375rem; padding: 0.75rem; margin-top: 0.5rem; color: #67e8f9; font-size: 0.875rem; }
     .focus-map { position: relative; margin: 2rem 0; background: #1e293b; border-radius: 0.5rem; overflow: hidden; }
     .focus-map img { width: 100%; display: block; opacity: 0.3; }
@@ -654,6 +668,67 @@ function buildMetaCards(
     </div>`;
 }
 
+function buildElementHTML(el: {
+  selector: string;
+  tabPosition?: number;
+  accessibleName?: string;
+}): string {
+  const badge =
+    el.tabPosition != null
+      ? `<span class="tab-pos">#${el.tabPosition}</span>`
+      : "";
+  const name = el.accessibleName
+    ? `<span class="element-name" title="${escapeHTML(el.accessibleName)}">${escapeHTML(el.accessibleName)}</span>`
+    : "";
+  const head =
+    badge || name ? `<div class="element-head">${badge}${name}</div>` : "";
+  return `<div class="element-item">${head}<div class="selector-text">${escapeHTML(el.selector)}</div></div>`;
+}
+
+function buildElementsHTML(
+  elements: Array<{
+    selector: string;
+    tabPosition?: number;
+    accessibleName?: string;
+  }>,
+): string {
+  if (elements.length === 0) return "";
+
+  const VISIBLE_COUNT = 3;
+
+  if (elements.length <= VISIBLE_COUNT) {
+    return `<div class="elements">${elements.map(buildElementHTML).join("")}</div>`;
+  }
+
+  const visible = elements.slice(0, VISIBLE_COUNT);
+  const rest = elements.slice(VISIBLE_COUNT);
+
+  return `<div class="elements">
+    ${visible.map(buildElementHTML).join("")}
+    <details>
+      <summary>Show ${rest.length} more element${rest.length === 1 ? "" : "s"}</summary>
+      ${rest.map(buildElementHTML).join("")}
+    </details>
+  </div>`;
+}
+
+function buildWcagBadgesHTML(wcag?: string[]): string {
+  if (!wcag || wcag.length === 0) return "";
+  return `<div class="wcag-badges">${wcag.map((ref) => `<a class="wcag-badge" href="https://www.w3.org/WAI/WCAG21/Understanding/${wcagSlug(ref)}" target="_blank" rel="noopener">WCAG ${escapeHTML(ref)}</a>`).join("")}</div>`;
+}
+
+function wcagSlug(ref: string): string {
+  const slugs: Record<string, string> = {
+    "2.1.1": "keyboard",
+    "2.1.2": "no-keyboard-trap",
+    "2.4.1": "bypass-blocks",
+    "2.4.3": "focus-order",
+    "2.4.7": "focus-visible",
+    "2.4.11": "focus-not-obscured-minimum",
+  };
+  return slugs[ref] ?? "keyboard";
+}
+
 function buildRulesHTML(rules: AuditReport["rules"]): string {
   return rules
     .map((rule) => {
@@ -665,18 +740,18 @@ function buildRulesHTML(rules: AuditReport["rules"]): string {
       return `
       <div class="rule ${status}">
         <div class="rule-header">
-          <span class="rule-name">${rule.passed ? "&#10003;" : "&#10007;"} ${escapeHTML(rule.ruleId)}</span>
+          <span class="rule-name">${rule.passed ? "&#10003;" : "&#10007;"} ${escapeHTML(rule.ruleName || rule.ruleId)}</span>
           <span class="status-badge" style="background: ${status === "passed" ? "#22c55e22" : status === "failed" ? "#ef444422" : "#f59e0b22"}; color: ${status === "passed" ? "#22c55e" : status === "failed" ? "#ef4444" : "#f59e0b"}; border-color: ${status === "passed" ? "#22c55e44" : status === "failed" ? "#ef444444" : "#f59e0b44"};">${rule.passed ? "PASS" : `${rule.violations.length} issue(s)`}</span>
         </div>
+        ${rule.ruleDescription ? `<div class="rule-meta">${escapeHTML(rule.ruleDescription)}</div>` : ""}
         ${rule.violations
           .map(
             (v) => `
           <div class="violation">
             <div class="message">${escapeHTML(v.message)}</div>
-            <div class="elements">${v.elements
-              .slice(0, 5)
-              .map((el) => escapeHTML(el.selector))
-              .join("<br>")}</div>
+            ${v.impact ? `<div class="impact">${escapeHTML(v.impact)}</div>` : ""}
+            ${buildWcagBadgesHTML(v.wcag)}
+            ${buildElementsHTML(v.elements)}
             ${v.fixSuggestion ? buildFixSuggestionHTML(v.fixSuggestion) : ""}
           </div>`,
           )
