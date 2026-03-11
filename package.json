@@ -111,7 +111,8 @@
     "vitest": "^4.0.18"
   },
   "optionalDependencies": {
-    "@anthropic-ai/sdk": "^0.78.0"
+    "@anthropic-ai/sdk": "^0.74.0",
+    "openai": "^6.0.0"
   },
   "engines": {
     "node": ">=22.0.0"

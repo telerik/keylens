@@ -168,7 +168,20 @@ When enabled, the crawler captures per-element screenshots during the tab crawl:
 }
 ```
 
-API key resolution: config `apiKey` > `KEYLENS_AI_API_KEY` env > `ANTHROPIC_API_KEY` env
+OpenAI / Azure AI Foundry example:
+
+```json
+{
+  "ai": {
+    "enabled": true,
+    "provider": "openai",
+    "baseURL": "https://<resource>.services.ai.azure.com/openai/deployments/<deployment>",
+    "model": "gpt-4o"
+  }
+}
+```
+
+API key resolution: config `apiKey` > `KEYLENS_AI_API_KEY` env > `ANTHROPIC_API_KEY` env (anthropic) / `OPENAI_API_KEY` env (openai)
 
 ## Risks
 

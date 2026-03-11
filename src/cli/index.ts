@@ -64,6 +64,11 @@ program
     "--ai-model <model>",
     "AI model to use (default: claude-sonnet-4-20250514)",
   )
+  .option("--ai-provider <provider>", "AI provider (anthropic, openai)")
+  .option(
+    "--ai-base-url <url>",
+    "AI provider base URL (for Azure AI Foundry, custom endpoints)",
+  )
   .option("--timeout <ms>", "navigation timeout in ms", "30000")
   .option(
     "--screenshots",
@@ -159,6 +164,11 @@ program
         enabled: options.ai || fileConfig.ai?.enabled || false,
         apiKey: fileConfig.ai?.apiKey,
         model: options.aiModel || fileConfig.ai?.model,
+        provider:
+          options.aiProvider ||
+          fileConfig.ai?.provider ||
+          DEFAULT_CONFIG.ai.provider,
+        baseURL: options.aiBaseUrl || fileConfig.ai?.baseURL,
       },
     };
 

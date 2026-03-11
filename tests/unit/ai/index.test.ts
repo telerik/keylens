@@ -54,6 +54,7 @@ describe("AIAnalyzer", () => {
     // Clear AI-related env vars
     delete process.env.KEYLENS_AI_API_KEY;
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENAI_API_KEY;
   });
 
   afterEach(() => {
@@ -1128,6 +1129,39 @@ describe("AIAnalyzer", () => {
       // Should still produce heuristic-based patterns despite AI failure
       expect(result.length).toBeGreaterThan(0);
       expect(result[0].type).toBe("inconsistent-order");
+    });
+  });
+
+  describe("OpenAI provider", () => {
+    it("should resolve OPENAI_API_KEY env var when provider is openai", async () => {
+      process.env.OPENAI_API_KEY = "openai-key";
+
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, provider: "openai" }),
+      );
+
+      expect(ai.isAvailable()).toBe(true);
+    });
+
+    it("should not resolve OPENAI_API_KEY when provider is anthropic", async () => {
+      process.env.OPENAI_API_KEY = "openai-key";
+
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, provider: "anthropic" }),
+      );
+
+      expect(ai.isAvailable()).toBe(false);
+    });
+
+    it("should prefer KEYLENS_AI_API_KEY over OPENAI_API_KEY for openai provider", async () => {
+      process.env.KEYLENS_AI_API_KEY = "keylens-key";
+      process.env.OPENAI_API_KEY = "openai-key";
+
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, provider: "openai" }),
+      );
+
+      expect(ai.isAvailable()).toBe(true);
     });
   });
 });

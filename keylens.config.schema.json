@@ -85,11 +85,16 @@
         "enabled": { "type": "boolean", "default": false },
         "provider": {
           "type": "string",
-          "enum": ["anthropic"],
-          "default": "anthropic"
+          "enum": ["anthropic", "openai"],
+          "default": "anthropic",
+          "description": "AI provider. Use 'openai' for OpenAI, Azure AI Foundry, or any OpenAI-compatible endpoint."
         },
         "apiKey": { "type": "string" },
         "model": { "type": "string" },
+        "baseURL": {
+          "type": "string",
+          "description": "Base URL for the AI provider. Set this for Azure AI Foundry or other custom OpenAI-compatible endpoints."
+        },
         "features": {
           "type": "object",
           "properties": {

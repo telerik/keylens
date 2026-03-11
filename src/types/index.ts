@@ -89,11 +89,13 @@ export interface AIConfig {
   /** Enable AI-powered analysis */
   enabled: boolean;
   /** AI provider */
-  provider: "anthropic";
+  provider: "anthropic" | "openai";
   /** API key (or use env var KEYLENS_AI_API_KEY) */
   apiKey?: string;
   /** AI model to use */
   model?: string;
+  /** Base URL for AI provider (Azure AI Foundry, custom OpenAI-compatible endpoints) */
+  baseURL?: string;
   /** Custom AI transport (e.g. MCP sampling). Takes priority over direct API when no apiKey is set. */
   transport?: AITransport;
   /** Which AI features to enable */

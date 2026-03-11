@@ -14,6 +14,7 @@ import type {
 } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 import { annotateFocusOrder } from "../utils/screenshot-annotator.js";
+import { OpenAITransport } from "./openai-transport.js";
 import {
   safeParseJSON,
   fixSuggestionBatchSchema,
@@ -55,18 +56,24 @@ export class AIAnalyzer {
   private apiKey: string | null;
   private sdkAvailable: boolean | null = null;
   private anthropicClient: unknown = null;
+  private openaiTransport: OpenAITransport | null = null;
 
   constructor(config: AIConfig) {
     this.config = config;
-    this.apiKey =
-      config.apiKey ||
+
+    const envKey =
       process.env.KEYLENS_AI_API_KEY ||
-      process.env.ANTHROPIC_API_KEY ||
-      null;
+      (config.provider === "openai"
+        ? process.env.OPENAI_API_KEY
+        : process.env.ANTHROPIC_API_KEY);
+
+    this.apiKey = config.apiKey || envKey || null;
 
     if (config.enabled && !this.apiKey && !config.transport) {
+      const providerKeyHint =
+        config.provider === "openai" ? "OPENAI_API_KEY" : "ANTHROPIC_API_KEY";
       logger.warn(
-        "AI is enabled but no API key found. Set KEYLENS_AI_API_KEY or ANTHROPIC_API_KEY env var, or use ai.apiKey in config. AI features will be skipped.",
+        `AI is enabled but no API key found. Set KEYLENS_AI_API_KEY or ${providerKeyHint} env var, or use ai.apiKey in config. AI features will be skipped.`,
       );
     }
   }
@@ -933,6 +940,9 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
     if (!this.apiKey && this.config.transport) {
       return this.config.transport.query(prompt);
     }
+    if (this.config.provider === "openai") {
+      return this.getOpenAITransport().query(prompt);
+    }
     if (this.config.provider === "anthropic") {
       if (!(await this.checkSdkAvailable())) {
         throw new Error("@anthropic-ai/sdk is not installed");
@@ -956,6 +966,9 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
     if (!this.apiKey && this.config.transport) {
       return this.config.transport.queryVision(prompt, images);
     }
+    if (this.config.provider === "openai") {
+      return this.getOpenAITransport().queryVision(prompt, images);
+    }
     if (this.config.provider === "anthropic") {
       if (!(await this.checkSdkAvailable())) {
         throw new Error("@anthropic-ai/sdk is not installed");
@@ -963,6 +976,25 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
       return this.queryAnthropicVision(prompt, images);
     }
     throw new Error(`Unsupported AI provider: ${this.config.provider}`);
+  }
+
+  /**
+   * Get or create a cached OpenAI transport instance.
+   */
+  private getOpenAITransport(): OpenAITransport {
+    if (!this.openaiTransport) {
+      if (!this.apiKey) {
+        throw new Error(
+          "OpenAI provider requires an API key. Set KEYLENS_AI_API_KEY or OPENAI_API_KEY env var, or use ai.apiKey in config.",
+        );
+      }
+      this.openaiTransport = new OpenAITransport(
+        this.apiKey,
+        this.config.model || "gpt-4o",
+        this.config.baseURL,
+      );
+    }
+    return this.openaiTransport;
   }
 
   /**
