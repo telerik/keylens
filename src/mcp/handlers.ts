@@ -69,9 +69,17 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
     }
   }
 
-  const aiKey = process.env.KEYLENS_AI_API_KEY || process.env.ANTHROPIC_API_KEY;
+  const aiKey =
+    process.env.KEYLENS_AI_API_KEY ||
+    process.env.ANTHROPIC_API_KEY ||
+    process.env.OPENAI_API_KEY;
   if (aiKey) {
     config.ai = { ...config.ai, apiKey: aiKey };
+  }
+
+  const aiBaseURL = process.env.KEYLENS_AI_BASE_URL;
+  if (aiBaseURL) {
+    config.ai = { ...config.ai, baseURL: aiBaseURL };
   }
 
   // Caller-provided options
