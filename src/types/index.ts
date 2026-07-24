@@ -55,6 +55,70 @@ export interface KeylensConfig {
 
   /** Enable post-click interaction testing (click buttons, verify focus isn't lost) */
   interactions: boolean;
+
+  /** Planned GA capture policy. Legacy capture fields remain authoritative until the capture migration. */
+  capture: CaptureConfig;
+
+  /** Planned GA wall-time budgets. Phase-specific enforcement is introduced separately. */
+  timeouts: PhaseTimeoutConfig;
+}
+
+export type PageCaptureMode = "none" | "viewport" | "full";
+
+export interface CaptureLimits {
+  /** Maximum number of focused elements with screenshot pairs */
+  maxElements?: number;
+  /** Maximum width or height of a captured image */
+  maxDimension?: number;
+  /** Maximum decoded pixels across captured assets */
+  maxPixels?: number;
+  /** Maximum encoded bytes across captured assets */
+  maxBytes?: number;
+}
+
+export interface CaptureConfig {
+  /** Page-level screenshot behavior */
+  page: PageCaptureMode;
+  /** Capture focused and unfocused element screenshots */
+  elements: boolean;
+  /** Resource bounds for captured assets */
+  limits: CaptureLimits;
+}
+
+export interface PhaseTimeoutConfig {
+  /** Entire audit wall-time budget */
+  total?: number;
+  /** Crawl phase wall-time budget */
+  crawl?: number;
+  /** Interaction phase wall-time budget */
+  interactions?: number;
+  /** Experimental AI enrichment wall-time budget */
+  ai?: number;
+  /** Reporter/rendering wall-time budget */
+  reporters?: number;
+}
+
+export interface KeylensConfigInput extends Omit<
+  Partial<KeylensConfig>,
+  "viewport" | "rules" | "ai" | "capture" | "timeouts"
+> {
+  viewport?: Partial<KeylensConfig["viewport"]>;
+  rules?: Partial<RuleConfig>;
+  ai?: Partial<Omit<AIConfig, "features" | "limits">> & {
+    features?: Partial<AIConfig["features"]>;
+    limits?: Partial<NonNullable<AIConfig["limits"]>>;
+  };
+  capture?: Partial<Omit<CaptureConfig, "limits">> & {
+    limits?: Partial<CaptureLimits>;
+  };
+  timeouts?: Partial<PhaseTimeoutConfig>;
+}
+
+export interface AuditOptions extends KeylensConfigInput {
+  /** Cancels the audit and all owned resources */
+  signal?: AbortSignal;
+  /** Receives structured lifecycle and progress events */
+  onEvent?: (event: AuditEvent) => void;
 }
 
 export interface RuleConfig {
@@ -120,6 +184,81 @@ export interface AIConfig {
 }
 
 export type ReporterType = "cli" | "json" | "html" | "markdown";
+
+// ─── Execution Contracts ─────────────────────────────────────────
+
+export const AUDIT_REPORT_SCHEMA_VERSION = "1.0" as const;
+export type AuditReportSchemaVersion = typeof AUDIT_REPORT_SCHEMA_VERSION;
+
+export type AuditPhase =
+  | "setup"
+  | "navigation"
+  | "capture"
+  | "crawl"
+  | "rules"
+  | "interactions"
+  | "ai"
+  | "reporters"
+  | "cleanup";
+
+interface AuditEventBase {
+  timestamp: string;
+  elapsedMs: number;
+  phase: AuditPhase;
+}
+
+export type AuditEvent =
+  | (AuditEventBase & {
+      type: "phase-started" | "phase-completed";
+    })
+  | (AuditEventBase & {
+      type: "crawl-progress";
+      tabsAttempted: number;
+      maxTabs: number;
+      elementsFocused: number;
+    })
+  | (AuditEventBase & {
+      type: "rule-started" | "rule-completed";
+      ruleId: string;
+    })
+  | (AuditEventBase & {
+      type: "asset-captured";
+      assetType: AuditAssetType;
+      byteLength: number;
+    })
+  | (AuditEventBase & {
+      type: "interaction-completed";
+      attempted: number;
+      completed: number;
+    })
+  | (AuditEventBase & {
+      type: "warning";
+      code: string;
+      message: string;
+    });
+
+export type AuditAssetType =
+  | "page-screenshot"
+  | "focused-element-screenshot"
+  | "unfocused-element-screenshot"
+  | "html-report"
+  | "json-report"
+  | "markdown-report";
+
+export type AuditAssetStorage =
+  | { kind: "inline"; data: string; encoding: "base64" | "utf8" }
+  | { kind: "file"; path: string }
+  | { kind: "url"; url: string };
+
+export interface AuditAsset {
+  id: string;
+  type: AuditAssetType;
+  mediaType: string;
+  byteLength: number;
+  storage: AuditAssetStorage;
+}
+
+export type AssetProjectionMode = "omit" | "inline" | "references";
 
 // ─── Crawl Results ───────────────────────────────────────────────
 
@@ -396,6 +535,9 @@ export interface Rule {
 // ─── Audit Report ────────────────────────────────────────────────
 
 export interface AuditReport {
+  /** Version of the serialized report contract */
+  schemaVersion: AuditReportSchemaVersion;
+
   /** Tool version */
   version: string;
 
@@ -415,6 +557,10 @@ export interface AuditReport {
     unreachedElements: number;
     cycleCompleted: boolean;
     duration: number;
+    /** Interaction cases executed when interaction testing is enabled */
+    interactionsAttempted?: number;
+    /** Interaction cases that produced an unreasonable focus result */
+    interactionsFailed?: number;
   };
 
   /** Rule results */
@@ -459,6 +605,9 @@ export interface AuditReport {
 // ─── Multi-Page Report ───────────────────────────────────────────
 
 export interface MultiPageReport {
+  /** Version of the serialized report contract */
+  schemaVersion: AuditReportSchemaVersion;
+
   /** Tool version */
   version: string;
 

@@ -2,29 +2,76 @@
  * Structured error types for Keylens.
  */
 
+import type { AuditPhase } from "./types/index.js";
+
+export type KeylensErrorCode =
+  | "ABORTED"
+  | "TIMEOUT"
+  | "CONFIG_ERROR"
+  | "CRAWL_ERROR"
+  | "NAVIGATION_ERROR"
+  | "RULE_ERROR"
+  | "REPORTER_ERROR"
+  | "AI_ERROR"
+  | "INTERNAL_ERROR";
+
+export interface KeylensErrorOptions {
+  phase?: AuditPhase;
+  url?: string;
+  retryable?: boolean;
+  cause?: unknown;
+  details?: Readonly<Record<string, unknown>>;
+}
+
 export class KeylensError extends Error {
+  public readonly phase?: AuditPhase;
+  public readonly url?: string;
+  public readonly retryable: boolean;
+  public readonly details?: Readonly<Record<string, unknown>>;
+
   constructor(
     message: string,
-    public code: string,
+    public readonly code: KeylensErrorCode,
+    options: KeylensErrorOptions = {},
   ) {
-    super(message);
+    super(message, { cause: options.cause });
     this.name = "KeylensError";
+    this.phase = options.phase;
+    this.url = options.url;
+    this.retryable = options.retryable ?? false;
+    this.details = options.details;
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      name: this.name,
+      message: this.message,
+      code: this.code,
+      phase: this.phase,
+      url: this.url,
+      retryable: this.retryable,
+      details: this.details,
+    };
   }
 }
 
 export class CrawlError extends KeylensError {
   constructor(
     message: string,
-    public url: string,
+    url: string,
+    options: Omit<KeylensErrorOptions, "phase" | "url"> = {},
   ) {
-    super(message, "CRAWL_ERROR");
+    super(message, "CRAWL_ERROR", { phase: "crawl", url, ...options });
     this.name = "CrawlError";
   }
 }
 
 export class ConfigError extends KeylensError {
-  constructor(message: string) {
-    super(message, "CONFIG_ERROR");
+  constructor(
+    message: string,
+    options: Omit<KeylensErrorOptions, "phase"> = {},
+  ) {
+    super(message, "CONFIG_ERROR", { phase: "setup", ...options });
     this.name = "ConfigError";
   }
 }
@@ -32,9 +79,15 @@ export class ConfigError extends KeylensError {
 export class NavigationError extends KeylensError {
   constructor(
     message: string,
-    public url: string,
+    url: string,
+    options: Omit<KeylensErrorOptions, "phase" | "url"> = {},
   ) {
-    super(message, "NAVIGATION_ERROR");
+    super(message, "NAVIGATION_ERROR", {
+      phase: "navigation",
+      url,
+      retryable: true,
+      ...options,
+    });
     this.name = "NavigationError";
   }
 }

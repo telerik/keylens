@@ -209,6 +209,7 @@ function compactNameSuggestions(
  */
 export function compactReport(report: AuditReport) {
   return {
+    schemaVersion: report.schemaVersion,
     version: report.version,
     timestamp: report.timestamp,
     url: report.url,
@@ -236,6 +237,7 @@ export function compactReport(report: AuditReport) {
  */
 export function compactMultiPageReport(report: MultiPageReport) {
   return {
+    schemaVersion: report.schemaVersion,
     version: report.version,
     timestamp: report.timestamp,
     urls: report.urls,

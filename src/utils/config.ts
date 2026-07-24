@@ -1,6 +1,6 @@
 import { readFile } from "fs/promises";
 import { resolve } from "path";
-import type { KeylensConfig } from "../types/index.js";
+import type { KeylensConfig, KeylensConfigInput } from "../types/index.js";
 import { ConfigError } from "../errors.js";
 
 export const DEFAULT_CONFIG: KeylensConfig = {
@@ -45,6 +45,17 @@ export const DEFAULT_CONFIG: KeylensConfig = {
   headed: false,
   captureElementScreenshots: false,
   interactions: false,
+  capture: {
+    page: "full",
+    elements: false,
+    limits: {
+      maxElements: 200,
+      maxDimension: 16_384,
+      maxPixels: 40_000_000,
+      maxBytes: 50 * 1024 * 1024,
+    },
+  },
+  timeouts: {},
 };
 
 /**
@@ -52,15 +63,15 @@ export const DEFAULT_CONFIG: KeylensConfig = {
  */
 export async function loadConfig(configPath?: string): Promise<KeylensConfig> {
   if (!configPath) {
-    return { ...DEFAULT_CONFIG };
+    return normalizeConfig();
   }
 
   const fullPath = resolve(process.cwd(), configPath);
 
   try {
     const raw = await readFile(fullPath, "utf-8");
-    const fileConfig = JSON.parse(raw) as Partial<KeylensConfig>;
-    return mergeConfig(DEFAULT_CONFIG, fileConfig);
+    const fileConfig = JSON.parse(raw) as KeylensConfigInput;
+    return normalizeConfig(fileConfig);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       throw new ConfigError(`Config file not found: ${fullPath}`);
@@ -74,26 +85,46 @@ export async function loadConfig(configPath?: string): Promise<KeylensConfig> {
 /**
  * Deep merge two config objects, with overrides taking precedence.
  */
-function mergeConfig(
-  base: KeylensConfig,
-  overrides: Partial<KeylensConfig>,
+export function normalizeConfig(
+  overrides: KeylensConfigInput = {},
 ): KeylensConfig {
+  const captureElements =
+    overrides.capture?.elements ??
+    overrides.captureElementScreenshots ??
+    DEFAULT_CONFIG.capture.elements;
+
   return {
-    ...base,
+    ...DEFAULT_CONFIG,
     ...overrides,
-    viewport: { ...base.viewport, ...overrides.viewport },
-    rules: { ...base.rules, ...overrides.rules },
+    urls: [...(overrides.urls ?? DEFAULT_CONFIG.urls)],
+    viewport: { ...DEFAULT_CONFIG.viewport, ...overrides.viewport },
+    rules: { ...DEFAULT_CONFIG.rules, ...overrides.rules },
+    reporters: [...(overrides.reporters ?? DEFAULT_CONFIG.reporters)],
     ai: {
-      ...base.ai,
+      ...DEFAULT_CONFIG.ai,
       ...overrides.ai,
       features: {
-        ...base.ai.features,
+        ...DEFAULT_CONFIG.ai.features,
         ...overrides.ai?.features,
       },
       limits: {
-        ...base.ai.limits,
+        ...DEFAULT_CONFIG.ai.limits,
         ...overrides.ai?.limits,
       },
+    },
+    captureElementScreenshots: captureElements,
+    capture: {
+      ...DEFAULT_CONFIG.capture,
+      ...overrides.capture,
+      elements: captureElements,
+      limits: {
+        ...DEFAULT_CONFIG.capture.limits,
+        ...overrides.capture?.limits,
+      },
+    },
+    timeouts: {
+      ...DEFAULT_CONFIG.timeouts,
+      ...overrides.timeouts,
     },
   };
 }
