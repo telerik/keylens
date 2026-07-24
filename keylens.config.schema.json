@@ -72,7 +72,51 @@
     "captureElementScreenshots": {
       "type": "boolean",
       "default": false,
-      "description": "Capture per-element screenshots during tab crawl for focus indicator diffing."
+      "description": "Deprecated compatibility option. Prefer capture.elements."
+    },
+    "capture": {
+      "type": "object",
+      "description": "GA capture contract. Resource limits are documented now and enforced by the bounded-capture phase.",
+      "properties": {
+        "page": {
+          "type": "string",
+          "enum": ["none", "viewport", "full"],
+          "default": "full"
+        },
+        "elements": { "type": "boolean", "default": false },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "maxElements": { "type": "number", "minimum": 0, "default": 200 },
+            "maxDimension": {
+              "type": "number",
+              "minimum": 1,
+              "default": 16384
+            },
+            "maxPixels": {
+              "type": "number",
+              "minimum": 1,
+              "default": 40000000
+            },
+            "maxBytes": {
+              "type": "number",
+              "minimum": 1,
+              "default": 52428800
+            }
+          }
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "description": "GA wall-time budget contract. Enforcement is added with cancellation support.",
+      "properties": {
+        "total": { "type": "number", "minimum": 1 },
+        "crawl": { "type": "number", "minimum": 1 },
+        "interactions": { "type": "number", "minimum": 1 },
+        "ai": { "type": "number", "minimum": 1 },
+        "reporters": { "type": "number", "minimum": 1 }
+      }
     },
     "interactions": {
       "type": "boolean",

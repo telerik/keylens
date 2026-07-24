@@ -13,6 +13,7 @@ import { runReporters } from "./reporters/index.js";
 import { AIAnalyzer } from "./ai/index.js";
 import { logger } from "./utils/logger.js";
 import { computeScore } from "./utils/score.js";
+import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
@@ -108,6 +109,7 @@ export async function audit(
 
   // Build the report
   const report: AuditReport = {
+    schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
     version: VERSION,
     timestamp: new Date().toISOString(),
     url,
@@ -124,6 +126,10 @@ export async function audit(
       ).length,
       cycleCompleted: crawlResult.cycleCompleted,
       duration: crawlResult.crawlDuration,
+      interactionsAttempted: crawlResult.interactionResults?.length,
+      interactionsFailed: crawlResult.interactionResults?.filter(
+        (result) => !result.focusReasonable,
+      ).length,
     },
     rules: ruleResults,
     summary: {
@@ -190,6 +196,7 @@ export async function auditMultiple(
   }
 
   const multiReport: MultiPageReport = {
+    schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
     version: VERSION,
     timestamp: new Date().toISOString(),
     urls,
@@ -251,6 +258,19 @@ export type {
   AuditReport,
   MultiPageReport,
   KeylensConfig,
+  KeylensConfigInput,
+  AuditOptions,
+  AuditEvent,
+  AuditAsset,
+  AssetProjectionMode,
+  CaptureConfig,
+  CaptureLimits,
+  PageCaptureMode,
+  PhaseTimeoutConfig,
+  AuditPhase,
+  AuditAssetType,
+  AuditAssetStorage,
+  AuditReportSchemaVersion,
   RuleConfig,
   AIConfig,
   AITransport,
@@ -277,7 +297,8 @@ export type {
   CrossPagePatternType,
 } from "./types/index.js";
 
-export { DEFAULT_CONFIG } from "./utils/config.js";
+export { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
+export { DEFAULT_CONFIG, normalizeConfig } from "./utils/config.js";
 export { AIAnalyzer } from "./ai/index.js";
 export {
   KeylensError,
@@ -285,3 +306,4 @@ export {
   ConfigError,
   NavigationError,
 } from "./errors.js";
+export type { KeylensErrorCode, KeylensErrorOptions } from "./errors.js";
