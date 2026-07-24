@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Standard benchmark</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 24px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        gap: 8px;
+      }
+      button {
+        min-height: 36px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main">Skip to content</a>
+    <main id="main" tabindex="-1"></main>
+    <script>
+      const main = document.querySelector("main");
+      for (let index = 1; index <= 100; index += 1) {
+        const button = document.createElement("button");
+        button.textContent = `Action ${index}`;
+        main.append(button);
+      }
+    </script>
+  </body>
+</html>

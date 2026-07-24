@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { loadConfig, DEFAULT_CONFIG } from "@/utils/config.js";
+import { loadConfig, DEFAULT_CONFIG, normalizeConfig } from "@/utils/config.js";
 import { ConfigError } from "@/errors.js";
 
 // Mock fs/promises
@@ -14,6 +14,45 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+describe("normalizeConfig", () => {
+  it("normalizes nested partial input without sharing mutable defaults", () => {
+    const config = normalizeConfig({
+      viewport: { width: 800 },
+      rules: { keyboardTrap: false },
+      capture: {
+        page: "none",
+        elements: true,
+        limits: { maxElements: 25 },
+      },
+      timeouts: { total: 60_000 },
+    });
+
+    expect(config.viewport).toEqual({ width: 800, height: 720 });
+    expect(config.rules.keyboardTrap).toBe(false);
+    expect(config.rules.skipLink).toBe(true);
+    expect(config.capture.page).toBe("none");
+    expect(config.capture.elements).toBe(true);
+    expect(config.capture.limits.maxElements).toBe(25);
+    expect(config.capture.limits.maxBytes).toBe(
+      DEFAULT_CONFIG.capture.limits.maxBytes,
+    );
+    expect(config.captureElementScreenshots).toBe(true);
+    expect(config.timeouts.total).toBe(60_000);
+
+    config.urls.push("https://example.com");
+    config.reporters.push("json");
+    expect(DEFAULT_CONFIG.urls).toEqual([]);
+    expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
+  });
+
+  it("maps the legacy screenshot option into the new capture contract", () => {
+    const config = normalizeConfig({ captureElementScreenshots: true });
+
+    expect(config.captureElementScreenshots).toBe(true);
+    expect(config.capture.elements).toBe(true);
+  });
+});
+
 describe("loadConfig", () => {
   it("should return default config when no path is provided", async () => {
     const config = await loadConfig();
@@ -21,6 +60,18 @@ describe("loadConfig", () => {
     expect(config.maxTabs).toBe(DEFAULT_CONFIG.maxTabs);
     expect(config.browser).toBe("chromium");
     expect(config.rules.keyboardTrap).toBe(true);
+  });
+
+  it("should not share nested mutable values with defaults", async () => {
+    const config = await loadConfig();
+
+    config.urls.push("https://example.com");
+    config.reporters.push("json");
+    config.rules.keyboardTrap = false;
+
+    expect(DEFAULT_CONFIG.urls).toEqual([]);
+    expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
+    expect(DEFAULT_CONFIG.rules.keyboardTrap).toBe(true);
   });
 
   it("should throw ConfigError when file is not found", async () => {

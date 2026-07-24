@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tall page benchmark</title>
+    <style>
+      section {
+        min-height: 600px;
+        padding: 16px;
+        border-bottom: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main">Skip to content</a>
+    <main id="main" tabindex="-1"></main>
+    <script>
+      const main = document.querySelector("main");
+      for (let index = 1; index <= 20; index += 1) {
+        const section = document.createElement("section");
+        const button = document.createElement("button");
+        button.textContent = `Section action ${index}`;
+        section.append(button);
+        main.append(section);
+      }
+    </script>
+  </body>
+</html>
