@@ -196,6 +196,32 @@ describe("audit", () => {
     expect(report.pageScreenshot).toBe("base64-screenshot");
   });
 
+  it("should include interaction execution counts in the crawl summary", async () => {
+    mockCrawlPage.mockResolvedValue({
+      ...defaultCrawlResult,
+      interactionResults: [
+        {
+          element: {
+            selector: "button.a",
+            tagName: "button",
+            role: "button",
+            accessibleName: "A",
+          },
+          action: "click",
+          focusAfter: null,
+          focusReasonable: false,
+        },
+      ],
+    });
+    mockRunRules.mockResolvedValue(defaultRuleResults);
+    const audit = await getAudit();
+
+    const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
+
+    expect(report.crawl.interactionsAttempted).toBe(1);
+    expect(report.crawl.interactionsFailed).toBe(1);
+  });
+
   it("should include url, version, and timestamp", async () => {
     setupMocks();
     const audit = await getAudit();
@@ -205,6 +231,7 @@ describe("audit", () => {
     expect(report.url).toBe("https://example.com");
     expect(report.version).toBeDefined();
     expect(report.timestamp).toBeDefined();
+    expect(report.schemaVersion).toBe("1.0");
   });
 
   it("should skip AI when not available", async () => {
@@ -419,6 +446,7 @@ describe("auditMultiple", () => {
     expect(report.summary.totalPages).toBe(2);
     expect(report.summary.totalErrors).toBe(0);
     expect(report.summary.pagesWithErrors).toBe(0);
+    expect(report.schemaVersion).toBe("1.0");
   });
 
   it("should aggregate errors across pages", async () => {

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Interaction benchmark</title>
+  </head>
+  <body>
+    <a href="#main">Skip to content</a>
+    <main id="main" tabindex="-1"></main>
+    <output aria-live="polite"></output>
+    <script>
+      const main = document.querySelector("main");
+      const output = document.querySelector("output");
+      for (let index = 1; index <= 30; index += 1) {
+        const button = document.createElement("button");
+        button.textContent = `Toggle ${index}`;
+        button.addEventListener("click", () => {
+          output.textContent = `Activated ${index}`;
+        });
+        main.append(button);
+      }
+    </script>
+  </body>
+</html>

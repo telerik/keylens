@@ -8,15 +8,15 @@ import {
 
 describe("KeylensError", () => {
   it("should set message, code, and name", () => {
-    const error = new KeylensError("something broke", "TEST_CODE");
+    const error = new KeylensError("something broke", "INTERNAL_ERROR");
 
     expect(error.message).toBe("something broke");
-    expect(error.code).toBe("TEST_CODE");
+    expect(error.code).toBe("INTERNAL_ERROR");
     expect(error.name).toBe("KeylensError");
   });
 
   it("should be an instance of Error", () => {
-    const error = new KeylensError("test", "TEST");
+    const error = new KeylensError("test", "INTERNAL_ERROR");
 
     expect(error).toBeInstanceOf(Error);
     expect(error).toBeInstanceOf(KeylensError);
@@ -31,6 +31,7 @@ describe("CrawlError", () => {
     expect(error.code).toBe("CRAWL_ERROR");
     expect(error.url).toBe("https://example.com");
     expect(error.name).toBe("CrawlError");
+    expect(error.phase).toBe("crawl");
   });
 
   it("should be an instance of KeylensError and Error", () => {
@@ -49,6 +50,7 @@ describe("ConfigError", () => {
     expect(error.message).toBe("bad config");
     expect(error.code).toBe("CONFIG_ERROR");
     expect(error.name).toBe("ConfigError");
+    expect(error.phase).toBe("setup");
   });
 
   it("should be an instance of KeylensError", () => {
@@ -66,11 +68,36 @@ describe("NavigationError", () => {
     expect(error.code).toBe("NAVIGATION_ERROR");
     expect(error.url).toBe("https://example.com/page");
     expect(error.name).toBe("NavigationError");
+    expect(error.phase).toBe("navigation");
+    expect(error.retryable).toBe(true);
   });
 
   it("should be an instance of KeylensError", () => {
     const error = new NavigationError("test", "https://example.com");
 
     expect(error).toBeInstanceOf(KeylensError);
+  });
+});
+
+describe("structured error metadata", () => {
+  it("serializes stable diagnostics without a stack trace or cause", () => {
+    const error = new KeylensError("timed out", "TIMEOUT", {
+      phase: "crawl",
+      url: "https://example.com",
+      retryable: true,
+      cause: new Error("internal"),
+      details: { timeoutMs: 1000 },
+    });
+
+    expect(error.toJSON()).toEqual({
+      name: "KeylensError",
+      message: "timed out",
+      code: "TIMEOUT",
+      phase: "crawl",
+      url: "https://example.com",
+      retryable: true,
+      details: { timeoutMs: 1000 },
+    });
+    expect(error.cause).toBeInstanceOf(Error);
   });
 });

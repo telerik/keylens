@@ -5,6 +5,7 @@ import type {
   AuditReport,
   MultiPageReport,
 } from "@/types/index.js";
+import { AUDIT_REPORT_SCHEMA_VERSION } from "@/types/index.js";
 
 export function makeFocusedElement(
   overrides: Partial<FocusedElement> = {},
@@ -57,6 +58,7 @@ export function makeAuditReport(
   overrides: Partial<AuditReport> = {},
 ): AuditReport {
   return {
+    schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
     version: "0.1.0",
     timestamp: new Date().toISOString(),
     url: "https://example.com",
@@ -85,6 +87,7 @@ export function makeMultiPageReport(
   overrides: Partial<MultiPageReport> = {},
 ): MultiPageReport {
   return {
+    schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
     version: "0.1.0",
     timestamp: new Date().toISOString(),
     urls: ["https://example.com"],

@@ -198,6 +198,12 @@ describe("buildConfig", () => {
 });
 
 describe("compactReport", () => {
+  it("preserves the report schema version", () => {
+    const report = makeAuditReport();
+
+    expect(compactReport(report).schemaVersion).toBe(report.schemaVersion);
+  });
+
   it("removes outerHTML from focusSequence elements", () => {
     const report = makeAuditReport({
       focusSequence: [
@@ -381,6 +387,14 @@ describe("compactReport", () => {
 });
 
 describe("compactMultiPageReport", () => {
+  it("preserves the report schema version", () => {
+    const report = makeMultiPageReport();
+
+    expect(compactMultiPageReport(report).schemaVersion).toBe(
+      report.schemaVersion,
+    );
+  });
+
   it("drops focusSequence from individual pages", () => {
     const report = makeMultiPageReport({
       pages: [
