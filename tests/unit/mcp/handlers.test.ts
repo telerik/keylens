@@ -16,6 +16,7 @@ import {
   makeFocusedElement,
   makeCrawlResult,
   makeInteractiveElement,
+  makeInlineAsset,
 } from "@tests/helpers/factories.js";
 import type {
   AuditReport,
@@ -88,7 +89,17 @@ vi.mock("@/index.js", () => ({
       },
     },
     headed: false,
-    captureElementScreenshots: false,
+    capture: {
+      page: "none",
+      elements: false,
+      limits: {
+        maxElements: 200,
+        maxDimension: 16384,
+        maxPixels: 40000000,
+        maxBytes: 52428800,
+      },
+    },
+    timeouts: {},
     interactions: false,
   },
 }));
@@ -132,9 +143,21 @@ describe("buildConfig", () => {
     expect(config.browser).toBe("firefox");
     expect(config.maxTabs).toBe(100);
     expect(config.viewport).toEqual({ width: 800, height: 600 });
-    expect(config.captureElementScreenshots).toBe(true);
+    expect(config.capture.elements).toBe(true);
     expect(config.interactions).toBe(true);
     expect(config.ai.enabled).toBe(true);
+  });
+
+  it("does not leak capture mutations between requests", () => {
+    const visual = buildConfig({ screenshots: true });
+    visual.capture.page = "full";
+    const next = buildConfig();
+
+    expect(next.capture).toEqual(
+      expect.objectContaining({ page: "none", elements: false }),
+    );
+    expect(next.capture).not.toBe(visual.capture);
+    expect(next.capture.limits).not.toBe(visual.capture.limits);
   });
 
   it("reads KEYLENS_BROWSER env var", () => {
@@ -248,23 +271,35 @@ describe("compactReport", () => {
     expect(el.computedFocusStyles).toBeUndefined();
   });
 
-  it("removes screenshots (pageScreenshot, focused/unfocused)", () => {
+  it("removes screenshot assets and their references", () => {
     const report = makeAuditReport({
-      pageScreenshot: "base64-page",
+      pageScreenshotAssetId: "page",
+      assets: [
+        makeInlineAsset("page", "base64-page"),
+        makeInlineAsset(
+          "focused",
+          "base64-focused",
+          "focused-element-screenshot",
+        ),
+        makeInlineAsset(
+          "unfocused",
+          "base64-unfocused",
+          "unfocused-element-screenshot",
+        ),
+      ],
       focusSequence: [
         makeFocusedElement({
-          focusedScreenshot: "base64-focused",
-          unfocusedScreenshot: "base64-unfocused",
+          focusedScreenshotAssetId: "focused",
+          unfocusedScreenshotAssetId: "unfocused",
         }),
       ],
     });
 
     const compact = compactReport(report);
 
-    expect((compact as Record<string, unknown>).pageScreenshot).toBeUndefined();
-    expect(
-      (compact.focusSequence![0] as Record<string, unknown>).focusedScreenshot,
-    ).toBeUndefined();
+    expect(compact.pageScreenshotAssetId).toBeUndefined();
+    expect(compact.focusSequence![0].focusedScreenshotAssetId).toBeUndefined();
+    expect(compact.assets).toBeUndefined();
   });
 
   it("removes the config object", () => {
@@ -585,9 +620,17 @@ describe("handleAudit", () => {
 
   it("strips screenshots from response", async () => {
     const report = makeAuditReport({
-      pageScreenshot: "base64-data",
+      pageScreenshotAssetId: "page",
+      assets: [
+        makeInlineAsset("page", "base64-data"),
+        makeInlineAsset(
+          "focused",
+          "base64-focused",
+          "focused-element-screenshot",
+        ),
+      ],
       focusSequence: [
-        makeFocusedElement({ focusedScreenshot: "base64-focused" }),
+        makeFocusedElement({ focusedScreenshotAssetId: "focused" }),
       ],
     });
     mockAudit.mockResolvedValue(report);
@@ -595,8 +638,9 @@ describe("handleAudit", () => {
     const result = await handleAudit({ url: "https://test.com" });
     const parsed = JSON.parse(result.content[0]!.text);
 
-    expect(parsed.pageScreenshot).toBeUndefined();
-    expect(parsed.focusSequence[0].focusedScreenshot).toBeUndefined();
+    expect(parsed.pageScreenshotAssetId).toBeUndefined();
+    expect(parsed.focusSequence[0].focusedScreenshotAssetId).toBeUndefined();
+    expect(parsed.assets).toBeUndefined();
   });
 
   it("strips outerHTML from rule violation elements", async () => {
@@ -863,7 +907,8 @@ describe("handleValidateFocusOrder", () => {
     mockCrawlOnly.mockResolvedValue(
       makeCrawlResult({
         focusSequence: [makeFocusedElement()],
-        pageScreenshot: "data",
+        pageScreenshotAssetId: "page",
+        assets: [makeInlineAsset("page", "data")],
       }),
     );
     mockAIInstance.validateFocusOrder.mockResolvedValue(analysis);

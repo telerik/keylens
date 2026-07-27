@@ -5,6 +5,7 @@ import {
   makeFocusedElement,
   makeInteractiveElement,
   makeAuditReport,
+  makeInlineAsset,
 } from "@tests/helpers/factories.js";
 import { DEFAULT_CONFIG } from "@/utils/config.js";
 
@@ -104,7 +105,8 @@ describe("audit", () => {
       makeInteractiveElement({ selector: "button.b", reached: true }),
       makeInteractiveElement({ selector: "button.c", reached: false }),
     ],
-    pageScreenshot: "base64-screenshot",
+    pageScreenshotAssetId: "page-screenshot",
+    assets: [makeInlineAsset("page-screenshot", "base64-screenshot")],
   });
 
   const defaultRuleResults: RuleResult[] = [
@@ -209,7 +211,8 @@ describe("audit", () => {
     const crawlResult = makeCrawlResult({
       focusSequence: [makeFocusedElement()],
       interactiveElements: [makeInteractiveElement({ reached: true })],
-      pageScreenshot: "base64-screenshot",
+      pageScreenshotAssetId: "page-screenshot",
+      assets: [makeInlineAsset("page-screenshot", "base64-screenshot")],
     });
     const ruleResults: RuleResult[] = [
       {
@@ -441,14 +444,25 @@ describe("audit", () => {
     });
   });
 
-  it("should include focusSequence and pageScreenshot in report", async () => {
+  it("should extract screenshots into report assets", async () => {
     setupMocks();
     const audit = await getAudit();
 
     const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
 
     expect(report.focusSequence).toHaveLength(2);
-    expect(report.pageScreenshot).toBe("base64-screenshot");
+    expect(report.pageScreenshotAssetId).toBe("page-screenshot");
+    expect(report.assets).toContainEqual(
+      expect.objectContaining({
+        id: "page-screenshot",
+        type: "page-screenshot",
+        storage: {
+          kind: "inline",
+          data: "base64-screenshot",
+          encoding: "base64",
+        },
+      }),
+    );
   });
 
   it("should include interaction execution counts in the crawl summary", async () => {
@@ -591,7 +605,8 @@ describe("audit", () => {
       makeCrawlResult({
         focusSequence: [makeFocusedElement()],
         interactiveElements: [makeInteractiveElement()],
-        pageScreenshot: "data",
+        pageScreenshotAssetId: "page-screenshot",
+        assets: [makeInlineAsset("page-screenshot", "data")],
         pageDimensions: { width: 1280, height: 2000 },
       }),
     );
@@ -639,7 +654,8 @@ describe("audit", () => {
     mockCrawlPage.mockResolvedValue(
       makeCrawlResult({
         pageDimensions: { width: 1280, height: 2000 },
-        pageScreenshot: "data",
+        pageScreenshotAssetId: "page-screenshot",
+        assets: [makeInlineAsset("page-screenshot", "data")],
       }),
     );
     mockRunRules.mockResolvedValue([]);
@@ -662,7 +678,8 @@ describe("auditMultiple", () => {
     interactiveElements: [
       makeInteractiveElement({ selector: "button.a", reached: true }),
     ],
-    pageScreenshot: "data",
+    pageScreenshotAssetId: "page-screenshot",
+    assets: [makeInlineAsset("page-screenshot", "data")],
   });
 
   const passingRules: RuleResult[] = [

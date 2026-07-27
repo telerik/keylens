@@ -101,4 +101,55 @@ describe("crawlPage lifecycle", () => {
     resolveLaunch?.(browser);
     await vi.waitFor(() => expect(browser.close).toHaveBeenCalledOnce());
   });
+
+  it("continues without a page asset when screenshot capture fails", async () => {
+    const page = {
+      on: vi.fn(),
+      goto: vi.fn().mockResolvedValue(undefined),
+      waitForTimeout: vi.fn().mockResolvedValue(undefined),
+      screenshot: vi.fn().mockRejectedValue(new Error("Rasterization failed")),
+      evaluate: vi.fn().mockImplementation((script: string) => {
+        if (script.includes("scrollWidth")) {
+          return { width: 1280, height: 720 };
+        }
+        if (script.includes("querySelectorAll")) return [];
+        return null;
+      }),
+      keyboard: { press: vi.fn().mockResolvedValue(undefined) },
+      mouse: { click: vi.fn().mockResolvedValue(undefined) },
+      removeAllListeners: vi.fn(),
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+    const context = {
+      newPage: vi.fn().mockResolvedValue(page),
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+    const browser = {
+      newContext: vi.fn().mockResolvedValue(context),
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+    mocks.launch.mockResolvedValue(browser);
+
+    const { crawlPage } = await import("@/crawler/index.js");
+    const result = await crawlPage("https://example.com", {
+      ...DEFAULT_CONFIG,
+      maxTabs: 0,
+      waitAfterLoad: 0,
+      capture: {
+        ...DEFAULT_CONFIG.capture,
+        page: "full",
+      },
+    });
+
+    expect(result.pageScreenshotAssetId).toBeUndefined();
+    expect(result.capture).toEqual(
+      expect.objectContaining({
+        attempted: 1,
+        captured: 0,
+        failed: 1,
+        byteLength: 0,
+      }),
+    );
+    expect(browser.close).toHaveBeenCalled();
+  });
 });

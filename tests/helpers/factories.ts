@@ -4,6 +4,7 @@ import type {
   CrawlResult,
   AuditReport,
   MultiPageReport,
+  AuditAsset,
 } from "@/types/index.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "@/types/index.js";
 import { DEFAULT_CONFIG, normalizeConfig } from "@/utils/config.js";
@@ -49,9 +50,31 @@ export function makeCrawlResult(
     focusSequence: [],
     interactiveElements: [],
     cycleCompleted: true,
-    pageScreenshot: "",
+    assets: [],
     crawlDuration: 1000,
+    capture: {
+      attempted: 0,
+      captured: 0,
+      skipped: 0,
+      failed: 0,
+      byteLength: 0,
+      decodedPixels: 0,
+    },
     ...overrides,
+  };
+}
+
+export function makeInlineAsset(
+  id: string,
+  data: string,
+  type: AuditAsset["type"] = "page-screenshot",
+): AuditAsset {
+  return {
+    id,
+    type,
+    mediaType: "image/png",
+    byteLength: Buffer.from(data, "base64").byteLength,
+    storage: { kind: "inline", data, encoding: "base64" },
   };
 }
 
@@ -82,6 +105,14 @@ export function makeAuditReport(
       unreachedElements: 0,
       cycleCompleted: true,
       duration: 1000,
+      capture: {
+        attempted: 0,
+        captured: 0,
+        skipped: 0,
+        failed: 0,
+        byteLength: 0,
+        decodedPixels: 0,
+      },
     },
     rules: [],
     summary: {
@@ -94,6 +125,7 @@ export function makeAuditReport(
       score: 100,
       scoreComplete: true,
     },
+    assets: [],
     ...overrides,
   };
 }
