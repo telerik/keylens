@@ -72,7 +72,7 @@ function countInteractionResults(
 ): number {
   const pages = "pages" in report ? report.pages : [report];
   return pages.reduce(
-    (total, page) => total + (page.crawl.interactionsAttempted ?? 0),
+    (total, page) => total + (page.crawl.interactions?.attempted ?? 0),
     0,
   );
 }
@@ -185,7 +185,13 @@ async function main(): Promise<void> {
       await measure("interactions", () =>
         audit(
           `${baseUrl}/interactions`,
-          normalizeConfig({ ...baseConfig, interactions: true }),
+          normalizeConfig({
+            ...baseConfig,
+            interactions: {
+              ...baseConfig.interactions,
+              enabled: true,
+            },
+          }),
         ),
       ),
       await measure("multi-page", () =>

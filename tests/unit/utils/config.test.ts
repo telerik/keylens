@@ -36,6 +36,12 @@ describe("normalizeConfig", () => {
         limits: { maxElements: 25 },
       },
       timeouts: { total: 60_000 },
+      interactions: {
+        enabled: true,
+        maxCases: 3,
+        actions: ["enter"],
+      },
+      multiPage: { concurrency: 3 },
     });
 
     expect(config.viewport).toEqual({ width: 800, height: 720 });
@@ -48,6 +54,15 @@ describe("normalizeConfig", () => {
       DEFAULT_CONFIG.capture.limits.maxBytes,
     );
     expect(config.timeouts.total).toBe(60_000);
+    expect(config.interactions).toEqual(
+      expect.objectContaining({
+        enabled: true,
+        maxCases: 3,
+        actions: ["enter"],
+        isolation: "reload",
+      }),
+    );
+    expect(config.multiPage.concurrency).toBe(3);
 
     config.urls.push("https://example.com");
     config.reporters.push("json");
@@ -59,6 +74,21 @@ describe("normalizeConfig", () => {
     expect(() =>
       normalizeConfig({ capture: { limits: { maxElements: 1.5 } } }),
     ).toThrow("capture.limits.maxElements must be a non-negative integer");
+  });
+
+  it("rejects invalid interaction and multi-page limits", () => {
+    expect(() => normalizeConfig({ interactions: { maxCases: -1 } })).toThrow(
+      "interactions.maxCases must be a non-negative integer",
+    );
+    expect(() => normalizeConfig({ interactions: { timeout: 0 } })).toThrow(
+      "interactions.timeout must be a positive number",
+    );
+    expect(() =>
+      normalizeConfig({ interactions: { timeout: Number.NaN } }),
+    ).toThrow("interactions.timeout must be a positive number");
+    expect(() => normalizeConfig({ multiPage: { concurrency: 0 } })).toThrow(
+      "multiPage.concurrency must be a positive integer",
+    );
   });
 });
 
@@ -113,10 +143,14 @@ describe("loadConfig", () => {
     config.urls.push("https://example.com");
     config.reporters.push("json");
     config.rules.keyboardTrap = false;
+    config.interactions.actions.push("space");
+    config.multiPage.concurrency = 8;
 
     expect(DEFAULT_CONFIG.urls).toEqual([]);
     expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
     expect(DEFAULT_CONFIG.rules.keyboardTrap).toBe(true);
+    expect(DEFAULT_CONFIG.interactions.actions).toEqual(["click"]);
+    expect(DEFAULT_CONFIG.multiPage.concurrency).toBe(2);
   });
 
   it("should throw ConfigError when file is not found", async () => {

@@ -100,7 +100,16 @@ vi.mock("@/index.js", () => ({
       },
     },
     timeouts: {},
-    interactions: false,
+    interactions: {
+      enabled: false,
+      maxCases: 20,
+      timeout: 2000,
+      actions: ["click"],
+      isolation: "reload",
+      navigation: "block",
+      excludeDestructive: true,
+    },
+    multiPage: { concurrency: 2 },
   },
 }));
 
@@ -144,7 +153,7 @@ describe("buildConfig", () => {
     expect(config.maxTabs).toBe(100);
     expect(config.viewport).toEqual({ width: 800, height: 600 });
     expect(config.capture.elements).toBe(true);
-    expect(config.interactions).toBe(true);
+    expect(config.interactions.enabled).toBe(true);
     expect(config.ai.enabled).toBe(true);
   });
 
