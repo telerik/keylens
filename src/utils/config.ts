@@ -47,7 +47,18 @@ export const DEFAULT_CONFIG: KeylensConfig = {
   },
   navigationTimeout: 30_000,
   headed: false,
-  interactions: false,
+  interactions: {
+    enabled: false,
+    maxCases: 20,
+    timeout: 2_000,
+    actions: ["click"],
+    isolation: "reload",
+    navigation: "block",
+    excludeDestructive: true,
+  },
+  multiPage: {
+    concurrency: 2,
+  },
   capture: {
     page: "none",
     elements: false,
@@ -118,6 +129,23 @@ export function normalizeConfig(
       "capture.limits.maxElements must be a non-negative integer",
     );
   }
+  const maxCases =
+    overrides.interactions?.maxCases ?? DEFAULT_CONFIG.interactions.maxCases;
+  if (!Number.isSafeInteger(maxCases) || maxCases < 0) {
+    throw new ConfigError(
+      "interactions.maxCases must be a non-negative integer",
+    );
+  }
+  const interactionTimeout =
+    overrides.interactions?.timeout ?? DEFAULT_CONFIG.interactions.timeout;
+  if (!Number.isFinite(interactionTimeout) || interactionTimeout <= 0) {
+    throw new ConfigError("interactions.timeout must be a positive number");
+  }
+  const concurrency =
+    overrides.multiPage?.concurrency ?? DEFAULT_CONFIG.multiPage.concurrency;
+  if (!Number.isSafeInteger(concurrency) || concurrency < 1) {
+    throw new ConfigError("multiPage.concurrency must be a positive integer");
+  }
 
   return {
     ...DEFAULT_CONFIG,
@@ -147,6 +175,26 @@ export function normalizeConfig(
         ...overrides.capture?.limits,
         maxElements,
       },
+    },
+    interactions: {
+      ...DEFAULT_CONFIG.interactions,
+      ...overrides.interactions,
+      maxCases,
+      actions: [
+        ...(overrides.interactions?.actions ??
+          DEFAULT_CONFIG.interactions.actions),
+      ],
+      include: overrides.interactions?.include
+        ? [...overrides.interactions.include]
+        : undefined,
+      exclude: overrides.interactions?.exclude
+        ? [...overrides.interactions.exclude]
+        : undefined,
+    },
+    multiPage: {
+      ...DEFAULT_CONFIG.multiPage,
+      ...overrides.multiPage,
+      concurrency,
     },
     timeouts: {
       ...DEFAULT_CONFIG.timeouts,

@@ -18,9 +18,19 @@ export class FocusAfterInteractionRule implements Rule {
   async evaluate(crawlResult: CrawlResult): Promise<RuleResult> {
     const interactions = crawlResult.interactionResults ?? [];
 
-    const failedInteractions = interactions.filter((r) => !r.focusReasonable);
+    const failedInteractions = interactions.filter(
+      (result) => result.status === "failed",
+    );
+    const erroredInteractions = interactions.filter(
+      (result) => result.status === "error",
+    );
 
     if (failedInteractions.length === 0) {
+      if (erroredInteractions.length > 0) {
+        throw new Error(
+          `${erroredInteractions.length} interaction case(s) could not be evaluated`,
+        );
+      }
       return {
         ruleId: this.id,
         passed: true,
@@ -38,7 +48,9 @@ export class FocusAfterInteractionRule implements Rule {
         ruleId: this.id,
         ruleName: this.name,
         severity: this.severity,
-        message: r.issue ?? `Focus lost after clicking ${r.element.selector}`,
+        message:
+          r.message ??
+          `Focus became invalid after ${r.action} on ${r.element.selector}`,
         elements: [
           {
             selector: r.element.selector,

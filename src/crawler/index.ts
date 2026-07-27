@@ -4,7 +4,9 @@ import {
   webkit,
   type Browser,
   type BrowserContext,
+  type Locator,
   type Page,
+  type Route,
 } from "playwright";
 import type {
   KeylensConfig,
@@ -16,6 +18,7 @@ import type {
   SkipLinkResult,
   CaptureSummary,
   AuditAsset,
+  InteractionSummary,
 } from "../types/index.js";
 import {
   SKIP_LINK_PATTERNS,
@@ -130,59 +133,35 @@ export async function crawlPage(
   url: string,
   config: KeylensConfig,
   signal?: AbortSignal,
+  sharedBrowser?: Browser,
 ): Promise<CrawlResult> {
   const startTime = Date.now();
   throwIfAborted(signal, "crawl", url);
   logger.info(`Launching ${config.browser} browser...`);
 
-  const launcher = BROWSER_LAUNCHERS[config.browser];
-  let browser: Browser | undefined;
+  const ownsBrowser = sharedBrowser === undefined;
+  let browser = sharedBrowser;
   let context: BrowserContext | undefined;
   let page: Page | undefined;
   let abortCleanup: Promise<void> | undefined;
   const captureBudget = new CaptureBudget(config.capture);
 
   const closeOnAbort = () => {
-    if (browser) {
+    if (ownsBrowser && browser) {
       abortCleanup = browser.close().catch(() => undefined);
+    } else if (context) {
+      abortCleanup = context.close().catch(() => undefined);
     }
   };
   signal?.addEventListener("abort", closeOnAbort, { once: true });
 
-  try {
-    const launch = launcher.launch({
-      headless: !config.headed,
-      handleSIGHUP: false,
-      handleSIGINT: false,
-      handleSIGTERM: false,
-    });
-    const closeLateLaunchOnAbort = launch.then(async (launchedBrowser) => {
-      if (signal?.aborted) {
-        await launchedBrowser.close().catch(() => undefined);
-        throw getAbortError(signal, "crawl", url);
-      }
-      return launchedBrowser;
-    });
-    browser = await raceWithSignal(
-      closeLateLaunchOnAbort,
-      signal,
-      "crawl",
-      url,
-    );
-  } catch (error) {
-    signal?.removeEventListener("abort", closeOnAbort);
-    throwIfAborted(signal, "crawl", url);
-    const message = (error as Error).message;
-    if (
-      message.includes("Executable doesn't exist") ||
-      message.includes("browserType.launch")
-    ) {
-      throw new CrawlError(
-        `Playwright ${config.browser} browser is not installed. Run: npx playwright install ${config.browser}`,
-        url,
-      );
+  if (!browser) {
+    try {
+      browser = await launchAuditBrowser(config, signal, url);
+    } catch (error) {
+      signal?.removeEventListener("abort", closeOnAbort);
+      throw error;
     }
-    throw new CrawlError(`Failed to launch browser: ${message}`, url);
   }
 
   // Ensure browser cleanup on process termination
@@ -193,8 +172,10 @@ export async function crawlPage(
       // Ignore close errors during forced shutdown
     }
   };
-  process.once("SIGINT", cleanup);
-  process.once("SIGTERM", cleanup);
+  if (ownsBrowser) {
+    process.once("SIGINT", cleanup);
+    process.once("SIGTERM", cleanup);
+  }
 
   try {
     context = await browser.newContext({
@@ -308,7 +289,7 @@ export async function crawlPage(
 
     // Post-click interaction testing (if enabled)
     let interactionResults: InteractionResult[] | undefined;
-    if (config.interactions) {
+    if (config.interactions.enabled) {
       logger.info("Testing post-click interactions...");
       const interactionScope = createExecutionScope({
         parentSignal: signal,
@@ -321,7 +302,7 @@ export async function crawlPage(
           crawlInteractions(
             page,
             focusSequence,
-            config.tabDelay,
+            config,
             interactionScope.signal,
             url,
           ),
@@ -333,9 +314,12 @@ export async function crawlPage(
         interactionScope.dispose();
       }
       logger.debug(
-        `Tested ${interactionResults!.length} interactions, ${interactionResults!.filter((r) => !r.focusReasonable).length} issue(s)`,
+        `Processed ${interactionResults!.length} interaction cases, ${interactionResults!.filter((result) => result.status === "failed").length} focus issue(s)`,
       );
     }
+    const interactionSummary = interactionResults
+      ? summarizeInteractions(interactionResults)
+      : undefined;
 
     const duration = Date.now() - startTime;
     throwIfAborted(signal, "crawl", url);
@@ -353,6 +337,7 @@ export async function crawlPage(
       pageDimensions,
       skipLinkResult,
       interactionResults,
+      interactionSummary,
       capture: captureBudget.summary,
     };
   } catch (error) {
@@ -362,14 +347,63 @@ export async function crawlPage(
       cause: error,
     });
   } finally {
-    process.off("SIGINT", cleanup);
-    process.off("SIGTERM", cleanup);
+    if (ownsBrowser) {
+      process.off("SIGINT", cleanup);
+      process.off("SIGTERM", cleanup);
+    }
     signal?.removeEventListener("abort", closeOnAbort);
     await abortCleanup;
     page?.removeAllListeners();
     await page?.close().catch(() => undefined);
     await context?.close().catch(() => undefined);
-    await browser?.close().catch(() => undefined);
+    if (ownsBrowser) {
+      await browser?.close().catch(() => undefined);
+    }
+  }
+}
+
+export async function launchAuditBrowser(
+  config: KeylensConfig,
+  signal?: AbortSignal,
+  url?: string,
+): Promise<Browser> {
+  const launcher = BROWSER_LAUNCHERS[config.browser];
+  throwIfAborted(signal, "crawl", url);
+  try {
+    const launch = launcher.launch({
+      headless: !config.headed,
+      handleSIGHUP: false,
+      handleSIGINT: false,
+      handleSIGTERM: false,
+    });
+    return await raceWithSignal(
+      launch.then(async (browser) => {
+        if (signal?.aborted) {
+          await browser.close().catch(() => undefined);
+          throw getAbortError(signal, "crawl", url);
+        }
+        return browser;
+      }),
+      signal,
+      "crawl",
+      url,
+    );
+  } catch (error) {
+    throwIfAborted(signal, "crawl", url);
+    const message = (error as Error).message;
+    if (
+      message.includes("Executable doesn't exist") ||
+      message.includes("browserType.launch")
+    ) {
+      throw new CrawlError(
+        `Playwright ${config.browser} browser is not installed. Run: npx playwright install ${config.browser}`,
+        url ?? config.urls[0] ?? "",
+      );
+    }
+    throw new CrawlError(
+      `Failed to launch browser: ${message}`,
+      url ?? config.urls[0] ?? "",
+    );
   }
 }
 
@@ -792,80 +826,332 @@ async function discoverInteractiveElements(
   return (result ?? []) as InteractiveElement[];
 }
 
-/**
- * Click buttons found during tab crawl and verify focus isn't lost.
- * Only clicks `<button>` and `role="button"` elements — skips links to avoid navigation.
- */
+const DESTRUCTIVE_CONTROL_PATTERN =
+  /\b(delete|remove|destroy|purchase|buy|pay|checkout|submit order|sign out|log out)\b/i;
+
+function interactionElement(
+  element: FocusedElement,
+): InteractionResult["element"] {
+  return {
+    selector: element.selector,
+    tagName: element.tagName,
+    role: element.role,
+    accessibleName: element.accessibleName,
+  };
+}
+
+function isInteractionCandidate(element: FocusedElement): boolean {
+  if (element.tagName === "button" || element.role === "button") return true;
+  if (element.tagName !== "input") return false;
+  const type = /type=["']?([^"'\s>]+)/i
+    .exec(element.outerHTML)?.[1]
+    ?.toLowerCase();
+  return ["button", "checkbox", "radio"].includes(type ?? "");
+}
+
+async function matchesAnySelector(
+  page: Page,
+  element: FocusedElement,
+  filters: string[] | undefined,
+): Promise<boolean> {
+  if (!filters?.length) return false;
+  const locator = await resolveInteractionLocator(page, element);
+  if ((await locator.count()) === 0) return false;
+  return locatorMatchesAnySelector(locator, filters);
+}
+
+async function locatorMatchesAnySelector(
+  locator: Locator,
+  filters: string[] | undefined,
+): Promise<boolean> {
+  if (!filters?.length) return false;
+  return locator.evaluate(
+    (element, selectors) =>
+      selectors.some((candidate) => element.matches(candidate)),
+    filters,
+  );
+}
+
+async function isDestructiveControl(
+  locator: Locator,
+  accessibleName: string,
+): Promise<boolean> {
+  const currentLabel = await locator.evaluate((element) => {
+    return [
+      element.getAttribute("aria-label"),
+      element.getAttribute("title"),
+      element.getAttribute("value"),
+      element.textContent,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  });
+  return DESTRUCTIVE_CONTROL_PATTERN.test(`${accessibleName} ${currentLabel}`);
+}
+
+async function resolveInteractionLocator(
+  page: Page,
+  element: FocusedElement,
+): Promise<Locator> {
+  const selectorMatch = page.locator(element.selector).first();
+  if ((await selectorMatch.count()) > 0) return selectorMatch;
+  if (element.accessibleName) {
+    return page
+      .getByRole(element.role as "button" | "checkbox" | "radio", {
+        name: element.accessibleName,
+        exact: true,
+      })
+      .first();
+  }
+  return selectorMatch;
+}
+
+async function resetInteractionPage(
+  page: Page,
+  config: KeylensConfig,
+  url: string,
+): Promise<void> {
+  await page.goto(url, {
+    waitUntil: "domcontentloaded",
+    timeout: config.navigationTimeout,
+  });
+  if (config.waitForSelector) {
+    await page.waitForSelector(config.waitForSelector, {
+      timeout: config.navigationTimeout,
+    });
+  }
+  if (config.waitAfterLoad > 0) {
+    await page.waitForTimeout(config.waitAfterLoad);
+  }
+}
+
+function summarizeInteractions(
+  results: InteractionResult[],
+): InteractionSummary {
+  return {
+    total: results.length,
+    attempted: results.filter((result) => result.status !== "skipped").length,
+    passed: results.filter((result) => result.status === "passed").length,
+    failed: results.filter((result) => result.status === "failed").length,
+    skipped: results.filter((result) => result.status === "skipped").length,
+    errors: results.filter((result) => result.status === "error").length,
+  };
+}
+
 async function crawlInteractions(
   page: Page,
   focusSequence: FocusedElement[],
-  tabDelay: number,
+  config: KeylensConfig,
   signal?: AbortSignal,
   url?: string,
 ): Promise<InteractionResult[]> {
   const results: InteractionResult[] = [];
-
-  // Filter to clickable non-link elements
-  const clickable = focusSequence.filter(
-    (el) =>
-      el.tagName === "button" || el.role === "button" || el.tagName === "input",
-  );
-
-  for (const el of clickable) {
-    throwIfAborted(signal, "interactions", url);
-    // Skip submit inputs — they can trigger form submission/navigation
-    if (el.tagName === "input" && el.outerHTML.includes('type="submit"')) {
+  const interactions = config.interactions;
+  const targetUrl = url ?? page.url();
+  let attempted = 0;
+  const candidates: FocusedElement[] = [];
+  for (const element of focusSequence.filter(isInteractionCandidate)) {
+    if (
+      interactions.include?.length &&
+      !(await matchesAnySelector(page, element, interactions.include))
+    ) {
       continue;
     }
+    candidates.push(element);
+  }
 
-    try {
-      // Focus the element first, then click it
-      const locator = page.locator(el.selector).first();
-      await locator.focus();
-      await page.waitForTimeout(tabDelay);
-      await locator.click();
-      await page.waitForTimeout(tabDelay * 2);
+  for (const element of candidates) {
+    throwIfAborted(signal, "interactions", url);
 
-      // Check where focus ended up
-      const focusInfo = (await page.evaluate(
-        `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
-      )) as FocusedElementInfo | null;
+    for (const action of interactions.actions) {
+      const startedAt = Date.now();
+      const base = {
+        element: interactionElement(element),
+        action,
+        focusAfter: null,
+      };
+      if (attempted >= interactions.maxCases) {
+        results.push({
+          ...base,
+          status: "skipped",
+          reason: "limit-reached",
+          message: `Interaction case limit of ${interactions.maxCases} reached`,
+          duration: Date.now() - startedAt,
+        });
+        continue;
+      }
+      attempted++;
 
-      const focusAfter = focusInfo
-        ? {
-            selector: focusInfo.selector,
-            tagName: focusInfo.tagName,
-            role: focusInfo.role,
-          }
-        : null;
+      let navigationBlocked = false;
+      const blockNavigation = async (route: Route) => {
+        if (
+          route.request().isNavigationRequest() &&
+          route.request().frame() === page.mainFrame()
+        ) {
+          navigationBlocked = true;
+          await route.abort("blockedbyclient");
+        } else {
+          await route.continue();
+        }
+      };
 
-      // Focus is "reasonable" if it's on:
-      // - the clicked element itself
-      // - a child of the clicked element
-      // - or anywhere that isn't body/null (e.g. a dialog that opened)
-      const focusReasonable = focusAfter !== null;
+      try {
+        if (interactions.isolation === "reload") {
+          await resetInteractionPage(page, config, targetUrl);
+        }
+        const locator = await resolveInteractionLocator(page, element);
+        if ((await locator.count()) === 0) {
+          results.push({
+            ...base,
+            status: "error",
+            reason: "element-missing",
+            message: `Control no longer exists after page reset: ${element.selector}`,
+            duration: Date.now() - startedAt,
+          });
+          continue;
+        }
+        if (
+          interactions.include?.length &&
+          !(await locatorMatchesAnySelector(locator, interactions.include))
+        ) {
+          attempted--;
+          results.push({
+            ...base,
+            status: "skipped",
+            reason: "excluded",
+            message: `Control no longer matches the interaction selector policy: ${element.selector}`,
+            duration: Date.now() - startedAt,
+          });
+          continue;
+        }
+        if (await locatorMatchesAnySelector(locator, interactions.exclude)) {
+          attempted--;
+          results.push({
+            ...base,
+            status: "skipped",
+            reason: "excluded",
+            message: `Excluded by interaction selector policy: ${element.selector}`,
+            duration: Date.now() - startedAt,
+          });
+          continue;
+        }
+        if (
+          interactions.excludeDestructive &&
+          (await isDestructiveControl(locator, element.accessibleName))
+        ) {
+          attempted--;
+          results.push({
+            ...base,
+            status: "skipped",
+            reason: "destructive",
+            message: `Potentially destructive control was not activated: ${element.selector}`,
+            duration: Date.now() - startedAt,
+          });
+          continue;
+        }
+        if (interactions.navigation === "block") {
+          await page.route("**/*", blockNavigation);
+        }
 
-      const issue = !focusReasonable
-        ? `Focus lost after clicking ${el.selector} — activeElement reverted to body`
-        : undefined;
+        await locator.focus({ timeout: interactions.timeout });
+        if (action === "click") {
+          await locator.click({
+            timeout: interactions.timeout,
+            noWaitAfter: true,
+          });
+        } else {
+          await locator.press(action === "enter" ? "Enter" : " ", {
+            timeout: interactions.timeout,
+            noWaitAfter: true,
+          });
+        }
+        await page.waitForTimeout(Math.min(config.tabDelay * 2, 500));
+        throwIfAborted(signal, "interactions", url);
 
-      results.push({
-        element: {
-          selector: el.selector,
-          tagName: el.tagName,
-          role: el.role,
-          accessibleName: el.accessibleName,
-        },
-        action: "click",
-        focusAfter,
-        focusReasonable,
-        issue,
-      });
-    } catch {
-      throwIfAborted(signal, "interactions", url);
-      logger.debug(
-        `Interaction test skipped for ${el.selector} (click failed)`,
-      );
+        if (navigationBlocked) {
+          results.push({
+            ...base,
+            status: "skipped",
+            reason: "navigation-blocked",
+            message: `Top-level navigation was blocked after ${action} on ${element.selector}`,
+            duration: Date.now() - startedAt,
+          });
+          continue;
+        }
+
+        const focusInfo = (await page.evaluate(
+          `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
+        )) as FocusedElementInfo | null;
+        const focusAfter = focusInfo
+          ? {
+              selector: focusInfo.selector,
+              tagName: focusInfo.tagName,
+              role: focusInfo.role,
+            }
+          : null;
+        const focusState = focusAfter
+          ? ((await page.evaluate(`(() => {
+              const element = document.activeElement;
+              if (!element || element === document.body) return null;
+              const rect = element.getBoundingClientRect();
+              const style = window.getComputedStyle(element);
+              const visible =
+                rect.width > 0 &&
+                rect.height > 0 &&
+                style.visibility !== "hidden" &&
+                style.display !== "none";
+              const interactive = element.matches(
+                'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"]),[contenteditable="true"],[role="button"],[role="menuitem"],[role="option"],[role="tab"]'
+              );
+              const role = element.getAttribute('role');
+              const managed =
+               element.hasAttribute('tabindex') ||
+               role === 'dialog' ||
+               role === 'alertdialog';
+              return { visible, interactive, managed };
+            })()`)) as {
+              visible: boolean;
+              interactive: boolean;
+              managed: boolean;
+            } | null)
+          : null;
+        const sameControl = focusAfter?.selector === element.selector;
+        const validMovedFocus =
+          focusState?.visible === true &&
+          (focusState.interactive === true || focusState.managed === true);
+        const status = sameControl || validMovedFocus ? "passed" : "failed";
+        const reason = sameControl
+          ? "focus-preserved"
+          : validMovedFocus
+            ? "focus-moved"
+            : focusAfter
+              ? "unexpected-focus"
+              : "focus-lost";
+        results.push({
+          ...base,
+          focusAfter,
+          status,
+          reason,
+          message:
+            status === "failed"
+              ? `Focus became invalid after ${action} on ${element.selector}`
+              : undefined,
+          duration: Date.now() - startedAt,
+        });
+      } catch (error) {
+        throwIfAborted(signal, "interactions", url);
+        results.push({
+          ...base,
+          status: "error",
+          reason: "action-failed",
+          message: `Interaction failed for ${element.selector}: ${(error as Error).message}`,
+          duration: Date.now() - startedAt,
+        });
+      } finally {
+        if (interactions.navigation === "block") {
+          await page.unroute("**/*", blockNavigation).catch(() => undefined);
+        }
+      }
     }
   }
 

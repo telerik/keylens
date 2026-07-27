@@ -115,9 +115,30 @@
       }
     },
     "interactions": {
-      "type": "boolean",
-      "default": false,
-      "description": "Enable post-click interaction testing on buttons."
+      "type": "object",
+      "description": "Bounded post-activation focus testing.",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "maxCases": { "type": "integer", "minimum": 0, "default": 20 },
+        "timeout": { "type": "number", "minimum": 1, "default": 2000 },
+        "include": { "type": "array", "items": { "type": "string" } },
+        "exclude": { "type": "array", "items": { "type": "string" } },
+        "actions": {
+          "type": "array",
+          "items": { "enum": ["click", "enter", "space"] },
+          "default": ["click"]
+        },
+        "isolation": { "enum": ["reload", "none"], "default": "reload" },
+        "navigation": { "enum": ["block", "allow"], "default": "block" },
+        "excludeDestructive": { "type": "boolean", "default": true }
+      }
+    },
+    "multiPage": {
+      "type": "object",
+      "description": "Browser reuse and bounded concurrency for multi-page audits.",
+      "properties": {
+        "concurrency": { "type": "integer", "minimum": 1, "default": 2 }
+      }
     },
     "ai": {
       "type": "object",
