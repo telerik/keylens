@@ -6,6 +6,7 @@ import type {
   MultiPageReport,
 } from "@/types/index.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "@/types/index.js";
+import { DEFAULT_CONFIG, normalizeConfig } from "@/utils/config.js";
 
 export function makeFocusedElement(
   overrides: Partial<FocusedElement> = {},
@@ -62,7 +63,19 @@ export function makeAuditReport(
     version: "0.1.0",
     timestamp: new Date().toISOString(),
     url: "https://example.com",
-    config: {},
+    config: {
+      ...normalizeConfig(DEFAULT_CONFIG),
+      ai: {
+        ...DEFAULT_CONFIG.ai,
+        apiKeyConfigured: false,
+        transportConfigured: false,
+      },
+    },
+    timings: {
+      crawl: 1000,
+      rules: 0,
+      total: 1000,
+    },
     crawl: {
       totalFocusableElements: 0,
       totalInteractiveElements: 0,
@@ -92,6 +105,10 @@ export function makeMultiPageReport(
     timestamp: new Date().toISOString(),
     urls: ["https://example.com"],
     pages: [makeAuditReport()],
+    timings: {
+      pages: 1000,
+      total: 1000,
+    },
     summary: {
       totalPages: 1,
       totalErrors: 0,

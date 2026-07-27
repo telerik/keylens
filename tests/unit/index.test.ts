@@ -4,6 +4,7 @@ import {
   makeCrawlResult,
   makeFocusedElement,
   makeInteractiveElement,
+  makeAuditReport,
 } from "@tests/helpers/factories.js";
 import { DEFAULT_CONFIG } from "@/utils/config.js";
 
@@ -19,9 +20,13 @@ vi.mock("@/rules/index.js", () => ({
 
 vi.mock("@/reporters/index.js", () => ({
   runReporters: vi.fn().mockResolvedValue(undefined),
+  runMultiReporters: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/utils/logger.js", () => ({
+  withLogLevel: vi.fn(
+    async (_level: string, operation: () => Promise<unknown>) => operation(),
+  ),
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -63,14 +68,24 @@ vi.mock("@/ai/index.js", () => ({
 import { crawlPage } from "@/crawler/index.js";
 import { runRules } from "@/rules/index.js";
 import { runReporters } from "@/reporters/index.js";
+import { withLogLevel } from "@/utils/logger.js";
 
 const mockCrawlPage = vi.mocked(crawlPage);
 const mockRunRules = vi.mocked(runRules);
 const mockRunReporters = vi.mocked(runReporters);
+const mockWithLogLevel = vi.mocked(withLogLevel);
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockAIInstance.isAvailable.mockReturnValue(false);
+  mockAIInstance.generateFixSuggestions.mockResolvedValue(undefined);
+  mockAIInstance.validateFocusOrder.mockResolvedValue(null);
+  mockAIInstance.generateSummary.mockResolvedValue(null);
+  mockAIInstance.classifyWidgets.mockResolvedValue([]);
+  mockAIInstance.inferAccessibleNames.mockResolvedValue([]);
+  mockAIInstance.scoreFocusIndicatorQuality.mockResolvedValue([]);
+  mockAIInstance.generateMultiPageSummary.mockResolvedValue(null);
+  mockAIInstance.detectCrossPagePatterns.mockResolvedValue([]);
 });
 
 describe("audit", () => {
@@ -131,7 +146,10 @@ describe("audit", () => {
 
     await audit("https://example.com", config);
 
-    expect(mockCrawlPage).toHaveBeenCalledWith("https://example.com", config);
+    expect(mockCrawlPage).toHaveBeenCalledWith(
+      "https://example.com",
+      expect.objectContaining(config),
+    );
   });
 
   it("should call runRules with crawl result and config", async () => {
@@ -141,10 +159,13 @@ describe("audit", () => {
 
     await audit("https://example.com", config);
 
-    expect(mockRunRules).toHaveBeenCalledWith(defaultCrawlResult, config);
+    expect(mockRunRules).toHaveBeenCalledWith(
+      defaultCrawlResult,
+      expect.objectContaining(config),
+    );
   });
 
-  it("should call runReporters with report, reporters, and outputDir", async () => {
+  it("should not run reporters implicitly", async () => {
     setupMocks();
     const audit = await getAudit();
     const config: KeylensConfig = {
@@ -155,10 +176,18 @@ describe("audit", () => {
 
     await audit("https://example.com", config);
 
-    expect(mockRunReporters).toHaveBeenCalledWith(
-      expect.objectContaining({ url: "https://example.com" }),
-      ["cli", "json"],
-      "./my-output",
+    expect(mockRunReporters).not.toHaveBeenCalled();
+  });
+
+  it("should default programmatic execution to silent logging", async () => {
+    setupMocks();
+    const audit = await getAudit();
+
+    await audit("https://example.com");
+
+    expect(mockWithLogLevel).toHaveBeenCalledWith(
+      "silent",
+      expect.any(Function),
     );
   });
 
@@ -172,6 +201,135 @@ describe("audit", () => {
     expect(report.crawl.totalInteractiveElements).toBe(3);
     expect(report.crawl.unreachedElements).toBe(1);
     expect(report.crawl.cycleCompleted).toBe(true);
+  });
+
+  describe("staged audit API", () => {
+    const crawlResult = makeCrawlResult({
+      focusSequence: [makeFocusedElement()],
+      interactiveElements: [makeInteractiveElement({ reached: true })],
+      pageScreenshot: "base64-screenshot",
+    });
+    const ruleResults: RuleResult[] = [
+      {
+        ruleId: "tabindex-abuse",
+        passed: false,
+        violations: [
+          {
+            ruleId: "tabindex-abuse",
+            ruleName: "Tabindex Abuse",
+            severity: "warning",
+            message: "Positive tabindex",
+            elements: [],
+            impact: "Focus order changes",
+          },
+        ],
+        duration: 1,
+      },
+    ];
+
+    function setupStageMocks() {
+      mockCrawlPage.mockResolvedValue(crawlResult);
+      mockRunRules.mockResolvedValue(ruleResults);
+    }
+
+    it("auditBase returns deterministic results without AI or reporters", async () => {
+      setupStageMocks();
+      mockAIInstance.isAvailable.mockReturnValue(true);
+      const { auditBase } = await import("@/index.js");
+
+      const report = await auditBase("https://example.com", {
+        viewport: { width: 800 },
+        ai: { enabled: true, apiKey: "secret" },
+        reporters: ["json"],
+      });
+
+      expect(report.summary.totalWarnings).toBe(1);
+      expect(report.config.viewport).toEqual({ width: 800, height: 720 });
+      expect(report.config.ai.apiKeyConfigured).toBe(true);
+      expect(report.config).not.toHaveProperty("ai.apiKey");
+      expect(report.interactiveElements).toEqual(
+        crawlResult.interactiveElements,
+      );
+      expect(report.timings).toEqual(
+        expect.objectContaining({
+          crawl: crawlResult.crawlDuration,
+          rules: expect.any(Number),
+          total: expect.any(Number),
+        }),
+      );
+      expect(mockAIInstance.generateFixSuggestions).not.toHaveBeenCalled();
+      expect(mockRunReporters).not.toHaveBeenCalled();
+    });
+
+    it("records environment-backed AI credentials without exposing them", async () => {
+      setupStageMocks();
+      vi.stubEnv("OPENAI_API_KEY", "environment-secret");
+      const { auditBase } = await import("@/index.js");
+
+      try {
+        const report = await auditBase("https://example.com", {
+          ai: { provider: "openai" },
+        });
+
+        expect(report.config.ai.apiKeyConfigured).toBe(true);
+        expect(JSON.stringify(report.config)).not.toContain(
+          "environment-secret",
+        );
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
+    it("enrichAudit does not mutate the deterministic report", async () => {
+      setupStageMocks();
+      const { auditBase, enrichAudit } = await import("@/index.js");
+      const baseReport = await auditBase("https://example.com", {
+        viewport: { width: 900 },
+      });
+      const snapshot = structuredClone(baseReport);
+      mockAIInstance.isAvailable.mockReturnValue(true);
+      mockAIInstance.generateFixSuggestions.mockImplementationOnce(
+        async (violations) => {
+          violations[0]!.fixSuggestion = "Use tabindex=0";
+        },
+      );
+
+      const unsafeOptions = {
+        ai: { enabled: true, apiKey: "secret" },
+        viewport: { width: 320 },
+        rules: { keyboardTrap: false },
+      };
+      const enriched = await enrichAudit(baseReport, unsafeOptions);
+
+      expect(baseReport).toEqual(snapshot);
+      expect(enriched).not.toBe(baseReport);
+      expect(enriched.rules[0]!.violations[0]!.fixSuggestion).toBe(
+        "Use tabindex=0",
+      );
+      expect(enriched.config.viewport).toEqual({ width: 900, height: 720 });
+      expect(enriched.config.rules.keyboardTrap).toBe(true);
+      expect(enriched.config.ai.enabled).toBe(true);
+      expect(enriched.config.ai.apiKeyConfigured).toBe(true);
+      expect(enriched.config).not.toHaveProperty("ai.apiKey");
+      expect(enriched.timings.ai).toEqual(expect.any(Number));
+    });
+
+    it("renderAuditReport performs output only when called explicitly", async () => {
+      const { renderAuditReport } = await import("@/index.js");
+      const report = makeAuditReport();
+
+      await renderAuditReport(report, ["json"], "./output", "warn");
+
+      expect(mockRunReporters).toHaveBeenCalledWith(
+        report,
+        ["json"],
+        "./output",
+      );
+      expect(mockWithLogLevel).toHaveBeenCalledWith(
+        "warn",
+        expect.any(Function),
+      );
+    });
   });
 
   it("should calculate correct violation summary", async () => {

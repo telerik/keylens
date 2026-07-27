@@ -164,6 +164,14 @@ describe("buildConfig", () => {
     expect(config.ai.apiKey).toBe("keylens-key");
   });
 
+  it("does not use an OpenAI key for the default Anthropic provider", () => {
+    process.env.OPENAI_API_KEY = "openai-key";
+
+    const config = buildConfig();
+
+    expect(config.ai.apiKey).toBeUndefined();
+  });
+
   it("caller options override env vars", () => {
     process.env.KEYLENS_BROWSER = "webkit";
     const config = buildConfig({ browser: "firefox" });
