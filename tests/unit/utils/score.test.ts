@@ -170,6 +170,24 @@ describe("computeScore", () => {
     expect(computeScore(report)).toBe(0);
   });
 
+  it("gives evaluator errors no accessibility weight", () => {
+    const report = makeAuditReport({
+      rules: [
+        makePassedRule("keyboard-trap"),
+        {
+          ruleId: "unreachable-elements",
+          passed: false,
+          status: "error",
+          violations: [],
+          duration: 1,
+          error: { code: "RULE_ERROR", message: "evaluation failed" },
+        },
+      ],
+    });
+
+    expect(computeScore(report)).toBe(20);
+  });
+
   it("handles unknown rule IDs gracefully (0 weight)", () => {
     const report = makeAuditReport({
       crawl: {

@@ -4,7 +4,12 @@ import { readFileSync } from "fs";
 import { access, mkdtemp, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join, resolve } from "path";
-import { audit, renderAuditReport } from "@/index.js";
+import {
+  audit,
+  AuditAbortedError,
+  AuditTimeoutError,
+  renderAuditReport,
+} from "@/index.js";
 import { DEFAULT_CONFIG } from "@/utils/config.js";
 import type { KeylensConfig } from "@/types/index.js";
 
@@ -69,6 +74,48 @@ describe("Integration: audit pipeline", () => {
     expect(report.focusSequence).toBeDefined();
     expect(report.focusSequence!.length).toBeGreaterThan(0);
     expect(report.crawl.duration).toBeGreaterThan(0);
+  });
+
+  it("aborts promptly and removes process cleanup listeners", async () => {
+    const controller = new AbortController();
+    const initialSigintListeners = process.listenerCount("SIGINT");
+    const initialSigtermListeners = process.listenerCount("SIGTERM");
+    const events: string[] = [];
+
+    const pending = audit(testPageUrl, {
+      ...makeConfig({ waitAfterLoad: 10_000 }),
+      signal: controller.signal,
+      onEvent: (event) => events.push(`${event.type}:${event.phase}`),
+    });
+    setTimeout(() => controller.abort(), 50);
+
+    await expect(pending).rejects.toBeInstanceOf(AuditAbortedError);
+    const eventsAtRejection = [...events];
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+
+    expect(events).toEqual(eventsAtRejection);
+    expect(process.listenerCount("SIGINT")).toBe(initialSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(initialSigtermListeners);
+  });
+
+  it("enforces total wall-time without leaving cleanup listeners", async () => {
+    const initialSigintListeners = process.listenerCount("SIGINT");
+
+    const pending = audit(testPageUrl, {
+      ...makeConfig({ waitAfterLoad: 10_000 }),
+      timeouts: { total: 50 },
+    });
+
+    await expect(pending).rejects.toBeInstanceOf(AuditTimeoutError);
+    await expect(pending).rejects.toMatchObject({
+      phase: "crawl",
+      details: {
+        timeoutMs: 50,
+        timeoutKind: "total",
+      },
+    });
+
+    expect(process.listenerCount("SIGINT")).toBe(initialSigintListeners);
   });
 
   it("should detect tabindex abuse", async () => {

@@ -83,7 +83,7 @@ describe("reportMarkdown", () => {
     const md = getWrittenMarkdown();
 
     expect(md).toContain("## Summary");
-    expect(md).toContain("| 3 | 2 | 1 | 5 | 3 | 72/100 |");
+    expect(md).toContain("| 3 | 2 | 1 | 5 | 3 | 0 | 72/100 |");
   });
 
   it("should render crawl section", async () => {
@@ -520,7 +520,7 @@ describe("reportMultiMarkdown", () => {
 
     expect(md).toContain("# Keylens Multi-Page Keyboard Navigation Report");
     expect(md).toContain("## Aggregate Summary");
-    expect(md).toContain("| 2 | 5 | 3 | 1 | 2 | 60/100 |");
+    expect(md).toContain("| 2 | 5 | 3 | 1 | 0 | 2 | 60/100 |");
   });
 
   it("should render individual page sections", async () => {

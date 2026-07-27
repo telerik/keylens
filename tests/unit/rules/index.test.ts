@@ -1,10 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { runRules } from "@/rules/index.js";
 import { makeCrawlResult } from "@tests/helpers/factories.js";
 import { DEFAULT_CONFIG } from "@/utils/config.js";
+import { MissingFocusIndicatorRule } from "@/rules/missing-focus-indicator.js";
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe("runRules", () => {
@@ -23,7 +28,29 @@ describe("runRules", () => {
       expect(result).toHaveProperty("passed");
       expect(result).toHaveProperty("violations");
       expect(result).toHaveProperty("duration");
+      expect(result.status).toBe(result.passed ? "passed" : "failed");
       expect(result.duration).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  it("reports evaluator failures separately from accessibility violations", async () => {
+    vi.spyOn(MissingFocusIndicatorRule.prototype, "evaluate").mockRejectedValue(
+      new Error("pixel comparison failed"),
+    );
+
+    const results = await runRules(makeCrawlResult(), DEFAULT_CONFIG);
+    const result = results.find(
+      (entry) => entry.ruleId === "missing-focus-indicator",
+    );
+
+    expect(result).toMatchObject({
+      passed: false,
+      status: "error",
+      violations: [],
+      error: {
+        code: "RULE_ERROR",
+        message: "pixel comparison failed",
+      },
     });
   });
 

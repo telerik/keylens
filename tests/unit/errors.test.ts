@@ -4,6 +4,8 @@ import {
   CrawlError,
   ConfigError,
   NavigationError,
+  AuditAbortedError,
+  AuditTimeoutError,
 } from "@/errors.js";
 
 describe("KeylensError", () => {
@@ -99,5 +101,31 @@ describe("structured error metadata", () => {
       details: { timeoutMs: 1000 },
     });
     expect(error.cause).toBeInstanceOf(Error);
+  });
+});
+
+describe("cancellation errors", () => {
+  it("represents caller cancellation with stable metadata", () => {
+    const error = new AuditAbortedError("crawl", "https://example.com");
+
+    expect(error).toMatchObject({
+      name: "AuditAbortedError",
+      code: "ABORTED",
+      phase: "crawl",
+      url: "https://example.com",
+      retryable: false,
+    });
+  });
+
+  it("includes the enforced timeout budget", () => {
+    const error = new AuditTimeoutError("rules", 250, "https://example.com");
+
+    expect(error).toMatchObject({
+      name: "AuditTimeoutError",
+      code: "TIMEOUT",
+      phase: "rules",
+      retryable: true,
+      details: { timeoutMs: 250 },
+    });
   });
 });
