@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createServer, type Server } from "http";
 import { readFileSync } from "fs";
-import { resolve } from "path";
-import { audit } from "@/index.js";
+import { access, mkdtemp, rm } from "fs/promises";
+import { tmpdir } from "os";
+import { join, resolve } from "path";
+import { audit, renderAuditReport } from "@/index.js";
 import { DEFAULT_CONFIG } from "@/utils/config.js";
 import type { KeylensConfig } from "@/types/index.js";
 
@@ -112,6 +114,24 @@ describe("Integration: audit pipeline", () => {
 
     expect(report.pageScreenshot).toBeDefined();
     expect(report.pageScreenshot!.length).toBeGreaterThan(100);
+  });
+
+  it("should only write configured reporters when rendering is explicit", async () => {
+    const outputDir = await mkdtemp(join(tmpdir(), "keylens-report-"));
+    const reportPath = join(outputDir, "keylens-report.json");
+
+    try {
+      const report = await audit(
+        testPageUrl,
+        makeConfig({ reporters: ["json"], outputDir }),
+      );
+
+      await expect(access(reportPath)).rejects.toThrow();
+      await renderAuditReport(report, ["json"], outputDir);
+      await expect(access(reportPath)).resolves.toBeUndefined();
+    } finally {
+      await rm(outputDir, { recursive: true, force: true });
+    }
   });
 
   it("should report correct totalInteractiveElements count", async () => {

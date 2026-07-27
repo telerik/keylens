@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { logger, setLogLevel } from "@/utils/logger.js";
+import { logger, setLogLevel, withLogLevel } from "@/utils/logger.js";
 
 describe("logger", () => {
   const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -54,9 +54,21 @@ describe("logger", () => {
       logger.success("test");
       logger.warn("test");
       logger.error("test");
+      logger.rule(true, "test");
 
       expect(logSpy).not.toHaveBeenCalled();
       expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it("should apply a scoped log level without changing the global level", async () => {
+      setLogLevel("info");
+
+      await withLogLevel("silent", async () => {
+        logger.info("scoped");
+      });
+      logger.info("global");
+
+      expect(logSpy).toHaveBeenCalledTimes(1);
     });
   });
 

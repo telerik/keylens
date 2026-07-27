@@ -1,5 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { loadConfig, DEFAULT_CONFIG, normalizeConfig } from "@/utils/config.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  loadConfig,
+  DEFAULT_CONFIG,
+  hasConfiguredAIAPIKey,
+  normalizeConfig,
+  resolveAIAPIKey,
+} from "@/utils/config.js";
 import { ConfigError } from "@/errors.js";
 
 // Mock fs/promises
@@ -12,6 +18,10 @@ const mockReadFile = vi.mocked(readFile);
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("normalizeConfig", () => {
@@ -60,6 +70,32 @@ describe("loadConfig", () => {
     expect(config.maxTabs).toBe(DEFAULT_CONFIG.maxTabs);
     expect(config.browser).toBe("chromium");
     expect(config.rules.keyboardTrap).toBe(true);
+  });
+
+  describe("AI API key resolution", () => {
+    it("detects the provider-independent Keylens environment key", () => {
+      vi.stubEnv("KEYLENS_AI_API_KEY", "keylens-key");
+      const config = normalizeConfig({ ai: { provider: "anthropic" } });
+
+      expect(resolveAIAPIKey(config.ai)).toBe("keylens-key");
+      expect(hasConfiguredAIAPIKey(config.ai)).toBe(true);
+    });
+
+    it("detects the Anthropic provider environment key", () => {
+      vi.stubEnv("KEYLENS_AI_API_KEY", "");
+      vi.stubEnv("ANTHROPIC_API_KEY", "anthropic-key");
+      const config = normalizeConfig({ ai: { provider: "anthropic" } });
+
+      expect(resolveAIAPIKey(config.ai)).toBe("anthropic-key");
+    });
+
+    it("detects the OpenAI provider environment key", () => {
+      vi.stubEnv("KEYLENS_AI_API_KEY", "");
+      vi.stubEnv("OPENAI_API_KEY", "openai-key");
+      const config = normalizeConfig({ ai: { provider: "openai" } });
+
+      expect(resolveAIAPIKey(config.ai)).toBe("openai-key");
+    });
   });
 
   it("should not share nested mutable values with defaults", async () => {
