@@ -23,6 +23,7 @@ export class FocusNotObscuredRule implements Rule {
       return {
         ruleId: this.id,
         passed: true,
+        status: "passed",
         violations: [],
         duration: 0,
       };
@@ -31,6 +32,7 @@ export class FocusNotObscuredRule implements Rule {
     return {
       ruleId: this.id,
       passed: false,
+      status: "failed",
       violations: [
         {
           ruleId: this.id,

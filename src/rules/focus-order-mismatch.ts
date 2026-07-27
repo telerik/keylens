@@ -25,7 +25,13 @@ export class FocusOrderMismatchRule implements Rule {
     const { focusSequence } = crawlResult;
 
     if (focusSequence.length < 2) {
-      return { ruleId: this.id, passed: true, violations, duration: 0 };
+      return {
+        ruleId: this.id,
+        passed: true,
+        status: "passed",
+        violations,
+        duration: 0,
+      };
     }
 
     // Sort elements by visual position (top-to-bottom, left-to-right)
@@ -80,6 +86,7 @@ export class FocusOrderMismatchRule implements Rule {
     return {
       ruleId: this.id,
       passed: violations.length === 0,
+      status: violations.length === 0 ? "passed" : "failed",
       violations,
       duration: 0,
     };

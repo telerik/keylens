@@ -6,6 +6,7 @@ interface OpenAIClient {
   responses: {
     create(
       params: Record<string, unknown>,
+      options?: { signal?: AbortSignal },
     ): Promise<{ output_text: string | null }>;
   };
 }
@@ -27,14 +28,17 @@ export class OpenAITransport implements AITransport {
     private baseURL?: string,
   ) {}
 
-  async query(prompt: string): Promise<string> {
+  async query(prompt: string, signal?: AbortSignal): Promise<string> {
     const client = await this.getClient();
-    const response = await client.responses.create({
+    const params = {
       model: this.model,
       max_output_tokens: 1024,
       input: [{ role: "user", content: prompt }],
       store: false,
-    });
+    };
+    const response = signal
+      ? await client.responses.create(params, { signal })
+      : await client.responses.create(params);
 
     return response.output_text ?? "";
   }
@@ -42,6 +46,7 @@ export class OpenAITransport implements AITransport {
   async queryVision(
     prompt: string,
     images: Array<{ base64: string; mediaType: string }>,
+    signal?: AbortSignal,
   ): Promise<string> {
     const content: Array<
       | { type: "input_image"; image_url: string }
@@ -57,12 +62,15 @@ export class OpenAITransport implements AITransport {
     content.push({ type: "input_text", text: prompt });
 
     const client = await this.getClient();
-    const response = await client.responses.create({
+    const params = {
       model: this.model,
       max_output_tokens: 2048,
       input: [{ role: "user", content }],
       store: false,
-    });
+    };
+    const response = signal
+      ? await client.responses.create(params, { signal })
+      : await client.responses.create(params);
 
     return response.output_text ?? "";
   }

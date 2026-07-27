@@ -24,6 +24,7 @@ export class FocusAfterInteractionRule implements Rule {
       return {
         ruleId: this.id,
         passed: true,
+        status: "passed",
         violations: [],
         duration: 0,
       };
@@ -32,6 +33,7 @@ export class FocusAfterInteractionRule implements Rule {
     return {
       ruleId: this.id,
       passed: false,
+      status: "failed",
       violations: failedInteractions.map((r) => ({
         ruleId: this.id,
         ruleName: this.name,

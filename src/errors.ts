@@ -91,3 +91,50 @@ export class NavigationError extends KeylensError {
     this.name = "NavigationError";
   }
 }
+
+export class AuditAbortedError extends KeylensError {
+  constructor(
+    phase: AuditPhase,
+    url?: string,
+    options: Omit<KeylensErrorOptions, "phase" | "url"> = {},
+  ) {
+    super("Audit aborted", "ABORTED", {
+      phase,
+      url,
+      ...options,
+    });
+    this.name = "AuditAbortedError";
+  }
+}
+
+export class AuditTimeoutError extends KeylensError {
+  constructor(
+    phase: AuditPhase,
+    timeoutMs: number,
+    url?: string,
+    details: Readonly<Record<string, unknown>> = {},
+  ) {
+    super(`Audit ${phase} phase timed out after ${timeoutMs}ms`, "TIMEOUT", {
+      phase,
+      url,
+      retryable: true,
+      details: { timeoutMs, ...details },
+    });
+    this.name = "AuditTimeoutError";
+  }
+}
+
+export class ReporterError extends KeylensError {
+  constructor(
+    message: string,
+    url?: string,
+    options: Omit<KeylensErrorOptions, "phase" | "url"> = {},
+  ) {
+    super(message, "REPORTER_ERROR", {
+      phase: "reporters",
+      url,
+      ...options,
+    });
+    this.name = "ReporterError";
+  }
+}

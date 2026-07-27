@@ -48,7 +48,11 @@ export function reportCLI(report: AuditReport): void {
 
   // Rule results
   for (const rule of rules) {
-    if (rule.passed) {
+    if (rule.status === "error") {
+      logger.error(
+        `${rule.ruleId}: rule evaluation error — ${rule.error?.message ?? "unknown error"}`,
+      );
+    } else if (rule.passed) {
       logger.rule(true, rule.ruleId);
     } else {
       logger.rule(false, rule.ruleId, `${rule.violations.length} issue(s)`);
@@ -110,13 +114,17 @@ export function reportCLI(report: AuditReport): void {
   logger.divider();
 
   const resultLine =
-    summary.totalErrors > 0
+    summary.errors > 0
       ? chalk.red.bold(
-          `${summary.totalErrors} error(s), ${summary.totalWarnings} warning(s)`,
+          `Audit incomplete: ${summary.errors} rule evaluation error(s)`,
         )
-      : summary.totalWarnings > 0
-        ? chalk.yellow.bold(`${summary.totalWarnings} warning(s)`)
-        : chalk.green.bold("All checks passed!");
+      : summary.totalErrors > 0
+        ? chalk.red.bold(
+            `${summary.totalErrors} error(s), ${summary.totalWarnings} warning(s)`,
+          )
+        : summary.totalWarnings > 0
+          ? chalk.yellow.bold(`${summary.totalWarnings} warning(s)`)
+          : chalk.green.bold("All checks passed!");
 
   // Deterministic score
   const scoreColor =
@@ -128,7 +136,10 @@ export function reportCLI(report: AuditReport): void {
   console.log(
     chalk.bold("Result:"),
     resultLine,
-    chalk.gray(" — Score: ") + scoreColor(`${summary.score}/100`),
+    chalk.gray(" — Score: ") +
+      scoreColor(
+        `${summary.score}/100${summary.scoreComplete === false ? " (incomplete)" : ""}`,
+      ),
   );
 
   // Widget classifications if available
@@ -274,6 +285,12 @@ export function reportMultiCLI(report: MultiPageReport): void {
       : chalk.green("0"),
   );
   console.log(
+    chalk.bold("Rule evaluation errors:"),
+    report.summary.ruleErrors > 0
+      ? chalk.red(report.summary.ruleErrors.toString())
+      : chalk.green("0"),
+  );
+  console.log(
     chalk.bold("Total errors:"),
     report.summary.totalErrors > 0
       ? chalk.red(report.summary.totalErrors.toString())
@@ -294,7 +311,9 @@ export function reportMultiCLI(report: MultiPageReport): void {
         : chalk.red;
   console.log(
     chalk.bold("Average score:"),
-    multiScoreColor(`${report.summary.score}/100`),
+    multiScoreColor(
+      `${report.summary.score}/100${report.summary.scoreComplete === false ? " (incomplete)" : ""}`,
+    ),
   );
 
   // Cross-page patterns

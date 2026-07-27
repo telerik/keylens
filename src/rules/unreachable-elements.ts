@@ -38,6 +38,7 @@ export class UnreachableElementsRule implements Rule {
     return {
       ruleId: this.id,
       passed: violations.length === 0,
+      status: violations.length === 0 ? "passed" : "failed",
       violations,
       duration: 0,
     };
