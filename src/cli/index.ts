@@ -1,11 +1,15 @@
 import { Command } from "commander";
 import ora from "ora";
 import chalk from "chalk";
-import { audit, auditMultiple } from "../index.js";
+import {
+  audit,
+  auditMultiple,
+  renderAuditReport,
+  renderMultiPageReport,
+} from "../index.js";
 import { loadConfig, DEFAULT_CONFIG } from "../utils/config.js";
 import { setLogLevel } from "../utils/logger.js";
-import { runMultiReporters } from "../reporters/index.js";
-import type { KeylensConfig, ReporterType } from "../types/index.js";
+import type { KeylensConfig, LogLevel, ReporterType } from "../types/index.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
@@ -84,6 +88,11 @@ program
     // Set log level
     if (options.quiet) setLogLevel("warn");
     if (options.verbose) setLogLevel("debug");
+    const logLevel: LogLevel = options.verbose
+      ? "debug"
+      : options.quiet
+        ? "warn"
+        : "info";
 
     // Parse viewport
     const [vw, vh] = options.viewport.split("x").map(Number);
@@ -178,19 +187,28 @@ program
       spinner.stop();
 
       if (urls.length === 1) {
-        // Single-page audit (audit() calls reporters internally)
-        const report = await audit(urls[0]!, config);
+        const report = await audit(urls[0]!, { ...config, logLevel });
+        await renderAuditReport(
+          report,
+          config.reporters,
+          config.outputDir,
+          logLevel,
+        );
 
         if (report.summary.totalErrors > 0) {
           process.exit(1);
         }
       } else {
         // Multi-page audit
-        const multiReport = await auditMultiple(urls, config);
-        await runMultiReporters(
+        const multiReport = await auditMultiple(urls, {
+          ...config,
+          logLevel,
+        });
+        await renderMultiPageReport(
           multiReport,
           config.reporters,
           config.outputDir,
+          logLevel,
         );
 
         if (multiReport.summary.totalErrors > 0) {
