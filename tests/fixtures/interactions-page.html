@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Interaction Test Fixture</title>
+  </head>
+  <body>
+    <main>
+      <button id="stale">Removed after the initial crawl</button>
+      <button id="preserve">Preserve focus</button>
+      <button id="move">Open dialog</button>
+      <button id="managed-focus">Move focus to heading</button>
+      <button id="lose">Lose focus</button>
+      <button id="remove-trigger">Detach trigger</button>
+      <button id="navigate">Navigate away</button>
+      <button id="delete-account">Delete account</button>
+      <button class="excluded">Excluded control</button>
+      <span style="position: relative; display: inline-block">
+        <button id="blocked-action">Blocked action</button>
+        <span
+          aria-hidden="true"
+          style="position: absolute; inset: 0; z-index: 1"
+        ></span>
+      </span>
+    </main>
+
+    <script>
+      const visits = Number(
+        sessionStorage.getItem("interaction-visits") || "0",
+      );
+      sessionStorage.setItem("interaction-visits", String(visits + 1));
+      if (visits > 0) document.getElementById("stale")?.remove();
+
+      document.getElementById("move").addEventListener("click", () => {
+        const dialog = document.createElement("div");
+        dialog.setAttribute("role", "dialog");
+        dialog.innerHTML = '<button id="dialog-close">Close dialog</button>';
+        document.body.append(dialog);
+        dialog.querySelector("button").focus();
+      });
+      document.getElementById("managed-focus").addEventListener("click", () => {
+        const heading = document.createElement("h2");
+        heading.id = "managed-heading";
+        heading.tabIndex = -1;
+        heading.textContent = "Updated content";
+        document.body.append(heading);
+        heading.focus();
+      });
+      document.getElementById("lose").addEventListener("click", (event) => {
+        event.currentTarget.blur();
+      });
+      document
+        .getElementById("remove-trigger")
+        .addEventListener("click", (event) => {
+          event.currentTarget.remove();
+        });
+      document.getElementById("navigate").addEventListener("click", () => {
+        location.href = "/destination";
+      });
+    </script>
+  </body>
+</html>

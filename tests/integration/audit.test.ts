@@ -50,6 +50,8 @@ describe("Integration: audit pipeline", () => {
   let testPageUrl: string;
   let cleanPageServer: Server;
   let cleanPageUrl: string;
+  let interactionsPageServer: Server;
+  let interactionsPageUrl: string;
 
   beforeAll(async () => {
     const testPage = await serveFixture("test-page.html");
@@ -59,11 +61,16 @@ describe("Integration: audit pipeline", () => {
     const cleanPage = await serveFixture("clean-page.html");
     cleanPageServer = cleanPage.server;
     cleanPageUrl = cleanPage.url;
+
+    const interactionsPage = await serveFixture("interactions-page.html");
+    interactionsPageServer = interactionsPage.server;
+    interactionsPageUrl = interactionsPage.url;
   });
 
   afterAll(() => {
     testPageServer?.close();
     cleanPageServer?.close();
+    interactionsPageServer?.close();
   });
 
   it("should complete an audit without crashing", async () => {
@@ -210,6 +217,206 @@ describe("Integration: audit pipeline", () => {
         byteLength: 0,
       }),
     );
+  });
+
+  it("records bounded interaction outcomes without activating unsafe controls", async () => {
+    const report = await audit(
+      interactionsPageUrl,
+      makeConfig({
+        maxTabs: 20,
+        waitAfterLoad: 10,
+        tabDelay: 10,
+        interactions: {
+          ...DEFAULT_CONFIG.interactions,
+          enabled: true,
+          maxCases: 10,
+          timeout: 1_000,
+          exclude: [".excluded"],
+        },
+      }),
+    );
+
+    expect(report.crawl.interactions).toEqual(
+      expect.objectContaining({
+        failed: expect.any(Number),
+        skipped: expect.any(Number),
+        errors: expect.any(Number),
+      }),
+    );
+    const results = report.focusSequence
+      ? report.rules.find(
+          (result) => result.ruleId === "focus-after-interaction",
+        )
+      : undefined;
+    expect(results?.status).toBe("failed");
+    expect(
+      results?.violations.some((violation) =>
+        violation.message.includes("#lose"),
+      ),
+    ).toBe(true);
+
+    expect(report.interactionResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          element: expect.objectContaining({ selector: "#preserve" }),
+          status: "passed",
+          reason: "focus-preserved",
+        }),
+        expect.objectContaining({
+          element: expect.objectContaining({ selector: "#move" }),
+          status: "passed",
+          reason: "focus-moved",
+        }),
+        expect.objectContaining({
+          element: expect.objectContaining({ selector: "#managed-focus" }),
+          status: "passed",
+          reason: "focus-moved",
+        }),
+        expect.objectContaining({
+          element: expect.objectContaining({ selector: "#lose" }),
+          status: "failed",
+          reason: "focus-lost",
+        }),
+        expect.objectContaining({
+          element: expect.objectContaining({ selector: "#remove-trigger" }),
+          status: "failed",
+          reason: "focus-lost",
+        }),
+        expect.objectContaining({
+          element: expect.objectContaining({ selector: "#navigate" }),
+          status: "skipped",
+          reason: "navigation-blocked",
+        }),
+        expect.objectContaining({
+          element: expect.objectContaining({ selector: "#delete-account" }),
+          status: "skipped",
+          reason: "destructive",
+        }),
+        expect.objectContaining({
+          element: expect.objectContaining({
+            accessibleName: "Excluded control",
+          }),
+          status: "skipped",
+          reason: "excluded",
+        }),
+      ]),
+    );
+  });
+
+  it("caps attempted interaction cases and reports remaining cases as skipped", async () => {
+    const { crawlOnly } = await import("@/index.js");
+    const crawl = await crawlOnly(interactionsPageUrl, {
+      ...makeConfig({ maxTabs: 20, waitAfterLoad: 10, tabDelay: 10 }),
+      interactions: {
+        ...DEFAULT_CONFIG.interactions,
+        enabled: true,
+        maxCases: 1,
+        timeout: 1_000,
+      },
+    });
+
+    expect(crawl.interactionSummary?.attempted).toBe(1);
+    expect(crawl.interactionResults).toContainEqual(
+      expect.objectContaining({
+        status: "skipped",
+        reason: "limit-reached",
+      }),
+    );
+  });
+
+  it("supports bounded Enter and Space activation cases", async () => {
+    const { crawlOnly } = await import("@/index.js");
+    const crawl = await crawlOnly(interactionsPageUrl, {
+      ...makeConfig({ maxTabs: 20, waitAfterLoad: 10, tabDelay: 10 }),
+      interactions: {
+        ...DEFAULT_CONFIG.interactions,
+        enabled: true,
+        maxCases: 2,
+        timeout: 1_000,
+        include: ["#preserve"],
+        actions: ["enter", "space"],
+      },
+    });
+
+    expect(crawl.interactionResults).toEqual([
+      expect.objectContaining({
+        action: "enter",
+        status: "passed",
+        reason: "focus-preserved",
+      }),
+      expect.objectContaining({
+        action: "space",
+        status: "passed",
+        reason: "focus-preserved",
+      }),
+    ]);
+  });
+
+  it("records timed-out activation operations as errors", async () => {
+    const { crawlOnly } = await import("@/index.js");
+    const crawl = await crawlOnly(interactionsPageUrl, {
+      ...makeConfig({ maxTabs: 20, waitAfterLoad: 10, tabDelay: 10 }),
+      interactions: {
+        ...DEFAULT_CONFIG.interactions,
+        enabled: true,
+        maxCases: 1,
+        timeout: 50,
+        include: ["#blocked-action"],
+      },
+    });
+
+    expect(crawl.interactionResults).toEqual([
+      expect.objectContaining({
+        element: expect.objectContaining({ accessibleName: "Blocked action" }),
+        status: "error",
+        reason: "action-failed",
+      }),
+    ]);
+  });
+
+  it("allows navigation when interaction policy permits it", async () => {
+    const { crawlOnly } = await import("@/index.js");
+    const crawl = await crawlOnly(interactionsPageUrl, {
+      ...makeConfig({ maxTabs: 20, waitAfterLoad: 10, tabDelay: 10 }),
+      interactions: {
+        ...DEFAULT_CONFIG.interactions,
+        enabled: true,
+        maxCases: 1,
+        timeout: 1_000,
+        include: ["#navigate"],
+        navigation: "allow",
+      },
+    });
+
+    expect(crawl.interactionResults).toEqual([
+      expect.not.objectContaining({ reason: "navigation-blocked" }),
+    ]);
+    expect(crawl.interactionSummary?.attempted).toBe(1);
+  });
+
+  it("keeps page state when interaction isolation is disabled", async () => {
+    const { crawlOnly } = await import("@/index.js");
+    const crawl = await crawlOnly(interactionsPageUrl, {
+      ...makeConfig({ maxTabs: 20, waitAfterLoad: 10, tabDelay: 10 }),
+      interactions: {
+        ...DEFAULT_CONFIG.interactions,
+        enabled: true,
+        maxCases: 1,
+        timeout: 1_000,
+        include: ["#stale"],
+        isolation: "none",
+      },
+    });
+
+    expect(crawl.interactionResults).toEqual([
+      expect.objectContaining({
+        element: expect.objectContaining({
+          accessibleName: "Removed after the initial crawl",
+        }),
+        status: "passed",
+        reason: "focus-preserved",
+      }),
+    ]);
   });
 
   it("should only write configured reporters when rendering is explicit", async () => {

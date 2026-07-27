@@ -19,7 +19,9 @@ function makeInteractionResult(
       tagName: "button",
       role: "button",
     },
-    focusReasonable: true,
+    status: "passed",
+    reason: "focus-preserved",
+    duration: 10,
     ...overrides,
   };
 }
@@ -38,7 +40,7 @@ describe("FocusAfterInteractionRule", () => {
     const result = await rule.evaluate(
       makeCrawlResult({
         interactionResults: [
-          makeInteractionResult({ focusReasonable: true }),
+          makeInteractionResult({ status: "passed" }),
           makeInteractionResult({
             element: {
               selector: "button.other",
@@ -46,7 +48,7 @@ describe("FocusAfterInteractionRule", () => {
               role: "button",
               accessibleName: "Other",
             },
-            focusReasonable: true,
+            status: "passed",
           }),
         ],
       }),
@@ -68,8 +70,9 @@ describe("FocusAfterInteractionRule", () => {
               accessibleName: "Bad Button",
             },
             focusAfter: null,
-            focusReasonable: false,
-            issue:
+            status: "failed",
+            reason: "focus-lost",
+            message:
               "Focus lost after clicking button.bad — activeElement reverted to body",
           }),
         ],
@@ -89,7 +92,7 @@ describe("FocusAfterInteractionRule", () => {
     const result = await rule.evaluate(
       makeCrawlResult({
         interactionResults: [
-          makeInteractionResult({ focusReasonable: true }),
+          makeInteractionResult({ status: "passed" }),
           makeInteractionResult({
             element: {
               selector: "button.bad-1",
@@ -98,8 +101,9 @@ describe("FocusAfterInteractionRule", () => {
               accessibleName: "Bad 1",
             },
             focusAfter: null,
-            focusReasonable: false,
-            issue: "Focus lost after clicking button.bad-1",
+            status: "failed",
+            reason: "focus-lost",
+            message: "Focus lost after clicking button.bad-1",
           }),
           makeInteractionResult({
             element: {
@@ -109,8 +113,9 @@ describe("FocusAfterInteractionRule", () => {
               accessibleName: "Bad 2",
             },
             focusAfter: null,
-            focusReasonable: false,
-            issue: "Focus lost after clicking button.bad-2",
+            status: "failed",
+            reason: "focus-lost",
+            message: "Focus lost after clicking button.bad-2",
           }),
         ],
       }),
@@ -131,5 +136,20 @@ describe("FocusAfterInteractionRule", () => {
 
     expect(result.passed).toBe(true);
     expect(result.violations).toHaveLength(0);
+  });
+
+  it("should error when interaction cases could not be evaluated", async () => {
+    await expect(
+      rule.evaluate(
+        makeCrawlResult({
+          interactionResults: [
+            makeInteractionResult({
+              status: "error",
+              reason: "action-failed",
+            }),
+          ],
+        }),
+      ),
+    ).rejects.toThrow("1 interaction case(s) could not be evaluated");
   });
 });
