@@ -36,6 +36,12 @@ export function computeScore(report: AuditReport): number {
   for (const rule of report.rules) {
     const weight = RULE_WEIGHTS[rule.ruleId] ?? 0;
 
+    // Evaluator failures make the score incomplete and earn no weight. They
+    // are not treated as accessibility violations or partial passes.
+    if (rule.status === "error") {
+      continue;
+    }
+
     if (rule.passed) {
       earned += weight;
       continue;

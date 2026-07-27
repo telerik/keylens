@@ -16,6 +16,7 @@ import { logger } from "../utils/logger.js";
 import { annotateFocusOrder } from "../utils/screenshot-annotator.js";
 import { OpenAITransport } from "./openai-transport.js";
 import { resolveAIAPIKey } from "../utils/config.js";
+import { raceWithSignal, throwIfAborted } from "../utils/execution.js";
 import {
   safeParseJSON,
   fixSuggestionBatchSchema,
@@ -40,7 +41,10 @@ interface AnthropicMessage {
 }
 interface AnthropicClient {
   messages: {
-    create(params: Record<string, unknown>): Promise<AnthropicMessage>;
+    create(
+      params: Record<string, unknown>,
+      options?: { signal?: AbortSignal },
+    ): Promise<AnthropicMessage>;
   };
 }
 
@@ -59,7 +63,10 @@ export class AIAnalyzer {
   private anthropicClient: unknown = null;
   private openaiTransport: OpenAITransport | null = null;
 
-  constructor(config: AIConfig) {
+  constructor(
+    config: AIConfig,
+    private signal?: AbortSignal,
+  ) {
     this.config = config;
 
     this.apiKey = resolveAIAPIKey(config) ?? null;
@@ -146,6 +153,7 @@ export class AIAnalyzer {
           chunk[0].fixSuggestion = response;
         }
       } catch (error) {
+        throwIfAborted(this.signal, "ai");
         logger.debug(
           `AI batch fix suggestion failed: ${(error as Error).message}`,
         );
@@ -217,6 +225,7 @@ If the focus order is logical, return an empty issues array with "good" assessme
           return parsed;
         }
       } catch (error) {
+        throwIfAborted(this.signal, "ai");
         logger.debug(
           `Vision-based focus order validation failed, falling back to text: ${(error as Error).message}`,
         );
@@ -236,6 +245,7 @@ Be concise. Only flag genuine issues, not minor nitpicks.`;
     try {
       return await this.query(textPrompt);
     } catch (error) {
+      throwIfAborted(this.signal, "ai");
       logger.debug(
         `AI focus order validation failed: ${(error as Error).message}`,
       );
@@ -257,7 +267,7 @@ Be concise. Only flag genuine issues, not minor nitpicks.`;
     logger.info("Generating AI report summary...");
 
     const violationDetails = report.rules
-      .filter((r) => !r.passed)
+      .filter((r) => r.status !== "error" && !r.passed)
       .flatMap((r) => r.violations)
       .map(
         (v) =>
@@ -274,12 +284,20 @@ Unreached elements: ${report.crawl.unreachedElements}
 Tab cycle completed: ${report.crawl.cycleCompleted}
 Errors: ${report.summary.totalErrors}
 Warnings: ${report.summary.totalWarnings}
+Rule evaluation errors: ${report.summary.errors ?? 0}
+Score complete: ${report.summary.scoreComplete !== false}
 
 Rule results:
 ${report.rules
   .map(
     (r) =>
-      `- ${r.ruleId}: ${r.passed ? "PASSED" : `FAILED (${r.violations.length} issues)`}`,
+      `- ${r.ruleId}: ${
+        r.status === "error"
+          ? `NOT EVALUATED (${r.error?.message ?? "evaluation error"})`
+          : r.passed
+            ? "PASSED"
+            : `FAILED (${r.violations.length} issues)`
+      }`,
   )
   .join("\n")}
 ${violationDetails ? `\nViolation details:\n${violationDetails}` : ""}
@@ -308,6 +326,7 @@ If you cannot produce valid JSON, provide a concise 3-4 sentence summary as plai
 
       return response;
     } catch (error) {
+      throwIfAborted(this.signal, "ai");
       logger.debug(`AI summary generation failed: ${(error as Error).message}`);
       return null;
     }
@@ -344,6 +363,8 @@ If you cannot produce valid JSON, provide a concise 3-4 sentence summary as plai
 Pages audited: ${report.summary.totalPages}
 Total errors: ${report.summary.totalErrors}
 Total warnings: ${report.summary.totalWarnings}
+Rule evaluation errors: ${report.summary.ruleErrors ?? 0}
+Score complete: ${report.summary.scoreComplete !== false}
 Pages with errors: ${report.summary.pagesWithErrors}
 
 Per-page breakdown:
@@ -374,6 +395,7 @@ If you cannot produce valid JSON, provide a concise 3-4 sentence summary as plai
 
       return response;
     } catch (error) {
+      throwIfAborted(this.signal, "ai");
       logger.debug(`AI multi-page summary failed: ${(error as Error).message}`);
       return null;
     }
@@ -454,6 +476,7 @@ Respond with ONLY the JSON array, no other text.`;
         })
         .filter((c): c is WidgetClassification => c !== null);
     } catch (error) {
+      throwIfAborted(this.signal, "ai");
       logger.debug(
         `AI widget classification failed: ${(error as Error).message}`,
       );
@@ -550,6 +573,7 @@ Only include suggestions with confidence >= 0.5.`;
         })
         .filter((s): s is AccessibleNameSuggestion => s !== null);
     } catch (error) {
+      throwIfAborted(this.signal, "ai");
       logger.debug(
         `AI accessible name inference failed: ${(error as Error).message}`,
       );
@@ -664,6 +688,7 @@ Scoring guide:
 
       return scores;
     } catch (error) {
+      throwIfAborted(this.signal, "ai");
       logger.debug(
         `AI batch focus indicator scoring failed: ${(error as Error).message}`,
       );
@@ -772,6 +797,7 @@ For each finding, classify it and provide a fix suggestion. Respond with ONLY a 
         });
       }
     } catch (error) {
+      throwIfAborted(this.signal, "ai");
       logger.debug(
         `AI cross-page pattern detection failed: ${(error as Error).message}`,
       );
@@ -858,15 +884,16 @@ For each finding, classify it and provide a fix suggestion. Respond with ONLY a 
       const skipRule = page.rules.find((r) => r.ruleId === "skip-link");
       return {
         url: page.url,
+        evaluated: skipRule?.status !== "error",
         passed: skipRule?.passed ?? true,
       };
     });
 
     const pagesWithSkipLink = skipLinkResults
-      .filter((r) => r.passed)
+      .filter((r) => r.evaluated && r.passed)
       .map((r) => r.url);
     const pagesMissingSkipLink = skipLinkResults
-      .filter((r) => !r.passed)
+      .filter((r) => r.evaluated && !r.passed)
       .map((r) => r.url);
 
     if (pagesWithSkipLink.length > 0 && pagesMissingSkipLink.length > 0) {
@@ -932,19 +959,21 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
    * and no direct API key is set; otherwise uses the direct provider API.
    */
   private async query(prompt: string): Promise<string> {
+    throwIfAborted(this.signal, "ai");
+    let operation: Promise<string>;
     if (!this.apiKey && this.config.transport) {
-      return this.config.transport.query(prompt);
-    }
-    if (this.config.provider === "openai") {
-      return this.getOpenAITransport().query(prompt);
-    }
-    if (this.config.provider === "anthropic") {
+      operation = this.config.transport.query(prompt, this.signal);
+    } else if (this.config.provider === "openai") {
+      operation = this.getOpenAITransport().query(prompt, this.signal);
+    } else if (this.config.provider === "anthropic") {
       if (!(await this.checkSdkAvailable())) {
         throw new Error("@anthropic-ai/sdk is not installed");
       }
-      return this.queryAnthropic(prompt);
+      operation = this.queryAnthropic(prompt);
+    } else {
+      throw new Error(`Unsupported AI provider: ${this.config.provider}`);
     }
-    throw new Error(`Unsupported AI provider: ${this.config.provider}`);
+    return raceWithSignal(operation, this.signal, "ai");
   }
 
   /**
@@ -958,19 +987,29 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
       mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
     }>,
   ): Promise<string> {
+    throwIfAborted(this.signal, "ai");
+    let operation: Promise<string>;
     if (!this.apiKey && this.config.transport) {
-      return this.config.transport.queryVision(prompt, images);
-    }
-    if (this.config.provider === "openai") {
-      return this.getOpenAITransport().queryVision(prompt, images);
-    }
-    if (this.config.provider === "anthropic") {
+      operation = this.config.transport.queryVision(
+        prompt,
+        images,
+        this.signal,
+      );
+    } else if (this.config.provider === "openai") {
+      operation = this.getOpenAITransport().queryVision(
+        prompt,
+        images,
+        this.signal,
+      );
+    } else if (this.config.provider === "anthropic") {
       if (!(await this.checkSdkAvailable())) {
         throw new Error("@anthropic-ai/sdk is not installed");
       }
-      return this.queryAnthropicVision(prompt, images);
+      operation = this.queryAnthropicVision(prompt, images);
+    } else {
+      throw new Error(`Unsupported AI provider: ${this.config.provider}`);
     }
-    throw new Error(`Unsupported AI provider: ${this.config.provider}`);
+    return raceWithSignal(operation, this.signal, "ai");
   }
 
   /**
@@ -997,11 +1036,14 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
    */
   private async queryAnthropic(prompt: string): Promise<string> {
     const client = (await this.getAnthropicClient()) as AnthropicClient;
-    const message: AnthropicMessage = await client.messages.create({
+    const params = {
       model: this.config.model || "claude-sonnet-4-20250514",
       max_tokens: 1024,
       messages: [{ role: "user", content: prompt }],
-    });
+    };
+    const message: AnthropicMessage = this.signal
+      ? await client.messages.create(params, { signal: this.signal })
+      : await client.messages.create(params);
 
     const textBlock = message.content.find(
       (block: AnthropicContentBlock) => block.type === "text",
@@ -1045,11 +1087,14 @@ Provide one entry per violation, using the violationIndex (1-based) to match the
     content.push({ type: "text", text: prompt });
 
     const client = (await this.getAnthropicClient()) as AnthropicClient;
-    const message: AnthropicMessage = await client.messages.create({
+    const params = {
       model: this.config.model || "claude-sonnet-4-20250514",
       max_tokens: 2048,
       messages: [{ role: "user", content }],
-    });
+    };
+    const message: AnthropicMessage = this.signal
+      ? await client.messages.create(params, { signal: this.signal })
+      : await client.messages.create(params);
 
     const textBlock = message.content.find(
       (block: AnthropicContentBlock) => block.type === "text",

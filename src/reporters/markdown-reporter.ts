@@ -8,6 +8,7 @@ import type {
   AIReportSummary,
 } from "../types/index.js";
 import { logger } from "../utils/logger.js";
+import { throwIfAborted } from "../utils/execution.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -47,13 +48,13 @@ function renderSummary(report: AuditReport): string {
   lines.push("## Summary");
   lines.push("");
   lines.push(
-    "| Errors | Warnings | Info | Rules Passed | Rules Failed | Score |",
+    "| Errors | Warnings | Info | Rules Passed | Rules Failed | Rule Errors | Score |",
   );
   lines.push(
-    "| ------ | -------- | ---- | ------------ | ------------ | ----- |",
+    "| ------ | -------- | ---- | ------------ | ------------ | ----------- | ----- |",
   );
   lines.push(
-    `| ${s.totalErrors} | ${s.totalWarnings} | ${s.totalInfo} | ${s.passed} | ${s.failed} | ${s.score}/100 |`,
+    `| ${s.totalErrors} | ${s.totalWarnings} | ${s.totalInfo} | ${s.passed} | ${s.failed} | ${s.errors ?? 0} | ${s.score}/100${s.scoreComplete === false ? " (incomplete)" : ""} |`,
   );
   lines.push("");
   return lines.join("\n");
@@ -154,7 +155,8 @@ function renderRules(report: AuditReport): string {
   lines.push("");
 
   for (const rule of report.rules) {
-    const badge = rule.passed ? "[PASS]" : "[FAIL]";
+    const badge =
+      rule.status === "error" ? "[ERROR]" : rule.passed ? "[PASS]" : "[FAIL]";
     const title = rule.ruleName || rule.ruleId;
     lines.push(`### ${title} ${badge}`);
     lines.push("");
@@ -166,6 +168,11 @@ function renderRules(report: AuditReport): string {
 
     if (rule.wcag && rule.wcag.length > 0) {
       lines.push(`**WCAG:** ${rule.wcag.join(", ")}`);
+      lines.push("");
+    }
+
+    if (rule.error) {
+      lines.push(`**Evaluation error:** ${esc(rule.error.message)}`);
       lines.push("");
     }
 
@@ -420,13 +427,13 @@ function buildMultiPageMarkdown(report: MultiPageReport): string {
   lines.push("## Aggregate Summary");
   lines.push("");
   lines.push(
-    "| Total Pages | Errors | Warnings | Info | Pages with Errors | Score |",
+    "| Total Pages | Errors | Warnings | Info | Rule Errors | Pages with Errors | Score |",
   );
   lines.push(
-    "| ----------- | ------ | -------- | ---- | ----------------- | ----- |",
+    "| ----------- | ------ | -------- | ---- | ----------- | ----------------- | ----- |",
   );
   lines.push(
-    `| ${s.totalPages} | ${s.totalErrors} | ${s.totalWarnings} | ${s.totalInfo} | ${s.pagesWithErrors} | ${s.score}/100 |`,
+    `| ${s.totalPages} | ${s.totalErrors} | ${s.totalWarnings} | ${s.totalInfo} | ${s.ruleErrors ?? 0} | ${s.pagesWithErrors} | ${s.score}/100${s.scoreComplete === false ? " (incomplete)" : ""} |`,
   );
   lines.push("");
 
@@ -483,13 +490,16 @@ function buildMultiPageMarkdown(report: MultiPageReport): string {
 export async function reportMarkdown(
   report: AuditReport,
   outputDir: string,
+  signal?: AbortSignal,
 ): Promise<void> {
+  throwIfAborted(signal, "reporters", report.url);
   const dir = outputDir || process.cwd();
   await mkdir(dir, { recursive: true });
+  throwIfAborted(signal, "reporters", report.url);
 
   const markdown = buildSinglePageMarkdown(report);
   const filePath = resolve(dir, "keylens-report.md");
-  await writeFile(filePath, markdown, "utf-8");
+  await writeFile(filePath, markdown, { encoding: "utf-8", signal });
 
   logger.success(`Markdown report saved to ${filePath}`);
 }
@@ -500,13 +510,16 @@ export async function reportMarkdown(
 export async function reportMultiMarkdown(
   report: MultiPageReport,
   outputDir: string,
+  signal?: AbortSignal,
 ): Promise<void> {
+  throwIfAborted(signal, "reporters");
   const dir = outputDir || process.cwd();
   await mkdir(dir, { recursive: true });
+  throwIfAborted(signal, "reporters");
 
   const markdown = buildMultiPageMarkdown(report);
   const filePath = resolve(dir, "keylens-report-multi.md");
-  await writeFile(filePath, markdown, "utf-8");
+  await writeFile(filePath, markdown, { encoding: "utf-8", signal });
 
   logger.success(`Markdown report saved to ${filePath}`);
 }

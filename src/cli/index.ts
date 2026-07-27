@@ -8,6 +8,7 @@ import {
   renderMultiPageReport,
 } from "../index.js";
 import { loadConfig, DEFAULT_CONFIG } from "../utils/config.js";
+import { createExecutionScope } from "../utils/execution.js";
 import { setLogLevel } from "../utils/logger.js";
 import type { KeylensConfig, LogLevel, ReporterType } from "../types/index.js";
 
@@ -182,19 +183,29 @@ program
     };
 
     const spinner = ora("Starting audit...").start();
+    const totalScope = createExecutionScope({
+      timeout: config.timeouts.total,
+      phase: "setup",
+      timeoutKind: "total",
+    });
 
     try {
       spinner.stop();
 
       if (urls.length === 1) {
-        const report = await audit(urls[0]!, { ...config, logLevel });
-        await renderAuditReport(
-          report,
-          config.reporters,
-          config.outputDir,
+        const report = await audit(urls[0]!, {
+          ...config,
           logLevel,
-        );
+          signal: totalScope.signal,
+        });
+        await renderAuditReport(report, config.reporters, config.outputDir, {
+          logLevel,
+          signal: totalScope.signal,
+        });
 
+        if (report.summary.errors > 0) {
+          process.exit(2);
+        }
         if (report.summary.totalErrors > 0) {
           process.exit(1);
         }
@@ -203,14 +214,18 @@ program
         const multiReport = await auditMultiple(urls, {
           ...config,
           logLevel,
+          signal: totalScope.signal,
         });
         await renderMultiPageReport(
           multiReport,
           config.reporters,
           config.outputDir,
-          logLevel,
+          { logLevel, signal: totalScope.signal },
         );
 
+        if (multiReport.summary.ruleErrors > 0) {
+          process.exit(2);
+        }
         if (multiReport.summary.totalErrors > 0) {
           process.exit(1);
         }
@@ -221,6 +236,8 @@ program
         console.error(error);
       }
       process.exit(2);
+    } finally {
+      totalScope.dispose();
     }
   });
 

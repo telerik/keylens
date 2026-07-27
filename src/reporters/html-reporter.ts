@@ -13,6 +13,7 @@ import type {
   CrossPagePattern,
 } from "../types/index.js";
 import { logger } from "../utils/logger.js";
+import { throwIfAborted } from "../utils/execution.js";
 
 /**
  * Output an interactive HTML report with a visual focus order map.
@@ -20,13 +21,16 @@ import { logger } from "../utils/logger.js";
 export async function reportHTML(
   report: AuditReport,
   outputDir: string,
+  signal?: AbortSignal,
 ): Promise<void> {
+  throwIfAborted(signal, "reporters", report.url);
   const dir = outputDir || process.cwd();
   await mkdir(dir, { recursive: true });
+  throwIfAborted(signal, "reporters", report.url);
 
   const html = generateHTML(report);
   const filePath = resolve(dir, "keylens-report.html");
-  await writeFile(filePath, html, "utf-8");
+  await writeFile(filePath, html, { encoding: "utf-8", signal });
 
   logger.success(`HTML report saved to ${filePath}`);
 }
@@ -37,13 +41,16 @@ export async function reportHTML(
 export async function reportMultiHTML(
   report: MultiPageReport,
   outputDir: string,
+  signal?: AbortSignal,
 ): Promise<void> {
+  throwIfAborted(signal, "reporters");
   const dir = outputDir || process.cwd();
   await mkdir(dir, { recursive: true });
+  throwIfAborted(signal, "reporters");
 
   const html = generateMultiHTML(report);
   const filePath = resolve(dir, "keylens-report.html");
-  await writeFile(filePath, html, "utf-8");
+  await writeFile(filePath, html, { encoding: "utf-8", signal });
 
   logger.success(`HTML report saved to ${filePath}`);
 }
@@ -276,8 +283,12 @@ function generateMultiHTML(report: MultiPageReport): string {
         <div class="value" style="color: ${report.summary.totalWarnings > 0 ? "#f59e0b" : "#22c55e"}">${report.summary.totalWarnings}</div>
       </div>
       <div class="meta-card">
+        <div class="label">Rule Errors</div>
+        <div class="value" style="color: ${(report.summary.ruleErrors ?? 0) > 0 ? "#f59e0b" : "#22c55e"}">${report.summary.ruleErrors ?? 0}</div>
+      </div>
+      <div class="meta-card">
         <div class="label">Avg Score</div>
-        <div class="value" style="color: ${report.summary.score >= 70 ? "#22c55e" : report.summary.score >= 50 ? "#f59e0b" : "#ef4444"}">${report.summary.score}/100</div>
+        <div class="value" style="color: ${report.summary.score >= 70 ? "#22c55e" : report.summary.score >= 50 ? "#f59e0b" : "#ef4444"}">${report.summary.score}/100${report.summary.scoreComplete === false ? " (incomplete)" : ""}</div>
       </div>
     </div>
 
@@ -663,7 +674,7 @@ function buildMetaCards(
       </div>
       <div class="meta-card">
         <div class="label">Score</div>
-        <div class="value" style="color: ${summary.score >= 70 ? "#22c55e" : summary.score >= 50 ? "#f59e0b" : "#ef4444"}">${summary.score}/100</div>
+        <div class="value" style="color: ${summary.score >= 70 ? "#22c55e" : summary.score >= 50 ? "#f59e0b" : "#ef4444"}">${summary.score}/100${summary.scoreComplete === false ? " (incomplete)" : ""}</div>
       </div>
     </div>`;
 }
@@ -732,18 +743,28 @@ function wcagSlug(ref: string): string {
 function buildRulesHTML(rules: AuditReport["rules"]): string {
   return rules
     .map((rule) => {
-      const status = rule.passed
-        ? "passed"
-        : rule.violations.some((v) => v.severity === "error")
-          ? "failed"
-          : "warning";
+      const status =
+        rule.status === "error"
+          ? "error"
+          : rule.passed
+            ? "passed"
+            : rule.violations.some((v) => v.severity === "error")
+              ? "failed"
+              : "warning";
+      const statusLabel =
+        rule.status === "error"
+          ? "ERROR"
+          : rule.passed
+            ? "PASS"
+            : `${rule.violations.length} issue(s)`;
       return `
       <div class="rule ${status}">
         <div class="rule-header">
           <span class="rule-name">${rule.passed ? "&#10003;" : "&#10007;"} ${escapeHTML(rule.ruleName || rule.ruleId)}</span>
-          <span class="status-badge" style="background: ${status === "passed" ? "#22c55e22" : status === "failed" ? "#ef444422" : "#f59e0b22"}; color: ${status === "passed" ? "#22c55e" : status === "failed" ? "#ef4444" : "#f59e0b"}; border-color: ${status === "passed" ? "#22c55e44" : status === "failed" ? "#ef444444" : "#f59e0b44"};">${rule.passed ? "PASS" : `${rule.violations.length} issue(s)`}</span>
+          <span class="status-badge" style="background: ${status === "passed" ? "#22c55e22" : status === "failed" ? "#ef444422" : "#f59e0b22"}; color: ${status === "passed" ? "#22c55e" : status === "failed" ? "#ef4444" : "#f59e0b"}; border-color: ${status === "passed" ? "#22c55e44" : status === "failed" ? "#ef444444" : "#f59e0b44"};">${statusLabel}</span>
         </div>
         ${rule.ruleDescription ? `<div class="rule-meta">${escapeHTML(rule.ruleDescription)}</div>` : ""}
+        ${rule.error ? `<div class="rule-meta">Evaluation error: ${escapeHTML(rule.error.message)}</div>` : ""}
         ${rule.violations
           .map(
             (v) => `

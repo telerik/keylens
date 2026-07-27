@@ -90,6 +90,8 @@ export interface PhaseTimeoutConfig {
   total?: number;
   /** Crawl phase wall-time budget */
   crawl?: number;
+  /** Deterministic rule evaluation wall-time budget */
+  rules?: number;
   /** Interaction phase wall-time budget */
   interactions?: number;
   /** Experimental AI enrichment wall-time budget */
@@ -134,6 +136,12 @@ export interface AIEnrichmentOptions {
   logLevel?: LogLevel;
 }
 
+export interface RenderOptions {
+  signal?: AbortSignal;
+  timeout?: number;
+  logLevel?: LogLevel;
+}
+
 export interface RuleConfig {
   /** Detect keyboard traps */
   keyboardTrap: boolean;
@@ -155,10 +163,11 @@ export interface RuleConfig {
 
 /** Provider-agnostic transport for AI queries (e.g. MCP sampling). */
 export interface AITransport {
-  query(prompt: string): Promise<string>;
+  query(prompt: string, signal?: AbortSignal): Promise<string>;
   queryVision(
     prompt: string,
     images: Array<{ base64: string; mediaType: string }>,
+    signal?: AbortSignal,
   ): Promise<string>;
 }
 
@@ -532,6 +541,9 @@ export interface RuleResult {
   /** Whether the rule passed */
   passed: boolean;
 
+  /** Distinguishes accessibility failures from evaluator failures */
+  status?: "passed" | "failed" | "error";
+
   /** Violations found */
   violations: RuleViolation[];
 
@@ -546,6 +558,12 @@ export interface RuleResult {
 
   /** WCAG criteria this rule checks (copied from Rule) */
   wcag?: string[];
+
+  /** Structured evaluator failure details when status is "error" */
+  error?: {
+    code: "RULE_ERROR";
+    message: string;
+  };
 }
 
 // ─── Rule Interface ──────────────────────────────────────────────
@@ -614,8 +632,12 @@ export interface AuditReport {
     totalInfo: number;
     passed: number;
     failed: number;
+    /** Rules that could not be evaluated */
+    errors: number;
     /** Deterministic heuristic score 0–100 based on rule results */
     score: number;
+    /** False when one or more rules could not be evaluated */
+    scoreComplete: boolean;
   };
 
   /** AI-generated summary (if enabled) — string for backward compat, or structured */
@@ -673,9 +695,12 @@ export interface MultiPageReport {
     totalErrors: number;
     totalWarnings: number;
     totalInfo: number;
+    ruleErrors: number;
     pagesWithErrors: number;
     /** Average deterministic score across all pages (0–100) */
     score: number;
+    /** False when any page has an incomplete deterministic score */
+    scoreComplete: boolean;
   };
 
   /** AI-generated cross-page summary (if enabled) — string or structured */

@@ -16,9 +16,14 @@ import type { AITransport } from "../types/index.js";
 export class SamplingTransport implements AITransport {
   constructor(private server: Server) {}
 
-  async query(prompt: string): Promise<string> {
-    const result = await this.server.createMessage({
-      messages: [{ role: "user", content: { type: "text", text: prompt } }],
+  async query(prompt: string, signal?: AbortSignal): Promise<string> {
+    const params = {
+      messages: [
+        {
+          role: "user" as const,
+          content: { type: "text" as const, text: prompt },
+        },
+      ],
       modelPreferences: {
         hints: [
           { name: "claude-3-5-haiku" },
@@ -29,7 +34,10 @@ export class SamplingTransport implements AITransport {
         speedPriority: 0.9,
       },
       maxTokens: 2048,
-    });
+    };
+    const result = signal
+      ? await this.server.createMessage(params, { signal })
+      : await this.server.createMessage(params);
 
     if (result.content.type === "text") return result.content.text;
     return "";
@@ -38,6 +46,7 @@ export class SamplingTransport implements AITransport {
   async queryVision(
     prompt: string,
     images: Array<{ base64: string; mediaType: string }>,
+    signal?: AbortSignal,
   ): Promise<string> {
     const content: Array<
       | { type: "image"; data: string; mimeType: string }
@@ -53,15 +62,18 @@ export class SamplingTransport implements AITransport {
     }
     content.push({ type: "text", text: prompt });
 
-    const result = await this.server.createMessage({
-      messages: [{ role: "user", content }],
+    const params = {
+      messages: [{ role: "user" as const, content }],
       modelPreferences: {
         hints: [{ name: "claude-3-5-sonnet" }, { name: "gpt-4o" }],
         intelligencePriority: 0.9,
         speedPriority: 0.3,
       },
       maxTokens: 4096,
-    });
+    };
+    const result = signal
+      ? await this.server.createMessage(params, { signal })
+      : await this.server.createMessage(params);
 
     if (result.content.type === "text") return result.content.text;
     return "";

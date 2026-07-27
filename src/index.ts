@@ -8,7 +8,9 @@ import type {
   CrawlResult,
   EffectiveKeylensConfig,
   ReporterType,
+  RenderOptions,
   RuleResult,
+  AuditEvent,
 } from "./types/index.js";
 import { crawlPage } from "./crawler/index.js";
 import { runRules } from "./rules/index.js";
@@ -18,6 +20,7 @@ import { logger, withLogLevel } from "./utils/logger.js";
 import { computeScore } from "./utils/score.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
 import { hasConfiguredAIAPIKey, normalizeConfig } from "./utils/config.js";
+import { createExecutionScope, throwIfAborted } from "./utils/execution.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
@@ -25,22 +28,24 @@ const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
 interface ResolvedAuditOptions {
   config: KeylensConfig;
   logLevel: LogLevel;
+  signal?: AbortSignal;
+  onEvent?: (event: AuditEvent) => void;
 }
 
 function resolveAuditOptions(
   options: AuditOptions | KeylensConfig = {},
 ): ResolvedAuditOptions {
   const {
-    signal: _signal,
-    onEvent: _onEvent,
+    signal,
+    onEvent,
     logLevel = "silent",
     ...configInput
   } = options as AuditOptions;
-  void _signal;
-  void _onEvent;
   return {
     config: normalizeConfig(configInput),
     logLevel,
+    signal,
+    onEvent,
   };
 }
 
@@ -48,14 +53,7 @@ function resolveEnrichmentOptions(
   baseConfig: EffectiveKeylensConfig,
   options: AIEnrichmentOptions = {},
 ): ResolvedAuditOptions {
-  const {
-    signal: _signal,
-    onEvent: _onEvent,
-    logLevel = "silent",
-    ai: aiOverrides,
-  } = options;
-  void _signal;
-  void _onEvent;
+  const { signal, onEvent, logLevel = "silent", ai: aiOverrides } = options;
   const {
     apiKeyConfigured: _apiKeyConfigured,
     transportConfigured: _transportConfigured,
@@ -81,7 +79,50 @@ function resolveEnrichmentOptions(
       },
     }),
     logLevel,
+    signal,
+    onEvent,
   };
+}
+
+interface ExecutionControls {
+  signal?: AbortSignal;
+  onEvent?: (event: AuditEvent) => void;
+  startedAt: number;
+}
+
+function emitPhase(
+  controls: ExecutionControls,
+  type: "phase-started" | "phase-completed",
+  phase: AuditEvent["phase"],
+): void {
+  controls.onEvent?.({
+    type,
+    phase,
+    timestamp: new Date().toISOString(),
+    elapsedMs: Date.now() - controls.startedAt,
+  });
+}
+
+async function withTotalBudget<T>(
+  config: KeylensConfig,
+  controls: Omit<ExecutionControls, "startedAt">,
+  url: string | undefined,
+  operation: (controls: ExecutionControls) => Promise<T>,
+): Promise<T> {
+  const startedAt = Date.now();
+  const scope = createExecutionScope({
+    parentSignal: controls.signal,
+    timeout: config.timeouts.total,
+    phase: "setup",
+    url,
+    timeoutKind: "total",
+  });
+  try {
+    throwIfAborted(scope.signal, "setup", url);
+    return await operation({ ...controls, signal: scope.signal, startedAt });
+  } finally {
+    scope.dispose();
+  }
 }
 
 function sanitizeConfig(config: KeylensConfig): EffectiveKeylensConfig {
@@ -105,6 +146,8 @@ function buildBaseReport(
   rulesDuration: number,
   totalDuration: number,
 ): AuditReport {
+  const ruleStatus = (result: RuleResult) =>
+    result.status ?? (result.passed ? "passed" : "failed");
   const report: AuditReport = {
     schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
     version: VERSION,
@@ -140,9 +183,16 @@ function buildBaseReport(
       totalInfo: ruleResults
         .flatMap((result) => result.violations)
         .filter((violation) => violation.severity === "info").length,
-      passed: ruleResults.filter((result) => result.passed).length,
-      failed: ruleResults.filter((result) => !result.passed).length,
+      passed: ruleResults.filter((result) => ruleStatus(result) === "passed")
+        .length,
+      failed: ruleResults.filter((result) => ruleStatus(result) === "failed")
+        .length,
+      errors: ruleResults.filter((result) => ruleStatus(result) === "error")
+        .length,
       score: 0,
+      scoreComplete: ruleResults.every(
+        (result) => ruleStatus(result) !== "error",
+      ),
     },
     pageScreenshot: crawlResult.pageScreenshot,
     focusSequence: crawlResult.focusSequence,
@@ -156,12 +206,42 @@ function buildBaseReport(
 async function auditBaseWithConfig(
   url: string,
   config: KeylensConfig,
+  controls: ExecutionControls,
 ): Promise<AuditReport> {
   const startedAt = Date.now();
   logger.info(`Starting deterministic Keylens audit for ${url}`);
-  const crawlResult = await crawlPage(url, config);
+  const crawlScope = createExecutionScope({
+    parentSignal: controls.signal,
+    timeout: config.timeouts.crawl,
+    phase: "crawl",
+    url,
+  });
+  let crawlResult: CrawlResult;
+  try {
+    emitPhase(controls, "phase-started", "crawl");
+    crawlResult = await crawlPage(url, config, crawlScope.signal);
+    throwIfAborted(crawlScope.signal, "crawl", url);
+    emitPhase(controls, "phase-completed", "crawl");
+  } finally {
+    crawlScope.dispose();
+  }
+
   const rulesStartedAt = Date.now();
-  const ruleResults = await runRules(crawlResult, config);
+  const rulesScope = createExecutionScope({
+    parentSignal: controls.signal,
+    timeout: config.timeouts.rules,
+    phase: "rules",
+    url,
+  });
+  let ruleResults: RuleResult[];
+  try {
+    emitPhase(controls, "phase-started", "rules");
+    ruleResults = await runRules(crawlResult, config, rulesScope.signal);
+    throwIfAborted(rulesScope.signal, "rules", url);
+    emitPhase(controls, "phase-completed", "rules");
+  } finally {
+    rulesScope.dispose();
+  }
   return buildBaseReport(
     url,
     config,
@@ -175,20 +255,36 @@ async function auditBaseWithConfig(
 async function enrichAuditWithConfig(
   baseReport: AuditReport,
   config: KeylensConfig,
+  controls: ExecutionControls,
 ): Promise<AuditReport> {
   const report = structuredClone(baseReport);
   report.config = sanitizeConfig(config);
-  const ai = new AIAnalyzer(config.ai);
-  if (!ai.isAvailable()) return report;
-
+  const aiScope = createExecutionScope({
+    parentSignal: controls.signal,
+    timeout: config.timeouts.ai,
+    phase: "ai",
+    url: report.url,
+  });
+  const ai = new AIAnalyzer(config.ai, aiScope.signal);
+  if (!ai.isAvailable()) {
+    aiScope.dispose();
+    return report;
+  }
   const startedAt = Date.now();
   const allViolations = report.rules.flatMap((result) => result.violations);
   const focusSequence = report.focusSequence ?? [];
   const interactiveElements = report.interactiveElements ?? [];
   const pageScreenshot = report.pageScreenshot ?? "";
 
-  const [, focusOrderAnalysis, classifications, nameSuggestions, fiScores] =
-    await Promise.all([
+  try {
+    emitPhase(controls, "phase-started", "ai");
+    const [
+      fixResult,
+      focusOrderResult,
+      classificationsResult,
+      nameSuggestionsResult,
+      fiScoresResult,
+    ] = await Promise.allSettled([
       ai.generateFixSuggestions(allViolations),
       ai.validateFocusOrder(
         focusSequence,
@@ -202,18 +298,34 @@ async function enrichAuditWithConfig(
         report.pageDimensions,
       ),
       ai.scoreFocusIndicatorQuality(focusSequence),
-    ]);
+    ] as const);
+    unwrapSettled(fixResult);
+    const focusOrderAnalysis = unwrapSettled(focusOrderResult);
+    const classifications = unwrapSettled(classificationsResult);
+    const nameSuggestions = unwrapSettled(nameSuggestionsResult);
+    const fiScores = unwrapSettled(fiScoresResult);
 
-  report.aiFocusOrderAnalysis = focusOrderAnalysis ?? undefined;
-  report.widgetClassifications =
-    classifications.length > 0 ? classifications : undefined;
-  report.accessibleNameSuggestions =
-    nameSuggestions.length > 0 ? nameSuggestions : undefined;
-  report.focusIndicatorScores = fiScores.length > 0 ? fiScores : undefined;
-  report.aiSummary = (await ai.generateSummary(report)) ?? undefined;
-  report.timings.ai = Date.now() - startedAt;
-  report.timings.total = baseReport.timings.total + report.timings.ai;
-  return report;
+    throwIfAborted(aiScope.signal, "ai", report.url);
+    report.aiFocusOrderAnalysis = focusOrderAnalysis ?? undefined;
+    report.widgetClassifications =
+      classifications.length > 0 ? classifications : undefined;
+    report.accessibleNameSuggestions =
+      nameSuggestions.length > 0 ? nameSuggestions : undefined;
+    report.focusIndicatorScores = fiScores.length > 0 ? fiScores : undefined;
+    report.aiSummary = (await ai.generateSummary(report)) ?? undefined;
+    throwIfAborted(aiScope.signal, "ai", report.url);
+    report.timings.ai = Date.now() - startedAt;
+    report.timings.total = baseReport.timings.total + report.timings.ai;
+    emitPhase(controls, "phase-completed", "ai");
+    return report;
+  } finally {
+    aiScope.dispose();
+  }
+}
+
+function unwrapSettled<T>(result: PromiseSettledResult<T>): T {
+  if (result.status === "rejected") throw result.reason;
+  return result.value;
 }
 
 /** Run crawl and deterministic rules without AI, reporters, or file output. */
@@ -223,7 +335,9 @@ export async function auditBase(
 ): Promise<AuditReport> {
   const resolved = resolveAuditOptions(options);
   return withLogLevel(resolved.logLevel, () =>
-    auditBaseWithConfig(url, resolved.config),
+    withTotalBudget(resolved.config, resolved, url, (controls) =>
+      auditBaseWithConfig(url, resolved.config, controls),
+    ),
   );
 }
 
@@ -234,7 +348,9 @@ export async function enrichAudit(
 ): Promise<AuditReport> {
   const resolved = resolveEnrichmentOptions(baseReport.config, options);
   return withLogLevel(resolved.logLevel, () =>
-    enrichAuditWithConfig(baseReport, resolved.config),
+    withTotalBudget(resolved.config, resolved, baseReport.url, (controls) =>
+      enrichAuditWithConfig(baseReport, resolved.config, controls),
+    ),
   );
 }
 
@@ -248,8 +364,14 @@ export async function audit(
 ): Promise<AuditReport> {
   const resolved = resolveAuditOptions(options);
   return withLogLevel(resolved.logLevel, async () => {
-    const baseReport = await auditBaseWithConfig(url, resolved.config);
-    return enrichAuditWithConfig(baseReport, resolved.config);
+    return withTotalBudget(resolved.config, resolved, url, async (controls) => {
+      const baseReport = await auditBaseWithConfig(
+        url,
+        resolved.config,
+        controls,
+      );
+      return enrichAuditWithConfig(baseReport, resolved.config, controls);
+    });
   });
 }
 
@@ -258,11 +380,23 @@ export async function renderAuditReport(
   report: AuditReport,
   reporters: ReporterType[],
   outputDir: string,
-  logLevel: LogLevel = "silent",
+  options: LogLevel | RenderOptions = "silent",
 ): Promise<void> {
-  await withLogLevel(logLevel, () =>
-    runReporters(report, reporters, outputDir),
-  );
+  const resolved =
+    typeof options === "string" ? { logLevel: options } : options;
+  await withLogLevel(resolved.logLevel ?? "silent", async () => {
+    const scope = createExecutionScope({
+      parentSignal: resolved.signal,
+      timeout: resolved.timeout ?? report.config.timeouts.reporters,
+      phase: "reporters",
+      url: report.url,
+    });
+    try {
+      await runReporters(report, reporters, outputDir, scope.signal);
+    } finally {
+      scope.dispose();
+    }
+  });
 }
 
 /** Explicitly render or write configured multi-page report formats. */
@@ -270,11 +404,22 @@ export async function renderMultiPageReport(
   report: MultiPageReport,
   reporters: ReporterType[],
   outputDir: string,
-  logLevel: LogLevel = "silent",
+  options: LogLevel | RenderOptions = "silent",
 ): Promise<void> {
-  await withLogLevel(logLevel, () =>
-    runMultiReporters(report, reporters, outputDir),
-  );
+  const resolved =
+    typeof options === "string" ? { logLevel: options } : options;
+  await withLogLevel(resolved.logLevel ?? "silent", async () => {
+    const scope = createExecutionScope({
+      parentSignal: resolved.signal,
+      timeout: resolved.timeout ?? report.pages[0]?.config.timeouts.reporters,
+      phase: "reporters",
+    });
+    try {
+      await runMultiReporters(report, reporters, outputDir, scope.signal);
+    } finally {
+      scope.dispose();
+    }
+  });
 }
 
 function buildMultiPageReport(
@@ -310,6 +455,10 @@ function buildMultiPageReport(
         (total, page) => total + page.summary.totalInfo,
         0,
       ),
+      ruleErrors: pages.reduce(
+        (total, page) => total + (page.summary.errors ?? 0),
+        0,
+      ),
       pagesWithErrors: pages.filter((page) => page.summary.totalErrors > 0)
         .length,
       score:
@@ -319,6 +468,9 @@ function buildMultiPageReport(
                 pages.length,
             )
           : 0,
+      scoreComplete: pages.every(
+        (page) => page.summary.scoreComplete !== false,
+      ),
     },
   };
 }
@@ -326,11 +478,12 @@ function buildMultiPageReport(
 async function auditMultipleBaseWithConfig(
   urls: string[],
   config: KeylensConfig,
+  controls: ExecutionControls,
 ): Promise<MultiPageReport> {
   const startedAt = Date.now();
   const pages: AuditReport[] = [];
   for (const url of urls) {
-    pages.push(await auditBaseWithConfig(url, config));
+    pages.push(await auditBaseWithConfig(url, config, controls));
   }
   return buildMultiPageReport(urls, pages, startedAt);
 }
@@ -338,25 +491,41 @@ async function auditMultipleBaseWithConfig(
 async function enrichMultiPageAuditWithConfig(
   baseReport: MultiPageReport,
   config: KeylensConfig,
+  controls: ExecutionControls,
 ): Promise<MultiPageReport> {
   const report = structuredClone(baseReport);
-  const ai = new AIAnalyzer(config.ai);
-  if (!ai.isAvailable()) return report;
+  const aiScope = createExecutionScope({
+    parentSignal: controls.signal,
+    timeout: config.timeouts.ai,
+    phase: "ai",
+  });
+  const scopedControls = { ...controls, signal: aiScope.signal };
+  const ai = new AIAnalyzer(config.ai, aiScope.signal);
+  if (!ai.isAvailable()) {
+    aiScope.dispose();
+    return report;
+  }
 
   const startedAt = Date.now();
-  const pages: AuditReport[] = [];
-  for (const page of report.pages) {
-    pages.push(await enrichAuditWithConfig(page, config));
-  }
-  report.pages = pages;
+  try {
+    const pages: AuditReport[] = [];
+    for (const page of report.pages) {
+      pages.push(await enrichAuditWithConfig(page, config, scopedControls));
+    }
+    report.pages = pages;
 
-  const crossPagePatterns = await ai.detectCrossPagePatterns(report);
-  report.crossPagePatterns =
-    crossPagePatterns.length > 0 ? crossPagePatterns : undefined;
-  report.aiSummary = (await ai.generateMultiPageSummary(report)) ?? undefined;
-  report.timings.ai = Date.now() - startedAt;
-  report.timings.total = baseReport.timings.total + report.timings.ai;
-  return report;
+    const crossPagePatterns = await ai.detectCrossPagePatterns(report);
+    throwIfAborted(aiScope.signal, "ai");
+    report.crossPagePatterns =
+      crossPagePatterns.length > 0 ? crossPagePatterns : undefined;
+    report.aiSummary = (await ai.generateMultiPageSummary(report)) ?? undefined;
+    throwIfAborted(aiScope.signal, "ai");
+    report.timings.ai = Date.now() - startedAt;
+    report.timings.total = baseReport.timings.total + report.timings.ai;
+    return report;
+  } finally {
+    aiScope.dispose();
+  }
 }
 
 /** Run deterministic audits for multiple URLs without enrichment or output. */
@@ -366,7 +535,9 @@ export async function auditMultipleBase(
 ): Promise<MultiPageReport> {
   const resolved = resolveAuditOptions(options);
   return withLogLevel(resolved.logLevel, () =>
-    auditMultipleBaseWithConfig(urls, resolved.config),
+    withTotalBudget(resolved.config, resolved, undefined, (controls) =>
+      auditMultipleBaseWithConfig(urls, resolved.config, controls),
+    ),
   );
 }
 
@@ -379,7 +550,9 @@ export async function enrichMultiPageAudit(
   if (!firstPageConfig) return structuredClone(baseReport);
   const resolved = resolveEnrichmentOptions(firstPageConfig, options);
   return withLogLevel(resolved.logLevel, () =>
-    enrichMultiPageAuditWithConfig(baseReport, resolved.config),
+    withTotalBudget(resolved.config, resolved, undefined, (controls) =>
+      enrichMultiPageAuditWithConfig(baseReport, resolved.config, controls),
+    ),
   );
 }
 
@@ -390,8 +563,23 @@ export async function auditMultiple(
 ): Promise<MultiPageReport> {
   const resolved = resolveAuditOptions(options);
   return withLogLevel(resolved.logLevel, async () => {
-    const baseReport = await auditMultipleBaseWithConfig(urls, resolved.config);
-    return enrichMultiPageAuditWithConfig(baseReport, resolved.config);
+    return withTotalBudget(
+      resolved.config,
+      resolved,
+      undefined,
+      async (controls) => {
+        const baseReport = await auditMultipleBaseWithConfig(
+          urls,
+          resolved.config,
+          controls,
+        );
+        return enrichMultiPageAuditWithConfig(
+          baseReport,
+          resolved.config,
+          controls,
+        );
+      },
+    );
   });
 }
 
@@ -401,7 +589,21 @@ export async function crawlOnly(
   options: AuditOptions | KeylensConfig = {},
 ): Promise<CrawlResult> {
   const resolved = resolveAuditOptions(options);
-  return withLogLevel(resolved.logLevel, () => crawlPage(url, resolved.config));
+  return withLogLevel(resolved.logLevel, () =>
+    withTotalBudget(resolved.config, resolved, url, async (controls) => {
+      const scope = createExecutionScope({
+        parentSignal: controls.signal,
+        timeout: resolved.config.timeouts.crawl,
+        phase: "crawl",
+        url,
+      });
+      try {
+        return await crawlPage(url, resolved.config, scope.signal);
+      } finally {
+        scope.dispose();
+      }
+    }),
+  );
 }
 
 // Re-export types and utilities for programmatic use
@@ -412,6 +614,7 @@ export type {
   KeylensConfigInput,
   AIConfigInput,
   AIEnrichmentOptions,
+  RenderOptions,
   AuditOptions,
   AuditEvent,
   AuditAsset,
@@ -463,5 +666,8 @@ export {
   CrawlError,
   ConfigError,
   NavigationError,
+  AuditAbortedError,
+  AuditTimeoutError,
+  ReporterError,
 } from "./errors.js";
 export type { KeylensErrorCode, KeylensErrorOptions } from "./errors.js";

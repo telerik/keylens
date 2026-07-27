@@ -4,6 +4,8 @@ import {
   audit,
   auditMultiple,
   crawlOnly,
+  renderAuditReport,
+  renderMultiPageReport,
   AIAnalyzer,
   DEFAULT_CONFIG,
 } from "../index.js";
@@ -18,7 +20,6 @@ import type {
   WidgetClassification,
   AccessibleNameSuggestion,
 } from "../types/index.js";
-import { runReporters, runMultiReporters } from "../reporters/index.js";
 import { resolveAIAPIKey } from "../utils/config.js";
 import { setLogLevel } from "../utils/logger.js";
 import { SamplingTransport } from "./sampling.js";
@@ -267,7 +268,12 @@ export async function handleAudit(
     injectSampling(config, server);
     const report = await audit(params.url, config);
     if (config.reporters.length > 0) {
-      await runReporters(report, config.reporters, config.outputDir);
+      await renderAuditReport(
+        report,
+        config.reporters,
+        config.outputDir,
+        "silent",
+      );
     }
     const clean = compactReport(report);
     return {
@@ -294,7 +300,12 @@ export async function handleAuditMultiple(
     injectSampling(config, server);
     const report = await auditMultiple(params.urls, config);
     if (config.reporters.length > 0) {
-      await runMultiReporters(report, config.reporters, config.outputDir);
+      await renderMultiPageReport(
+        report,
+        config.reporters,
+        config.outputDir,
+        "silent",
+      );
     }
     const clean = compactMultiPageReport(report);
     return {

@@ -1,4 +1,11 @@
-import { chromium, firefox, webkit, type Browser, type Page } from "playwright";
+import {
+  chromium,
+  firefox,
+  webkit,
+  type Browser,
+  type BrowserContext,
+  type Page,
+} from "playwright";
 import type {
   KeylensConfig,
   CrawlResult,
@@ -31,7 +38,18 @@ import {
   GET_FOCUSED_ELEMENT_INFO_SCRIPT,
   GET_INTERACTIVE_ELEMENTS_SCRIPT,
 } from "../utils/selectors.js";
-import { CrawlError, NavigationError } from "../errors.js";
+import {
+  AuditTimeoutError,
+  CrawlError,
+  KeylensError,
+  NavigationError,
+} from "../errors.js";
+import {
+  createExecutionScope,
+  getAbortError,
+  raceWithSignal,
+  throwIfAborted,
+} from "../utils/execution.js";
 
 const BROWSER_LAUNCHERS = {
   chromium,
@@ -49,18 +67,48 @@ const DEFAULT_NAVIGATION_TIMEOUT_MS = 30_000;
 export async function crawlPage(
   url: string,
   config: KeylensConfig,
+  signal?: AbortSignal,
 ): Promise<CrawlResult> {
   const startTime = Date.now();
+  throwIfAborted(signal, "crawl", url);
   logger.info(`Launching ${config.browser} browser...`);
 
   const launcher = BROWSER_LAUNCHERS[config.browser];
-  let browser: Browser;
+  let browser: Browser | undefined;
+  let context: BrowserContext | undefined;
+  let page: Page | undefined;
+  let abortCleanup: Promise<void> | undefined;
+
+  const closeOnAbort = () => {
+    if (browser) {
+      abortCleanup = browser.close().catch(() => undefined);
+    }
+  };
+  signal?.addEventListener("abort", closeOnAbort, { once: true });
 
   try {
-    browser = await launcher.launch({
+    const launch = launcher.launch({
       headless: !config.headed,
+      handleSIGHUP: false,
+      handleSIGINT: false,
+      handleSIGTERM: false,
     });
+    const closeLateLaunchOnAbort = launch.then(async (launchedBrowser) => {
+      if (signal?.aborted) {
+        await launchedBrowser.close().catch(() => undefined);
+        throw getAbortError(signal, "crawl", url);
+      }
+      return launchedBrowser;
+    });
+    browser = await raceWithSignal(
+      closeLateLaunchOnAbort,
+      signal,
+      "crawl",
+      url,
+    );
   } catch (error) {
+    signal?.removeEventListener("abort", closeOnAbort);
+    throwIfAborted(signal, "crawl", url);
     const message = (error as Error).message;
     if (
       message.includes("Executable doesn't exist") ||
@@ -77,7 +125,7 @@ export async function crawlPage(
   // Ensure browser cleanup on process termination
   const cleanup = async () => {
     try {
-      await browser.close();
+      await browser?.close();
     } catch {
       // Ignore close errors during forced shutdown
     }
@@ -86,10 +134,11 @@ export async function crawlPage(
   process.once("SIGTERM", cleanup);
 
   try {
-    const context = await browser.newContext({
+    context = await browser.newContext({
       viewport: config.viewport,
     });
-    const page = await context.newPage();
+    page = await context.newPage();
+    throwIfAborted(signal, "crawl", url);
 
     // Dismiss any dialogs (alert/confirm/prompt) that appear during crawling
     page.on("dialog", async (dialog) => {
@@ -109,6 +158,17 @@ export async function crawlPage(
         timeout: config.navigationTimeout || DEFAULT_NAVIGATION_TIMEOUT_MS,
       });
     } catch (error) {
+      throwIfAborted(signal, "navigation", url);
+      if (
+        (error as Error).name === "TimeoutError" ||
+        (error as Error).message.includes("Timeout")
+      ) {
+        throw new AuditTimeoutError(
+          "navigation",
+          config.navigationTimeout || DEFAULT_NAVIGATION_TIMEOUT_MS,
+          url,
+        );
+      }
       throw new NavigationError(
         `Failed to navigate to ${url}: ${(error as Error).message}`,
         url,
@@ -125,6 +185,7 @@ export async function crawlPage(
 
     // Wait for page to settle
     await page.waitForTimeout(config.waitAfterLoad);
+    throwIfAborted(signal, "crawl", url);
 
     // Take full-page screenshot
     logger.info("Capturing page screenshot...");
@@ -142,7 +203,12 @@ export async function crawlPage(
 
     // Test skip link functionality (before main tab crawl)
     logger.info("Testing skip link...");
-    const skipLinkResult = await testSkipLink(page, config.tabDelay);
+    const skipLinkResult = await testSkipLink(
+      page,
+      config.tabDelay,
+      signal,
+      url,
+    );
     if (skipLinkResult.found) {
       logger.debug(
         `Skip link ${skipLinkResult.functionWorks ? "works" : "found but does not function correctly"}`,
@@ -151,12 +217,21 @@ export async function crawlPage(
 
     // Discover all interactive elements
     logger.info("Discovering interactive elements...");
-    const interactiveElements = await discoverInteractiveElements(page);
+    const interactiveElements = await discoverInteractiveElements(
+      page,
+      signal,
+      url,
+    );
     logger.debug(`Found ${interactiveElements.length} interactive elements`);
 
     // Crawl the tab order
     logger.info("Crawling tab order...");
-    const { focusSequence, cycleCompleted } = await crawlTabOrder(page, config);
+    const { focusSequence, cycleCompleted } = await crawlTabOrder(
+      page,
+      config,
+      signal,
+      url,
+    );
     logger.debug(
       `Recorded ${focusSequence.length} focused elements, cycle completed: ${cycleCompleted}`,
     );
@@ -168,17 +243,35 @@ export async function crawlPage(
     let interactionResults: InteractionResult[] | undefined;
     if (config.interactions) {
       logger.info("Testing post-click interactions...");
-      interactionResults = await crawlInteractions(
-        page,
-        focusSequence,
-        config.tabDelay,
-      );
+      const interactionScope = createExecutionScope({
+        parentSignal: signal,
+        timeout: config.timeouts.interactions,
+        phase: "interactions",
+        url,
+      });
+      try {
+        interactionResults = await raceWithSignal(
+          crawlInteractions(
+            page,
+            focusSequence,
+            config.tabDelay,
+            interactionScope.signal,
+            url,
+          ),
+          interactionScope.signal,
+          "interactions",
+          url,
+        );
+      } finally {
+        interactionScope.dispose();
+      }
       logger.debug(
         `Tested ${interactionResults!.length} interactions, ${interactionResults!.filter((r) => !r.focusReasonable).length} issue(s)`,
       );
     }
 
     const duration = Date.now() - startTime;
+    throwIfAborted(signal, "crawl", url);
     logger.success(`Crawl completed in ${duration}ms`);
 
     return {
@@ -192,10 +285,21 @@ export async function crawlPage(
       skipLinkResult,
       interactionResults,
     };
+  } catch (error) {
+    throwIfAborted(signal, "crawl", url);
+    if (error instanceof KeylensError) throw error;
+    throw new CrawlError(`Crawl failed: ${(error as Error).message}`, url, {
+      cause: error,
+    });
   } finally {
     process.off("SIGINT", cleanup);
     process.off("SIGTERM", cleanup);
-    await browser.close();
+    signal?.removeEventListener("abort", closeOnAbort);
+    await abortCleanup;
+    page?.removeAllListeners();
+    await page?.close().catch(() => undefined);
+    await context?.close().catch(() => undefined);
+    await browser?.close().catch(() => undefined);
   }
 }
 
@@ -206,13 +310,17 @@ export async function crawlPage(
 async function testSkipLink(
   page: Page,
   tabDelay: number,
+  signal?: AbortSignal,
+  url?: string,
 ): Promise<SkipLinkResult> {
+  throwIfAborted(signal, "crawl", url);
   // Click body to reset sequential focus navigation starting point
   await page.mouse.click(0, 0);
   await page.waitForTimeout(tabDelay);
 
   // Tab through first 5 elements looking for a skip link
   for (let i = 0; i < 5; i++) {
+    throwIfAborted(signal, "crawl", url);
     await page.keyboard.press("Tab");
     await page.waitForTimeout(tabDelay);
 
@@ -286,6 +394,8 @@ async function testSkipLink(
 async function crawlTabOrder(
   page: Page,
   config: KeylensConfig,
+  signal?: AbortSignal,
+  url?: string,
 ): Promise<{
   focusSequence: FocusedElement[];
   cycleCompleted: boolean;
@@ -301,6 +411,7 @@ async function crawlTabOrder(
   await page.waitForTimeout(tabDelay);
 
   for (let i = 0; i < config.maxTabs; i++) {
+    throwIfAborted(signal, "crawl", url);
     // Press Tab with timeout protection
     try {
       await Promise.race([
@@ -316,6 +427,7 @@ async function crawlTabOrder(
         ),
       ]);
     } catch {
+      throwIfAborted(signal, "crawl", url);
       logger.warn(`Tab press ${i + 1} timed out, skipping`);
       continue;
     }
@@ -360,6 +472,7 @@ async function crawlTabOrder(
         return topEl !== el && !el.contains(topEl) && !topEl.contains(el);
       })()`);
     } catch {
+      throwIfAborted(signal, "crawl", url);
       // If the check fails, assume not obscured
     }
 
@@ -372,6 +485,8 @@ async function crawlTabOrder(
       focusedScreenshot = await captureElementScreenshot(
         page,
         elementInfo.pageRect,
+        signal,
+        url,
       );
 
       // Capture computed focus-related CSS styles while element is focused
@@ -387,6 +502,7 @@ async function crawlTabOrder(
           };
         })()`);
       } catch {
+        throwIfAborted(signal, "capture", url);
         // Ignore style capture failures
       }
     }
@@ -397,6 +513,8 @@ async function crawlTabOrder(
       lastElement.unfocusedScreenshot = await captureElementScreenshot(
         page,
         lastElement.pageRect ?? lastElement.boundingRect,
+        signal,
+        url,
       );
     }
 
@@ -434,6 +552,8 @@ async function crawlTabOrder(
       lastEl.unfocusedScreenshot = await captureElementScreenshot(
         page,
         lastEl.pageRect ?? lastEl.boundingRect,
+        signal,
+        url,
       );
     }
   }
@@ -448,7 +568,10 @@ async function crawlTabOrder(
 async function captureElementScreenshot(
   page: Page,
   rect: BoundingRect,
+  signal?: AbortSignal,
+  url?: string,
 ): Promise<string | undefined> {
+  throwIfAborted(signal, "capture", url);
   try {
     // Add padding around the element for context
     const padding = 10;
@@ -465,6 +588,7 @@ async function captureElementScreenshot(
     });
     return buffer.toString("base64");
   } catch {
+    throwIfAborted(signal, "capture", url);
     logger.debug(
       `Failed to capture element screenshot at (${rect.x}, ${rect.y})`,
     );
@@ -477,8 +601,12 @@ async function captureElementScreenshot(
  */
 async function discoverInteractiveElements(
   page: Page,
+  signal?: AbortSignal,
+  url?: string,
 ): Promise<InteractiveElement[]> {
+  throwIfAborted(signal, "crawl", url);
   const result = await page.evaluate(`(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`);
+  throwIfAborted(signal, "crawl", url);
   return (result ?? []) as InteractiveElement[];
 }
 
@@ -490,6 +618,8 @@ async function crawlInteractions(
   page: Page,
   focusSequence: FocusedElement[],
   tabDelay: number,
+  signal?: AbortSignal,
+  url?: string,
 ): Promise<InteractionResult[]> {
   const results: InteractionResult[] = [];
 
@@ -500,6 +630,7 @@ async function crawlInteractions(
   );
 
   for (const el of clickable) {
+    throwIfAborted(signal, "interactions", url);
     // Skip submit inputs — they can trigger form submission/navigation
     if (el.tagName === "input" && el.outerHTML.includes('type="submit"')) {
       continue;
@@ -549,6 +680,7 @@ async function crawlInteractions(
         issue,
       });
     } catch {
+      throwIfAborted(signal, "interactions", url);
       logger.debug(
         `Interaction test skipped for ${el.selector} (click failed)`,
       );

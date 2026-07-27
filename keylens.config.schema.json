@@ -109,10 +109,11 @@
     },
     "timeouts": {
       "type": "object",
-      "description": "GA wall-time budget contract. Enforcement is added with cancellation support.",
+      "description": "Enforced wall-time budgets for audit phases.",
       "properties": {
         "total": { "type": "number", "minimum": 1 },
         "crawl": { "type": "number", "minimum": 1 },
+        "rules": { "type": "number", "minimum": 1 },
         "interactions": { "type": "number", "minimum": 1 },
         "ai": { "type": "number", "minimum": 1 },
         "reporters": { "type": "number", "minimum": 1 }
