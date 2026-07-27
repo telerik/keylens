@@ -1,128 +1,126 @@
 import type {
+  AIEnrichmentOptions,
   AuditReport,
+  AuditOptions,
   KeylensConfig,
+  LogLevel,
   MultiPageReport,
   CrawlResult,
-  WidgetClassification,
-  AccessibleNameSuggestion,
-  FocusIndicatorScore,
+  EffectiveKeylensConfig,
+  ReporterType,
+  RuleResult,
 } from "./types/index.js";
 import { crawlPage } from "./crawler/index.js";
 import { runRules } from "./rules/index.js";
-import { runReporters } from "./reporters/index.js";
+import { runMultiReporters, runReporters } from "./reporters/index.js";
 import { AIAnalyzer } from "./ai/index.js";
-import { logger } from "./utils/logger.js";
+import { logger, withLogLevel } from "./utils/logger.js";
 import { computeScore } from "./utils/score.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
+import { hasConfiguredAIAPIKey, normalizeConfig } from "./utils/config.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
 
-/**
- * Run a complete Keylens keyboard navigation audit.
- *
- * This is the main programmatic API entry point.
- *
- * @example
- * ```ts
- * import { audit } from "keylens";
- *
- * const report = await audit("https://example.com", {
- *   reporters: ["cli", "json"],
- *   ai: { enabled: true },
- * });
- *
- * if (report.summary.totalErrors > 0) {
- *   process.exit(1);
- * }
- * ```
- */
-export async function audit(
+interface ResolvedAuditOptions {
+  config: KeylensConfig;
+  logLevel: LogLevel;
+}
+
+function resolveAuditOptions(
+  options: AuditOptions | KeylensConfig = {},
+): ResolvedAuditOptions {
+  const {
+    signal: _signal,
+    onEvent: _onEvent,
+    logLevel = "silent",
+    ...configInput
+  } = options as AuditOptions;
+  void _signal;
+  void _onEvent;
+  return {
+    config: normalizeConfig(configInput),
+    logLevel,
+  };
+}
+
+function resolveEnrichmentOptions(
+  baseConfig: EffectiveKeylensConfig,
+  options: AIEnrichmentOptions = {},
+): ResolvedAuditOptions {
+  const {
+    signal: _signal,
+    onEvent: _onEvent,
+    logLevel = "silent",
+    ai: aiOverrides,
+  } = options;
+  void _signal;
+  void _onEvent;
+  const {
+    apiKeyConfigured: _apiKeyConfigured,
+    transportConfigured: _transportConfigured,
+    ...baseAI
+  } = baseConfig.ai;
+  void _apiKeyConfigured;
+  void _transportConfigured;
+
+  return {
+    config: normalizeConfig({
+      ...baseConfig,
+      ai: {
+        ...baseAI,
+        ...aiOverrides,
+        features: {
+          ...baseAI.features,
+          ...aiOverrides?.features,
+        },
+        limits: {
+          ...baseAI.limits,
+          ...aiOverrides?.limits,
+        },
+      },
+    }),
+    logLevel,
+  };
+}
+
+function sanitizeConfig(config: KeylensConfig): EffectiveKeylensConfig {
+  const { apiKey, transport, ...ai } = config.ai;
+  void apiKey;
+  return structuredClone({
+    ...config,
+    ai: {
+      ...ai,
+      apiKeyConfigured: hasConfiguredAIAPIKey(config.ai),
+      transportConfigured: Boolean(transport),
+    },
+  });
+}
+
+function buildBaseReport(
   url: string,
   config: KeylensConfig,
-): Promise<AuditReport> {
-  const startTime = Date.now();
-
-  logger.blank();
-  logger.info(`Starting Keylens audit for ${url}`);
-  logger.divider();
-
-  // Phase 1: Crawl the page
-  const crawlResult = await crawlPage(url, config);
-
-  // Phase 2: Run rules
-  const ruleResults = await runRules(crawlResult, config);
-
-  // Phase 3: AI analysis (if enabled)
-  const ai = new AIAnalyzer(config.ai);
-
-  let aiFocusOrderAnalysis: AuditReport["aiFocusOrderAnalysis"];
-  let widgetClassifications: WidgetClassification[] | undefined;
-  let accessibleNameSuggestions: AccessibleNameSuggestion[] | undefined;
-  let focusIndicatorScores: FocusIndicatorScore[] | undefined;
-
-  if (ai.isAvailable()) {
-    // Run independent AI analyses in parallel for performance
-    const allViolations = ruleResults.flatMap((r) => r.violations);
-
-    const [, focusOrderAnalysis, classifications, nameSuggestions, fiScores] =
-      await Promise.all([
-        ai.generateFixSuggestions(allViolations),
-        ai.validateFocusOrder(
-          crawlResult.focusSequence,
-          crawlResult.pageScreenshot,
-          crawlResult.pageDimensions,
-        ),
-        ai.classifyWidgets(crawlResult.interactiveElements),
-        ai.inferAccessibleNames(
-          crawlResult.interactiveElements,
-          crawlResult.pageScreenshot,
-          crawlResult.pageDimensions,
-        ),
-        ai.scoreFocusIndicatorQuality(crawlResult.focusSequence),
-      ]);
-
-    if (focusOrderAnalysis) {
-      aiFocusOrderAnalysis = focusOrderAnalysis;
-      logger.info("AI focus order analysis completed");
-    }
-
-    if (classifications.length > 0) {
-      widgetClassifications = classifications;
-      logger.info(`AI classified ${classifications.length} widget(s)`);
-    }
-
-    if (nameSuggestions.length > 0) {
-      accessibleNameSuggestions = nameSuggestions;
-      logger.info(
-        `AI suggested names for ${nameSuggestions.length} element(s)`,
-      );
-    }
-
-    if (fiScores.length > 0) {
-      focusIndicatorScores = fiScores;
-      logger.info(
-        `AI scored focus indicators for ${fiScores.length} element(s)`,
-      );
-    }
-  }
-
-  // Build the report
+  crawlResult: CrawlResult,
+  ruleResults: RuleResult[],
+  rulesDuration: number,
+  totalDuration: number,
+): AuditReport {
   const report: AuditReport = {
     schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
     version: VERSION,
     timestamp: new Date().toISOString(),
     url,
-    config: {
-      viewport: config.viewport,
-      browser: config.browser,
-      rules: config.rules,
+    config: sanitizeConfig(config),
+    timings: {
+      crawl: crawlResult.crawlDuration,
+      rules: rulesDuration,
+      total: totalDuration,
     },
     crawl: {
       totalFocusableElements: crawlResult.focusSequence.length,
       totalInteractiveElements: crawlResult.interactiveElements.length,
       unreachedElements: crawlResult.interactiveElements.filter(
-        (el) => !el.reached,
+        (element) => !element.reached,
       ).length,
       cycleCompleted: crawlResult.cycleCompleted,
       duration: crawlResult.crawlDuration,
@@ -134,123 +132,276 @@ export async function audit(
     rules: ruleResults,
     summary: {
       totalErrors: ruleResults
-        .flatMap((r) => r.violations)
-        .filter((v) => v.severity === "error").length,
+        .flatMap((result) => result.violations)
+        .filter((violation) => violation.severity === "error").length,
       totalWarnings: ruleResults
-        .flatMap((r) => r.violations)
-        .filter((v) => v.severity === "warning").length,
+        .flatMap((result) => result.violations)
+        .filter((violation) => violation.severity === "warning").length,
       totalInfo: ruleResults
-        .flatMap((r) => r.violations)
-        .filter((v) => v.severity === "info").length,
-      passed: ruleResults.filter((r) => r.passed).length,
-      failed: ruleResults.filter((r) => !r.passed).length,
-      score: 0, // placeholder — computed below after report object is built
+        .flatMap((result) => result.violations)
+        .filter((violation) => violation.severity === "info").length,
+      passed: ruleResults.filter((result) => result.passed).length,
+      failed: ruleResults.filter((result) => !result.passed).length,
+      score: 0,
     },
-    aiFocusOrderAnalysis,
-    widgetClassifications,
-    accessibleNameSuggestions,
-    focusIndicatorScores,
     pageScreenshot: crawlResult.pageScreenshot,
     focusSequence: crawlResult.focusSequence,
+    interactiveElements: crawlResult.interactiveElements,
     pageDimensions: crawlResult.pageDimensions,
   };
-
-  // Compute deterministic score (after report is built so it has full data)
   report.summary.score = computeScore(report);
-
-  // Generate AI summary (after report is built so it has full data)
-  if (ai.isAvailable()) {
-    const summary = await ai.generateSummary(report);
-    report.aiSummary = summary ?? undefined;
-  }
-
-  // Phase 4: Output reports
-  logger.blank();
-  await runReporters(report, config.reporters, config.outputDir);
-
-  const totalDuration = Date.now() - startTime;
-  logger.blank();
-  logger.info(`Total audit time: ${totalDuration}ms`);
-
   return report;
 }
 
-/**
- * Run Keylens audits on multiple URLs and produce an aggregate report.
- */
-export async function auditMultiple(
-  urls: string[],
+async function auditBaseWithConfig(
+  url: string,
   config: KeylensConfig,
-): Promise<MultiPageReport> {
-  const startTime = Date.now();
+): Promise<AuditReport> {
+  const startedAt = Date.now();
+  logger.info(`Starting deterministic Keylens audit for ${url}`);
+  const crawlResult = await crawlPage(url, config);
+  const rulesStartedAt = Date.now();
+  const ruleResults = await runRules(crawlResult, config);
+  return buildBaseReport(
+    url,
+    config,
+    crawlResult,
+    ruleResults,
+    Date.now() - rulesStartedAt,
+    Date.now() - startedAt,
+  );
+}
 
-  logger.blank();
-  logger.info(`Starting Keylens multi-page audit for ${urls.length} URL(s)`);
-  logger.divider();
+async function enrichAuditWithConfig(
+  baseReport: AuditReport,
+  config: KeylensConfig,
+): Promise<AuditReport> {
+  const report = structuredClone(baseReport);
+  report.config = sanitizeConfig(config);
+  const ai = new AIAnalyzer(config.ai);
+  if (!ai.isAvailable()) return report;
 
-  const pages: AuditReport[] = [];
+  const startedAt = Date.now();
+  const allViolations = report.rules.flatMap((result) => result.violations);
+  const focusSequence = report.focusSequence ?? [];
+  const interactiveElements = report.interactiveElements ?? [];
+  const pageScreenshot = report.pageScreenshot ?? "";
 
-  for (const url of urls) {
-    const pageReport = await audit(url, config);
-    pages.push(pageReport);
-  }
+  const [, focusOrderAnalysis, classifications, nameSuggestions, fiScores] =
+    await Promise.all([
+      ai.generateFixSuggestions(allViolations),
+      ai.validateFocusOrder(
+        focusSequence,
+        pageScreenshot,
+        report.pageDimensions,
+      ),
+      ai.classifyWidgets(interactiveElements),
+      ai.inferAccessibleNames(
+        interactiveElements,
+        pageScreenshot,
+        report.pageDimensions,
+      ),
+      ai.scoreFocusIndicatorQuality(focusSequence),
+    ]);
 
-  const multiReport: MultiPageReport = {
+  report.aiFocusOrderAnalysis = focusOrderAnalysis ?? undefined;
+  report.widgetClassifications =
+    classifications.length > 0 ? classifications : undefined;
+  report.accessibleNameSuggestions =
+    nameSuggestions.length > 0 ? nameSuggestions : undefined;
+  report.focusIndicatorScores = fiScores.length > 0 ? fiScores : undefined;
+  report.aiSummary = (await ai.generateSummary(report)) ?? undefined;
+  report.timings.ai = Date.now() - startedAt;
+  report.timings.total = baseReport.timings.total + report.timings.ai;
+  return report;
+}
+
+/** Run crawl and deterministic rules without AI, reporters, or file output. */
+export async function auditBase(
+  url: string,
+  options: AuditOptions | KeylensConfig = {},
+): Promise<AuditReport> {
+  const resolved = resolveAuditOptions(options);
+  return withLogLevel(resolved.logLevel, () =>
+    auditBaseWithConfig(url, resolved.config),
+  );
+}
+
+/** Add optional AI enrichment to an immutable deterministic report. */
+export async function enrichAudit(
+  baseReport: AuditReport,
+  options: AIEnrichmentOptions = {},
+): Promise<AuditReport> {
+  const resolved = resolveEnrichmentOptions(baseReport.config, options);
+  return withLogLevel(resolved.logLevel, () =>
+    enrichAuditWithConfig(baseReport, resolved.config),
+  );
+}
+
+/**
+ * Run a complete in-memory audit. Reporter configuration is retained in the
+ * effective config but output is only produced by renderAuditReport().
+ */
+export async function audit(
+  url: string,
+  options: AuditOptions | KeylensConfig = {},
+): Promise<AuditReport> {
+  const resolved = resolveAuditOptions(options);
+  return withLogLevel(resolved.logLevel, async () => {
+    const baseReport = await auditBaseWithConfig(url, resolved.config);
+    return enrichAuditWithConfig(baseReport, resolved.config);
+  });
+}
+
+/** Explicitly render or write configured report formats. */
+export async function renderAuditReport(
+  report: AuditReport,
+  reporters: ReporterType[],
+  outputDir: string,
+  logLevel: LogLevel = "silent",
+): Promise<void> {
+  await withLogLevel(logLevel, () =>
+    runReporters(report, reporters, outputDir),
+  );
+}
+
+/** Explicitly render or write configured multi-page report formats. */
+export async function renderMultiPageReport(
+  report: MultiPageReport,
+  reporters: ReporterType[],
+  outputDir: string,
+  logLevel: LogLevel = "silent",
+): Promise<void> {
+  await withLogLevel(logLevel, () =>
+    runMultiReporters(report, reporters, outputDir),
+  );
+}
+
+function buildMultiPageReport(
+  urls: string[],
+  pages: AuditReport[],
+  startedAt: number,
+): MultiPageReport {
+  const pagesDuration = pages.reduce(
+    (total, page) => total + page.timings.total,
+    0,
+  );
+  return {
     schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
     version: VERSION,
     timestamp: new Date().toISOString(),
     urls,
     pages,
+    timings: {
+      pages: pagesDuration,
+      total: Date.now() - startedAt,
+    },
     summary: {
       totalPages: pages.length,
-      totalErrors: pages.reduce((sum, p) => sum + p.summary.totalErrors, 0),
-      totalWarnings: pages.reduce((sum, p) => sum + p.summary.totalWarnings, 0),
-      totalInfo: pages.reduce((sum, p) => sum + p.summary.totalInfo, 0),
-      pagesWithErrors: pages.filter((p) => p.summary.totalErrors > 0).length,
+      totalErrors: pages.reduce(
+        (total, page) => total + page.summary.totalErrors,
+        0,
+      ),
+      totalWarnings: pages.reduce(
+        (total, page) => total + page.summary.totalWarnings,
+        0,
+      ),
+      totalInfo: pages.reduce(
+        (total, page) => total + page.summary.totalInfo,
+        0,
+      ),
+      pagesWithErrors: pages.filter((page) => page.summary.totalErrors > 0)
+        .length,
       score:
         pages.length > 0
           ? Math.round(
-              pages.reduce((sum, p) => sum + p.summary.score, 0) / pages.length,
+              pages.reduce((total, page) => total + page.summary.score, 0) /
+                pages.length,
             )
           : 0,
     },
   };
-
-  // AI analysis for multi-page reports
-  const ai = new AIAnalyzer(config.ai);
-  if (ai.isAvailable()) {
-    // Detect cross-page patterns (heuristic + AI)
-    const crossPagePatterns = await ai.detectCrossPagePatterns(multiReport);
-    if (crossPagePatterns.length > 0) {
-      multiReport.crossPagePatterns = crossPagePatterns;
-      logger.info(`Detected ${crossPagePatterns.length} cross-page pattern(s)`);
-    }
-
-    // Generate multi-page summary (after patterns so summary can reference them)
-    const multiSummary = await ai.generateMultiPageSummary(multiReport);
-    if (multiSummary) {
-      multiReport.aiSummary = multiSummary;
-    }
-  }
-
-  const totalDuration = Date.now() - startTime;
-  logger.blank();
-  logger.info(`Multi-page audit completed in ${totalDuration}ms`);
-
-  return multiReport;
 }
 
-/**
- * Lightweight crawl-only path: crawl + rules, no reporters, no AI.
- * Used by MCP specialized tools (classify_widgets, validate_focus_order)
- * to avoid running the full audit pipeline when only one AI feature is needed.
- */
+async function auditMultipleBaseWithConfig(
+  urls: string[],
+  config: KeylensConfig,
+): Promise<MultiPageReport> {
+  const startedAt = Date.now();
+  const pages: AuditReport[] = [];
+  for (const url of urls) {
+    pages.push(await auditBaseWithConfig(url, config));
+  }
+  return buildMultiPageReport(urls, pages, startedAt);
+}
+
+async function enrichMultiPageAuditWithConfig(
+  baseReport: MultiPageReport,
+  config: KeylensConfig,
+): Promise<MultiPageReport> {
+  const report = structuredClone(baseReport);
+  const ai = new AIAnalyzer(config.ai);
+  if (!ai.isAvailable()) return report;
+
+  const startedAt = Date.now();
+  const pages: AuditReport[] = [];
+  for (const page of report.pages) {
+    pages.push(await enrichAuditWithConfig(page, config));
+  }
+  report.pages = pages;
+
+  const crossPagePatterns = await ai.detectCrossPagePatterns(report);
+  report.crossPagePatterns =
+    crossPagePatterns.length > 0 ? crossPagePatterns : undefined;
+  report.aiSummary = (await ai.generateMultiPageSummary(report)) ?? undefined;
+  report.timings.ai = Date.now() - startedAt;
+  report.timings.total = baseReport.timings.total + report.timings.ai;
+  return report;
+}
+
+/** Run deterministic audits for multiple URLs without enrichment or output. */
+export async function auditMultipleBase(
+  urls: string[],
+  options: AuditOptions | KeylensConfig = {},
+): Promise<MultiPageReport> {
+  const resolved = resolveAuditOptions(options);
+  return withLogLevel(resolved.logLevel, () =>
+    auditMultipleBaseWithConfig(urls, resolved.config),
+  );
+}
+
+/** Add per-page and cross-page AI enrichment without mutating the base report. */
+export async function enrichMultiPageAudit(
+  baseReport: MultiPageReport,
+  options: AIEnrichmentOptions = {},
+): Promise<MultiPageReport> {
+  const firstPageConfig = baseReport.pages[0]?.config;
+  if (!firstPageConfig) return structuredClone(baseReport);
+  const resolved = resolveEnrichmentOptions(firstPageConfig, options);
+  return withLogLevel(resolved.logLevel, () =>
+    enrichMultiPageAuditWithConfig(baseReport, resolved.config),
+  );
+}
+
+/** Run multiple in-memory audits. Output remains an explicit caller action. */
+export async function auditMultiple(
+  urls: string[],
+  options: AuditOptions | KeylensConfig = {},
+): Promise<MultiPageReport> {
+  const resolved = resolveAuditOptions(options);
+  return withLogLevel(resolved.logLevel, async () => {
+    const baseReport = await auditMultipleBaseWithConfig(urls, resolved.config);
+    return enrichMultiPageAuditWithConfig(baseReport, resolved.config);
+  });
+}
+
+/** Lightweight crawl-only path used by specialized experimental adapters. */
 export async function crawlOnly(
   url: string,
-  config: KeylensConfig,
+  options: AuditOptions | KeylensConfig = {},
 ): Promise<CrawlResult> {
-  logger.info(`Crawling ${url}...`);
-  return crawlPage(url, config);
+  const resolved = resolveAuditOptions(options);
+  return withLogLevel(resolved.logLevel, () => crawlPage(url, resolved.config));
 }
 
 // Re-export types and utilities for programmatic use
@@ -259,6 +410,8 @@ export type {
   MultiPageReport,
   KeylensConfig,
   KeylensConfigInput,
+  AIConfigInput,
+  AIEnrichmentOptions,
   AuditOptions,
   AuditEvent,
   AuditAsset,
@@ -271,6 +424,11 @@ export type {
   AuditAssetType,
   AuditAssetStorage,
   AuditReportSchemaVersion,
+  EffectiveAIConfig,
+  EffectiveKeylensConfig,
+  AuditTimings,
+  MultiPageAuditTimings,
+  LogLevel,
   RuleConfig,
   AIConfig,
   AITransport,

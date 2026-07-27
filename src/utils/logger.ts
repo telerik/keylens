@@ -1,8 +1,11 @@
 import chalk from "chalk";
+import { AsyncLocalStorage } from "node:async_hooks";
+import type { LogLevel } from "../types/index.js";
 
-export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
+export type { LogLevel } from "../types/index.js";
 
 let currentLevel: LogLevel = "info";
+const scopedLogLevel = new AsyncLocalStorage<LogLevel>();
 
 const levels: Record<LogLevel, number> = {
   debug: 0,
@@ -17,7 +20,14 @@ export function setLogLevel(level: LogLevel) {
 }
 
 function shouldLog(level: LogLevel): boolean {
-  return levels[level] >= levels[currentLevel];
+  return levels[level] >= levels[scopedLogLevel.getStore() ?? currentLevel];
+}
+
+export function withLogLevel<T>(
+  level: LogLevel,
+  operation: () => Promise<T>,
+): Promise<T> {
+  return scopedLogLevel.run(level, operation);
 }
 
 export const logger = {
@@ -52,6 +62,7 @@ export const logger = {
   },
 
   rule(passed: boolean, name: string, detail?: string) {
+    if (!shouldLog("info")) return;
     const icon = passed ? chalk.green("✓") : chalk.red("✗");
     const label = passed ? chalk.green(name) : chalk.red(name);
     const suffix = detail ? chalk.gray(` — ${detail}`) : "";

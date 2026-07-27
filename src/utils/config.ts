@@ -1,6 +1,10 @@
 import { readFile } from "fs/promises";
 import { resolve } from "path";
-import type { KeylensConfig, KeylensConfigInput } from "../types/index.js";
+import type {
+  AIConfig,
+  KeylensConfig,
+  KeylensConfigInput,
+} from "../types/index.js";
 import { ConfigError } from "../errors.js";
 
 export const DEFAULT_CONFIG: KeylensConfig = {
@@ -57,6 +61,20 @@ export const DEFAULT_CONFIG: KeylensConfig = {
   },
   timeouts: {},
 };
+
+export function resolveAIAPIKey(config: AIConfig): string | undefined {
+  return (
+    config.apiKey ||
+    process.env.KEYLENS_AI_API_KEY ||
+    (config.provider === "openai"
+      ? process.env.OPENAI_API_KEY
+      : process.env.ANTHROPIC_API_KEY)
+  );
+}
+
+export function hasConfiguredAIAPIKey(config: AIConfig): boolean {
+  return resolveAIAPIKey(config) !== undefined;
+}
 
 /**
  * Load configuration from a JSON file and merge with defaults.

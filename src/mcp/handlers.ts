@@ -19,6 +19,7 @@ import type {
   AccessibleNameSuggestion,
 } from "../types/index.js";
 import { runReporters, runMultiReporters } from "../reporters/index.js";
+import { resolveAIAPIKey } from "../utils/config.js";
 import { setLogLevel } from "../utils/logger.js";
 import { SamplingTransport } from "./sampling.js";
 
@@ -69,10 +70,7 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
     }
   }
 
-  const aiKey =
-    process.env.KEYLENS_AI_API_KEY ||
-    process.env.ANTHROPIC_API_KEY ||
-    process.env.OPENAI_API_KEY;
+  const aiKey = resolveAIAPIKey(config.ai);
   if (aiKey) {
     config.ai = { ...config.ai, apiKey: aiKey };
   }

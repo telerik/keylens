@@ -98,16 +98,18 @@ export interface PhaseTimeoutConfig {
   reporters?: number;
 }
 
+export type AIConfigInput = Partial<Omit<AIConfig, "features" | "limits">> & {
+  features?: Partial<AIConfig["features"]>;
+  limits?: Partial<NonNullable<AIConfig["limits"]>>;
+};
+
 export interface KeylensConfigInput extends Omit<
   Partial<KeylensConfig>,
   "viewport" | "rules" | "ai" | "capture" | "timeouts"
 > {
   viewport?: Partial<KeylensConfig["viewport"]>;
   rules?: Partial<RuleConfig>;
-  ai?: Partial<Omit<AIConfig, "features" | "limits">> & {
-    features?: Partial<AIConfig["features"]>;
-    limits?: Partial<NonNullable<AIConfig["limits"]>>;
-  };
+  ai?: AIConfigInput;
   capture?: Partial<Omit<CaptureConfig, "limits">> & {
     limits?: Partial<CaptureLimits>;
   };
@@ -119,6 +121,17 @@ export interface AuditOptions extends KeylensConfigInput {
   signal?: AbortSignal;
   /** Receives structured lifecycle and progress events */
   onEvent?: (event: AuditEvent) => void;
+  /** Controls internal diagnostic output; programmatic APIs default to silent */
+  logLevel?: LogLevel;
+}
+
+export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
+
+export interface AIEnrichmentOptions {
+  ai?: AIConfigInput;
+  signal?: AbortSignal;
+  onEvent?: (event: AuditEvent) => void;
+  logLevel?: LogLevel;
 }
 
 export interface RuleConfig {
@@ -259,6 +272,31 @@ export interface AuditAsset {
 }
 
 export type AssetProjectionMode = "omit" | "inline" | "references";
+
+export interface EffectiveAIConfig extends Omit<
+  AIConfig,
+  "apiKey" | "transport"
+> {
+  apiKeyConfigured: boolean;
+  transportConfigured: boolean;
+}
+
+export interface EffectiveKeylensConfig extends Omit<KeylensConfig, "ai"> {
+  ai: EffectiveAIConfig;
+}
+
+export interface AuditTimings {
+  crawl: number;
+  rules: number;
+  ai?: number;
+  total: number;
+}
+
+export interface MultiPageAuditTimings {
+  pages: number;
+  ai?: number;
+  total: number;
+}
 
 // ─── Crawl Results ───────────────────────────────────────────────
 
@@ -548,7 +586,10 @@ export interface AuditReport {
   url: string;
 
   /** Configuration used */
-  config: Partial<KeylensConfig>;
+  config: EffectiveKeylensConfig;
+
+  /** Wall-clock duration by execution phase */
+  timings: AuditTimings;
 
   /** Crawl results */
   crawl: {
@@ -598,6 +639,9 @@ export interface AuditReport {
   /** Focus sequence for visualization */
   focusSequence?: FocusedElement[];
 
+  /** Interactive elements retained for optional staged enrichment */
+  interactiveElements?: InteractiveElement[];
+
   /** Page dimensions for focus map overlay rendering */
   pageDimensions?: { width: number; height: number };
 }
@@ -619,6 +663,9 @@ export interface MultiPageReport {
 
   /** Individual page reports */
   pages: AuditReport[];
+
+  /** Wall-clock duration for page work and optional enrichment */
+  timings: MultiPageAuditTimings;
 
   /** Aggregate summary across all pages */
   summary: {

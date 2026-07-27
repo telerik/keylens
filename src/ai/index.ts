@@ -15,6 +15,7 @@ import type {
 import { logger } from "../utils/logger.js";
 import { annotateFocusOrder } from "../utils/screenshot-annotator.js";
 import { OpenAITransport } from "./openai-transport.js";
+import { resolveAIAPIKey } from "../utils/config.js";
 import {
   safeParseJSON,
   fixSuggestionBatchSchema,
@@ -61,13 +62,7 @@ export class AIAnalyzer {
   constructor(config: AIConfig) {
     this.config = config;
 
-    const envKey =
-      process.env.KEYLENS_AI_API_KEY ||
-      (config.provider === "openai"
-        ? process.env.OPENAI_API_KEY
-        : process.env.ANTHROPIC_API_KEY);
-
-    this.apiKey = config.apiKey || envKey || null;
+    this.apiKey = resolveAIAPIKey(config) ?? null;
 
     if (config.enabled && !this.apiKey && !config.transport) {
       const providerKeyHint =
