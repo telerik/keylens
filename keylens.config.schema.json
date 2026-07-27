@@ -69,25 +69,20 @@
       "enum": ["chromium", "firefox", "webkit"],
       "default": "chromium"
     },
-    "captureElementScreenshots": {
-      "type": "boolean",
-      "default": false,
-      "description": "Deprecated compatibility option. Prefer capture.elements."
-    },
     "capture": {
       "type": "object",
-      "description": "GA capture contract. Resource limits are documented now and enforced by the bounded-capture phase.",
+      "description": "Bounded screenshot capture policy. Programmatic audits default to no page screenshot.",
       "properties": {
         "page": {
           "type": "string",
           "enum": ["none", "viewport", "full"],
-          "default": "full"
+          "default": "none"
         },
         "elements": { "type": "boolean", "default": false },
         "limits": {
           "type": "object",
           "properties": {
-            "maxElements": { "type": "number", "minimum": 0, "default": 200 },
+            "maxElements": { "type": "integer", "minimum": 0, "default": 200 },
             "maxDimension": {
               "type": "number",
               "minimum": 1,

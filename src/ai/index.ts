@@ -11,8 +11,10 @@ import type {
   AIFocusOrderResult,
   AIReportSummary,
   CrossPagePattern,
+  AuditAsset,
 } from "../types/index.js";
 import { logger } from "../utils/logger.js";
+import { getInlineAssetData } from "../utils/assets.js";
 import { annotateFocusOrder } from "../utils/screenshot-annotator.js";
 import { OpenAITransport } from "./openai-transport.js";
 import { resolveAIAPIKey } from "../utils/config.js";
@@ -589,6 +591,7 @@ Only include suggestions with confidence >= 0.5.`;
    */
   async scoreFocusIndicatorQuality(
     focusSequence: FocusedElement[],
+    assets: AuditAsset[],
   ): Promise<FocusIndicatorScore[]> {
     if (!this.isAvailable() || !this.config.features.focusIndicatorQuality) {
       return [];
@@ -596,13 +599,19 @@ Only include suggestions with confidence >= 0.5.`;
 
     logger.info("Running AI focus indicator quality scoring...");
 
-    // Filter: must have both screenshots AND confirmed focus indicator
-    const candidates = focusSequence.filter(
-      (el) =>
-        el.focusedScreenshot &&
-        el.unfocusedScreenshot &&
-        el.hasFocusIndicator === true,
-    );
+    const candidates = focusSequence.flatMap((element) => {
+      const focused = getInlineAssetData(
+        assets,
+        element.focusedScreenshotAssetId,
+      );
+      const unfocused = getInlineAssetData(
+        assets,
+        element.unfocusedScreenshotAssetId,
+      );
+      return focused && unfocused && element.hasFocusIndicator === true
+        ? [{ element, focused, unfocused }]
+        : [];
+    });
 
     if (candidates.length === 0) return [];
 
@@ -612,7 +621,7 @@ Only include suggestions with confidence >= 0.5.`;
     // Batch all elements into a single vision call
     try {
       const elementDescriptions = elementsToScore
-        .map((el, i) => {
+        .map(({ element: el }, i) => {
           const styleInfo = el.computedFocusStyles
             ? ` | Computed focus styles — outline: ${el.computedFocusStyles.outline}, box-shadow: ${el.computedFocusStyles.boxShadow}, border: ${el.computedFocusStyles.border}`
             : "";
@@ -651,10 +660,10 @@ Scoring guide:
         base64: string;
         mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
       }> = [];
-      for (const el of elementsToScore) {
-        images.push({ base64: el.focusedScreenshot!, mediaType: "image/png" });
+      for (const candidate of elementsToScore) {
+        images.push({ base64: candidate.focused, mediaType: "image/png" });
         images.push({
-          base64: el.unfocusedScreenshot!,
+          base64: candidate.unfocused,
           mediaType: "image/png",
         });
       }
@@ -666,8 +675,9 @@ Scoring guide:
 
       const scores: FocusIndicatorScore[] = [];
       for (const item of parsed) {
-        const el = elementsToScore[item.elementIndex - 1];
-        if (el) {
+        const candidate = elementsToScore[item.elementIndex - 1];
+        if (candidate) {
+          const el = candidate.element;
           const result: FocusIndicatorScore = {
             element: {
               selector: el.selector,

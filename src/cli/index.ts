@@ -7,10 +7,20 @@ import {
   renderAuditReport,
   renderMultiPageReport,
 } from "../index.js";
-import { loadConfig, DEFAULT_CONFIG } from "../utils/config.js";
+import {
+  loadConfigInput,
+  DEFAULT_CONFIG,
+  normalizeConfig,
+} from "../utils/config.js";
 import { createExecutionScope } from "../utils/execution.js";
 import { setLogLevel } from "../utils/logger.js";
-import type { KeylensConfig, LogLevel, ReporterType } from "../types/index.js";
+import type {
+  KeylensConfig,
+  KeylensConfigInput,
+  LogLevel,
+  PageCaptureMode,
+  ReporterType,
+} from "../types/index.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
@@ -38,7 +48,6 @@ program
   .option(
     "-o, --output <reporters>",
     "reporters to use (comma-separated: cli,json,html,markdown)",
-    "cli",
   )
   .option(
     "-d, --output-dir <dir>",
@@ -76,6 +85,10 @@ program
   )
   .option("--timeout <ms>", "navigation timeout in ms", "30000")
   .option(
+    "--page-screenshot <mode>",
+    "page screenshot mode (none, viewport, full); defaults to full for HTML reports",
+  )
+  .option(
     "--screenshots",
     "capture per-element screenshots for focus indicator diffing",
     false,
@@ -95,13 +108,21 @@ program
         ? "warn"
         : "info";
 
+    // Load config file before resolving options with capability-based defaults.
+    let fileConfig: KeylensConfigInput = {};
+    if (options.config) {
+      fileConfig = await loadConfigInput(options.config);
+    }
+
     // Parse viewport
     const [vw, vh] = options.viewport.split("x").map(Number);
     const viewport = { width: vw || 1280, height: vh || 720 };
 
     // Validate and parse reporters
     const VALID_REPORTERS = ["cli", "json", "html", "markdown"] as const;
-    const reporters = options.output.split(",") as ReporterType[];
+    const reporters = options.output
+      ? (options.output.split(",") as ReporterType[])
+      : [...(fileConfig.reporters ?? DEFAULT_CONFIG.reporters)];
     const invalidReporters = reporters.filter(
       (r: string) => !(VALID_REPORTERS as readonly string[]).includes(r),
     );
@@ -127,13 +148,6 @@ program
       process.exit(2);
     }
 
-    // Load config file if provided
-    let fileConfig: Partial<KeylensConfig> = {};
-    if (options.config) {
-      const loaded = await loadConfig(options.config);
-      fileConfig = loaded;
-    }
-
     // Determine URLs to audit
     const urls: string[] = url
       ? [url]
@@ -151,11 +165,27 @@ program
     }
 
     // Merge CLI options with file config and defaults
-    const config: KeylensConfig = {
+    const pageCapture =
+      options.pageScreenshot ??
+      fileConfig.capture?.page ??
+      (reporters.includes("html") ? "full" : "none");
+    if (!["none", "viewport", "full"].includes(pageCapture)) {
+      console.error(
+        chalk.red("--page-screenshot must be one of: none, viewport, full"),
+      );
+      process.exit(2);
+    }
+    const captureElements =
+      options.screenshots || (fileConfig.capture?.elements ?? false);
+    const config: KeylensConfig = normalizeConfig({
       ...DEFAULT_CONFIG,
       ...fileConfig,
       urls,
       viewport,
+      rules: {
+        ...DEFAULT_CONFIG.rules,
+        ...fileConfig.rules,
+      },
       reporters,
       outputDir: options.outputDir,
       browser: options.browser,
@@ -164,9 +194,21 @@ program
       waitAfterLoad: parseInt(options.wait, 10),
       maxTabs: parseInt(options.maxTabs, 10),
       tabDelay: Math.max(10, parseInt(options.tabDelay, 10) || 250),
-      captureElementScreenshots:
-        options.screenshots || fileConfig.captureElementScreenshots || false,
+      capture: {
+        ...DEFAULT_CONFIG.capture,
+        ...fileConfig.capture,
+        page: pageCapture as PageCaptureMode,
+        elements: captureElements,
+        limits: {
+          ...DEFAULT_CONFIG.capture.limits,
+          ...fileConfig.capture?.limits,
+        },
+      },
       interactions: options.interactions || fileConfig.interactions || false,
+      timeouts: {
+        ...DEFAULT_CONFIG.timeouts,
+        ...fileConfig.timeouts,
+      },
       navigationTimeout: parseInt(options.timeout, 10) || 30000,
       ai: {
         ...DEFAULT_CONFIG.ai,
@@ -179,8 +221,16 @@ program
           fileConfig.ai?.provider ||
           DEFAULT_CONFIG.ai.provider,
         baseURL: options.aiBaseUrl || fileConfig.ai?.baseURL,
+        features: {
+          ...DEFAULT_CONFIG.ai.features,
+          ...fileConfig.ai?.features,
+        },
+        limits: {
+          ...DEFAULT_CONFIG.ai.limits,
+          ...fileConfig.ai?.limits,
+        },
       },
-    };
+    });
 
     const spinner = ora("Starting audit...").start();
     const totalScope = createExecutionScope({

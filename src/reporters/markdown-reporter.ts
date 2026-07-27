@@ -396,7 +396,7 @@ function renderFooter(version: string, timestamp: string): string {
 
 // ─── Build single-page markdown ──────────────────────────────────
 
-function buildSinglePageMarkdown(report: AuditReport): string {
+export function renderMarkdown(report: AuditReport): string {
   const sections: string[] = [];
   sections.push(renderHeader(report));
   sections.push(renderSummary(report));
@@ -411,7 +411,7 @@ function buildSinglePageMarkdown(report: AuditReport): string {
 
 // ─── Build multi-page markdown ───────────────────────────────────
 
-function buildMultiPageMarkdown(report: MultiPageReport): string {
+export function renderMultiMarkdown(report: MultiPageReport): string {
   const lines: string[] = [];
 
   // Header
@@ -497,7 +497,7 @@ export async function reportMarkdown(
   await mkdir(dir, { recursive: true });
   throwIfAborted(signal, "reporters", report.url);
 
-  const markdown = buildSinglePageMarkdown(report);
+  const markdown = renderMarkdown(report);
   const filePath = resolve(dir, "keylens-report.md");
   await writeFile(filePath, markdown, { encoding: "utf-8", signal });
 
@@ -517,7 +517,7 @@ export async function reportMultiMarkdown(
   await mkdir(dir, { recursive: true });
   throwIfAborted(signal, "reporters");
 
-  const markdown = buildMultiPageMarkdown(report);
+  const markdown = renderMultiMarkdown(report);
   const filePath = resolve(dir, "keylens-report-multi.md");
   await writeFile(filePath, markdown, { encoding: "utf-8", signal });
 

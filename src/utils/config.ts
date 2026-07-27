@@ -47,10 +47,9 @@ export const DEFAULT_CONFIG: KeylensConfig = {
   },
   navigationTimeout: 30_000,
   headed: false,
-  captureElementScreenshots: false,
   interactions: false,
   capture: {
-    page: "full",
+    page: "none",
     elements: false,
     limits: {
       maxElements: 200,
@@ -83,13 +82,17 @@ export async function loadConfig(configPath?: string): Promise<KeylensConfig> {
   if (!configPath) {
     return normalizeConfig();
   }
+  return normalizeConfig(await loadConfigInput(configPath));
+}
 
+export async function loadConfigInput(
+  configPath: string,
+): Promise<KeylensConfigInput> {
   const fullPath = resolve(process.cwd(), configPath);
 
   try {
     const raw = await readFile(fullPath, "utf-8");
-    const fileConfig = JSON.parse(raw) as KeylensConfigInput;
-    return normalizeConfig(fileConfig);
+    return JSON.parse(raw) as KeylensConfigInput;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       throw new ConfigError(`Config file not found: ${fullPath}`);
@@ -106,10 +109,15 @@ export async function loadConfig(configPath?: string): Promise<KeylensConfig> {
 export function normalizeConfig(
   overrides: KeylensConfigInput = {},
 ): KeylensConfig {
-  const captureElements =
-    overrides.capture?.elements ??
-    overrides.captureElementScreenshots ??
-    DEFAULT_CONFIG.capture.elements;
+  const maxElements =
+    overrides.capture?.limits?.maxElements ??
+    DEFAULT_CONFIG.capture.limits.maxElements ??
+    200;
+  if (!Number.isSafeInteger(maxElements) || maxElements < 0) {
+    throw new ConfigError(
+      "capture.limits.maxElements must be a non-negative integer",
+    );
+  }
 
   return {
     ...DEFAULT_CONFIG,
@@ -130,14 +138,14 @@ export function normalizeConfig(
         ...overrides.ai?.limits,
       },
     },
-    captureElementScreenshots: captureElements,
     capture: {
       ...DEFAULT_CONFIG.capture,
       ...overrides.capture,
-      elements: captureElements,
+      elements: overrides.capture?.elements ?? DEFAULT_CONFIG.capture.elements,
       limits: {
         ...DEFAULT_CONFIG.capture.limits,
         ...overrides.capture?.limits,
+        maxElements,
       },
     },
     timeouts: {

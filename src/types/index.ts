@@ -50,13 +50,10 @@ export interface KeylensConfig {
   /** Run in headed mode (visible browser) */
   headed: boolean;
 
-  /** Capture per-element focused/unfocused screenshots for focus indicator diffing */
-  captureElementScreenshots: boolean;
-
   /** Enable post-click interaction testing (click buttons, verify focus isn't lost) */
   interactions: boolean;
 
-  /** Planned GA capture policy. Legacy capture fields remain authoritative until the capture migration. */
+  /** Bounded screenshot capture policy */
   capture: CaptureConfig;
 
   /** Planned GA wall-time budgets. Phase-specific enforcement is introduced separately. */
@@ -83,6 +80,15 @@ export interface CaptureConfig {
   elements: boolean;
   /** Resource bounds for captured assets */
   limits: CaptureLimits;
+}
+
+export interface CaptureSummary {
+  attempted: number;
+  captured: number;
+  skipped: number;
+  failed: number;
+  byteLength: number;
+  decodedPixels: number;
 }
 
 export interface PhaseTimeoutConfig {
@@ -282,6 +288,15 @@ export interface AuditAsset {
 
 export type AssetProjectionMode = "omit" | "inline" | "references";
 
+export interface AssetProjectionOptions {
+  assets: AssetProjectionMode;
+  /** Required for references mode to replace inline bytes with a file or URL. */
+  reference?: (
+    asset: AuditAsset,
+    context: { url: string; pageIndex?: number },
+  ) => Extract<AuditAssetStorage, { kind: "file" | "url" }>;
+}
+
 export interface EffectiveAIConfig extends Omit<
   AIConfig,
   "apiKey" | "transport"
@@ -337,11 +352,11 @@ export interface FocusedElement {
   /** Whether the element is obscured by other content when focused (WCAG 2.4.11) */
   isObscured?: boolean;
 
-  /** Screenshot of the element in focused state (base64 PNG) */
-  focusedScreenshot?: string;
+  /** Asset containing the focused element screenshot */
+  focusedScreenshotAssetId?: string;
 
-  /** Screenshot of the element in unfocused state (base64 PNG) */
-  unfocusedScreenshot?: string;
+  /** Asset containing the unfocused element screenshot */
+  unfocusedScreenshotAssetId?: string;
 
   /** Element's bounding rectangle in absolute page coordinates (accounts for scroll) */
   pageRect?: BoundingRect;
@@ -420,8 +435,11 @@ export interface CrawlResult {
   /** Whether the tab cycle completed (focus returned to start) */
   cycleCompleted: boolean;
 
-  /** Full-page screenshot (base64 PNG) */
-  pageScreenshot: string;
+  /** Asset containing the page screenshot */
+  pageScreenshotAssetId?: string;
+
+  /** Captured screenshot assets */
+  assets: AuditAsset[];
 
   /** Time taken for the crawl in ms */
   crawlDuration: number;
@@ -434,6 +452,9 @@ export interface CrawlResult {
 
   /** Results of post-click interaction testing (if --interactions enabled) */
   interactionResults?: InteractionResult[];
+
+  /** Capture resource usage and skipped/failed attempts */
+  capture: CaptureSummary;
 }
 
 // ─── Interaction Results ─────────────────────────────────────────
@@ -620,6 +641,8 @@ export interface AuditReport {
     interactionsAttempted?: number;
     /** Interaction cases that produced an unreasonable focus result */
     interactionsFailed?: number;
+    /** Capture resource usage and skipped/failed attempts */
+    capture: CaptureSummary;
   };
 
   /** Rule results */
@@ -655,8 +678,11 @@ export interface AuditReport {
   /** AI focus indicator quality scores (if enabled and --screenshots used) */
   focusIndicatorScores?: FocusIndicatorScore[];
 
-  /** Full-page screenshot (base64) */
-  pageScreenshot?: string;
+  /** Asset containing the page screenshot */
+  pageScreenshotAssetId?: string;
+
+  /** Captured binary and rendered assets */
+  assets: AuditAsset[];
 
   /** Focus sequence for visualization */
   focusSequence?: FocusedElement[];

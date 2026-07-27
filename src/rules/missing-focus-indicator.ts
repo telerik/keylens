@@ -4,6 +4,7 @@ import type {
   RuleResult,
   FocusedElement,
 } from "../types/index.js";
+import { getInlineAssetData } from "../utils/assets.js";
 
 /** Minimum pixel difference ratio to consider a focus indicator present. */
 const DIFF_THRESHOLD = 0.01;
@@ -69,6 +70,8 @@ export class MissingFocusIndicatorRule implements Rule {
   async evaluate(crawlResult: CrawlResult): Promise<RuleResult> {
     const violations: RuleResult["violations"] = [];
     const { focusSequence } = crawlResult;
+    const assetData = (assetId: string | undefined) =>
+      getInlineAssetData(crawlResult.assets, assetId);
 
     // Phase 1: Check for elements with suppressed outlines via CSS patterns
     const suspiciousElements = focusSequence.filter((el) => {
@@ -101,7 +104,9 @@ export class MissingFocusIndicatorRule implements Rule {
 
     // Phase 2: Screenshot-based focus indicator detection
     const screenshotElements = focusSequence.filter(
-      (el) => el.focusedScreenshot && el.unfocusedScreenshot,
+      (el) =>
+        assetData(el.focusedScreenshotAssetId) !== undefined &&
+        assetData(el.unfocusedScreenshotAssetId) !== undefined,
     );
 
     if (screenshotElements.length > 0) {
@@ -109,8 +114,8 @@ export class MissingFocusIndicatorRule implements Rule {
 
       for (const el of screenshotElements) {
         const diffRatio = await compareScreenshots(
-          el.focusedScreenshot!,
-          el.unfocusedScreenshot!,
+          assetData(el.focusedScreenshotAssetId)!,
+          assetData(el.unfocusedScreenshotAssetId)!,
         );
 
         if (diffRatio !== null) {

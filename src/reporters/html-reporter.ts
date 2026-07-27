@@ -14,6 +14,7 @@ import type {
 } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 import { throwIfAborted } from "../utils/execution.js";
+import { getInlineAssetData } from "../utils/assets.js";
 
 /**
  * Output an interactive HTML report with a visual focus order map.
@@ -28,7 +29,7 @@ export async function reportHTML(
   await mkdir(dir, { recursive: true });
   throwIfAborted(signal, "reporters", report.url);
 
-  const html = generateHTML(report);
+  const html = renderHTML(report);
   const filePath = resolve(dir, "keylens-report.html");
   await writeFile(filePath, html, { encoding: "utf-8", signal });
 
@@ -48,7 +49,7 @@ export async function reportMultiHTML(
   await mkdir(dir, { recursive: true });
   throwIfAborted(signal, "reporters");
 
-  const html = generateMultiHTML(report);
+  const html = renderMultiHTML(report);
   const filePath = resolve(dir, "keylens-report.html");
   await writeFile(filePath, html, { encoding: "utf-8", signal });
 
@@ -69,6 +70,13 @@ function buildStatusColor(errors: number, warnings: number): string {
   if (errors > 0) return "#ef4444";
   if (warnings > 0) return "#f59e0b";
   return "#22c55e";
+}
+
+function pageScreenshotForMap(report: AuditReport): string {
+  if (report.config.capture?.page === "viewport") {
+    return "";
+  }
+  return getInlineAssetData(report.assets, report.pageScreenshotAssetId) ?? "";
 }
 
 // ─── Focus Map ────────────────────────────────────────────────────
@@ -130,7 +138,8 @@ export function buildFocusMapHTML(
 
 // ─── Single Page HTML ─────────────────────────────────────────────
 
-function generateHTML(report: AuditReport): string {
+export function renderHTML(input: AuditReport): string {
+  const report = input;
   const { summary, rules, crawl, url } = report;
   const statusColor = buildStatusColor(
     summary.totalErrors,
@@ -149,7 +158,7 @@ function generateHTML(report: AuditReport): string {
 
   const focusMap = buildFocusMapHTML(
     report.focusSequence ?? [],
-    report.pageScreenshot ?? "",
+    pageScreenshotForMap(report),
     report.pageDimensions,
     violationSelectors,
   );
@@ -197,7 +206,8 @@ function generateHTML(report: AuditReport): string {
 
 // ─── Multi-Page HTML ──────────────────────────────────────────────
 
-function generateMultiHTML(report: MultiPageReport): string {
+export function renderMultiHTML(input: MultiPageReport): string {
+  const report = input;
   const statusColor = buildStatusColor(
     report.summary.totalErrors,
     report.summary.totalWarnings,
@@ -228,7 +238,7 @@ function generateMultiHTML(report: MultiPageReport): string {
 
       const focusMap = buildFocusMapHTML(
         page.focusSequence ?? [],
-        page.pageScreenshot ?? "",
+        pageScreenshotForMap(page),
         page.pageDimensions,
         violationSelectors,
       );
