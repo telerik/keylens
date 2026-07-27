@@ -90,7 +90,9 @@ export function makeAuditReport(
       totalInfo: 0,
       passed: 0,
       failed: 0,
+      errors: 0,
       score: 100,
+      scoreComplete: true,
     },
     ...overrides,
   };
@@ -114,8 +116,10 @@ export function makeMultiPageReport(
       totalErrors: 0,
       totalWarnings: 0,
       totalInfo: 0,
+      ruleErrors: 0,
       pagesWithErrors: 0,
       score: 100,
+      scoreComplete: true,
     },
     ...overrides,
   };

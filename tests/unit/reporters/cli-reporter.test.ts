@@ -92,6 +92,37 @@ describe("CLI Reporter", () => {
     expect(allOutput).toContain("button.bad");
   });
 
+  it("should not report success when a rule evaluation errored", () => {
+    const report = makeAuditReport({
+      rules: [
+        {
+          ruleId: "broken-rule",
+          status: "error",
+          passed: false,
+          violations: [],
+          duration: 10,
+          error: { code: "RULE_ERROR", message: "Evaluation failed" },
+        },
+      ],
+      summary: {
+        totalRules: 1,
+        passed: 0,
+        failed: 0,
+        errors: 1,
+        totalErrors: 0,
+        totalWarnings: 0,
+        score: 0,
+        scoreComplete: false,
+      },
+    });
+
+    reportCLI(report);
+
+    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(allOutput).toContain("Audit incomplete");
+    expect(allOutput).not.toContain("All checks passed!");
+  });
+
   it("should truncate elements to 5 and show overflow count", () => {
     const elements = Array.from({ length: 8 }, (_, i) => ({
       selector: `el-${i}`,

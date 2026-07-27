@@ -62,11 +62,11 @@ describe("AIAnalyzer", () => {
   });
 
   // Fresh import to avoid cached state
-  async function createAnalyzer(config: AIConfig) {
+  async function createAnalyzer(config: AIConfig, signal?: AbortSignal) {
     // Clear module cache to get a fresh AIAnalyzer each time
     vi.resetModules();
     const mod = await import("@/ai/index.js");
-    return new mod.AIAnalyzer(config);
+    return new mod.AIAnalyzer(config, signal);
   }
 
   describe("isAvailable", () => {
@@ -210,6 +210,77 @@ describe("AIAnalyzer", () => {
 
       expect(transport.queryVision).toHaveBeenCalled();
       expect(result).toBeDefined();
+    });
+
+    it("propagates cancellation to the configured transport", async () => {
+      const controller = new AbortController();
+      const transport = {
+        query: vi.fn(
+          (_prompt: string, signal?: AbortSignal) =>
+            new Promise<string>((_resolve, reject) => {
+              signal?.addEventListener("abort", () => reject(signal.reason), {
+                once: true,
+              });
+            }),
+        ),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+        controller.signal,
+      );
+      const violations: RuleViolation[] = [
+        {
+          ruleId: "test",
+          ruleName: "Test",
+          severity: "error",
+          message: "Issue",
+          elements: [],
+          impact: "High",
+        },
+      ];
+
+      const pending = ai.generateFixSuggestions(violations);
+      controller.abort();
+
+      await expect(pending).rejects.toMatchObject({
+        code: "ABORTED",
+        phase: "ai",
+      });
+      expect(transport.query).toHaveBeenCalledWith(
+        expect.any(String),
+        controller.signal,
+      );
+    });
+
+    it("enforces cancellation when a transport ignores the signal", async () => {
+      const controller = new AbortController();
+      const transport = {
+        query: vi.fn(() => new Promise<string>(() => {})),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+        controller.signal,
+      );
+      const violations: RuleViolation[] = [
+        {
+          ruleId: "test",
+          ruleName: "Test",
+          severity: "error",
+          message: "Issue",
+          elements: [],
+          impact: "High",
+        },
+      ];
+
+      const pending = ai.generateFixSuggestions(violations);
+      controller.abort();
+
+      await expect(pending).rejects.toMatchObject({
+        code: "ABORTED",
+        phase: "ai",
+      });
     });
 
     it("should prefer direct API over transport when apiKey is set", async () => {
@@ -711,6 +782,47 @@ describe("AIAnalyzer", () => {
 
       expect(result).toEqual([]);
     });
+
+    it("does not treat a skip-link evaluator error as a missing skip link", async () => {
+      const transport = {
+        query: vi.fn().mockResolvedValue("[]"),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
+      const passingPage = makeAuditReport({
+        url: "https://example.com/a",
+        rules: [
+          {
+            ruleId: "skip-link",
+            passed: true,
+            status: "passed",
+            violations: [],
+            duration: 1,
+          },
+        ],
+      });
+      const erroredPage = makeAuditReport({
+        url: "https://example.com/b",
+        rules: [
+          {
+            ruleId: "skip-link",
+            passed: false,
+            status: "error",
+            violations: [],
+            duration: 1,
+            error: { code: "RULE_ERROR", message: "evaluation failed" },
+          },
+        ],
+      });
+
+      const result = await ai.detectCrossPagePatterns(
+        makeMultiPageReport({ pages: [passingPage, erroredPage] }),
+      );
+
+      expect(result).toEqual([]);
+    });
   });
 
   // ─── Happy-path: transport → parse → typed result ──────────────
@@ -867,6 +979,48 @@ describe("AIAnalyzer", () => {
       const result = await ai.generateSummary(makeAuditReport());
 
       expect(result).toBe("Overall the page is accessible.");
+    });
+
+    it("labels evaluator errors as incomplete rather than accessibility failures", async () => {
+      const transport = {
+        query: vi.fn().mockResolvedValue("Summary"),
+        queryVision: vi.fn(),
+      };
+      const ai = await createAnalyzer(
+        makeAIConfig({ enabled: true, transport }),
+      );
+      const report = makeAuditReport({
+        rules: [
+          {
+            ruleId: "skip-link",
+            passed: false,
+            status: "error",
+            violations: [],
+            duration: 1,
+            error: { code: "RULE_ERROR", message: "evaluation failed" },
+          },
+        ],
+        summary: {
+          totalErrors: 0,
+          totalWarnings: 0,
+          totalInfo: 0,
+          passed: 0,
+          failed: 0,
+          errors: 1,
+          score: 90,
+          scoreComplete: false,
+        },
+      });
+
+      await ai.generateSummary(report);
+
+      expect(transport.query).toHaveBeenCalledWith(
+        expect.stringContaining("skip-link: NOT EVALUATED (evaluation failed)"),
+        undefined,
+      );
+      expect(transport.query.mock.calls[0]?.[0]).not.toContain(
+        "skip-link: FAILED",
+      );
     });
   });
 

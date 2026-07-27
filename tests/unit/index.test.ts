@@ -149,6 +149,7 @@ describe("audit", () => {
     expect(mockCrawlPage).toHaveBeenCalledWith(
       "https://example.com",
       expect.objectContaining(config),
+      expect.any(AbortSignal),
     );
   });
 
@@ -162,6 +163,7 @@ describe("audit", () => {
     expect(mockRunRules).toHaveBeenCalledWith(
       defaultCrawlResult,
       expect.objectContaining(config),
+      expect.any(AbortSignal),
     );
   });
 
@@ -280,6 +282,72 @@ describe("audit", () => {
       }
     });
 
+    it("aborts a crawl before rules or enrichment continue", async () => {
+      const controller = new AbortController();
+      mockCrawlPage.mockImplementation((_url, _config, signal) => {
+        return new Promise<CrawlResult>((_resolve, reject) => {
+          signal?.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          });
+        });
+      });
+      const { auditBase, AuditAbortedError } = await import("@/index.js");
+
+      const pending = auditBase("https://example.com", {
+        signal: controller.signal,
+      });
+      controller.abort();
+
+      await expect(pending).rejects.toBeInstanceOf(AuditAbortedError);
+      expect(mockRunRules).not.toHaveBeenCalled();
+    });
+
+    it("enforces the configured crawl timeout", async () => {
+      mockCrawlPage.mockImplementation((_url, _config, signal) => {
+        return new Promise<CrawlResult>((_resolve, reject) => {
+          signal?.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          });
+        });
+      });
+      const { auditBase, AuditTimeoutError } = await import("@/index.js");
+
+      const pending = auditBase("https://example.com", {
+        timeouts: { crawl: 10 },
+      });
+
+      await expect(pending).rejects.toBeInstanceOf(AuditTimeoutError);
+      await expect(pending).rejects.toMatchObject({
+        code: "TIMEOUT",
+        phase: "crawl",
+        details: { timeoutMs: 10, timeoutKind: "phase" },
+      });
+      expect(mockRunRules).not.toHaveBeenCalled();
+    });
+
+    it("enforces the configured rules timeout", async () => {
+      mockCrawlPage.mockResolvedValue(crawlResult);
+      mockRunRules.mockImplementation((_crawl, _config, signal) => {
+        return new Promise<RuleResult[]>((_resolve, reject) => {
+          signal?.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          });
+        });
+      });
+      const { auditBase, AuditTimeoutError } = await import("@/index.js");
+
+      const pending = auditBase("https://example.com", {
+        timeouts: { rules: 10 },
+      });
+
+      await expect(pending).rejects.toBeInstanceOf(AuditTimeoutError);
+      await expect(pending).rejects.toMatchObject({
+        code: "TIMEOUT",
+        phase: "rules",
+        details: { timeoutMs: 10, timeoutKind: "phase" },
+      });
+    });
+
     it("enrichAudit does not mutate the deterministic report", async () => {
       setupStageMocks();
       const { auditBase, enrichAudit } = await import("@/index.js");
@@ -324,6 +392,7 @@ describe("audit", () => {
         report,
         ["json"],
         "./output",
+        expect.any(AbortSignal),
       );
       expect(mockWithLogLevel).toHaveBeenCalledWith(
         "warn",
@@ -342,6 +411,34 @@ describe("audit", () => {
     expect(report.summary.totalWarnings).toBe(1);
     expect(report.summary.passed).toBe(1);
     expect(report.summary.failed).toBe(1);
+  });
+
+  it("separates rule evaluator errors from accessibility failures", async () => {
+    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
+    mockRunRules.mockResolvedValue([
+      {
+        ruleId: "missing-focus-indicator",
+        passed: false,
+        status: "error",
+        violations: [],
+        duration: 1,
+        error: {
+          code: "RULE_ERROR",
+          message: "screenshot comparison failed",
+        },
+      },
+    ]);
+    const audit = await getAudit();
+
+    const report = await audit("https://example.com");
+
+    expect(report.summary).toMatchObject({
+      totalErrors: 0,
+      passed: 0,
+      failed: 0,
+      errors: 1,
+      scoreComplete: false,
+    });
   });
 
   it("should include focusSequence and pageScreenshot in report", async () => {
@@ -636,10 +733,12 @@ describe("auditMultiple", () => {
     expect(mockCrawlPage).toHaveBeenCalledWith(
       "https://a.com",
       expect.anything(),
+      expect.any(AbortSignal),
     );
     expect(mockCrawlPage).toHaveBeenCalledWith(
       "https://b.com",
       expect.anything(),
+      expect.any(AbortSignal),
     );
   });
 

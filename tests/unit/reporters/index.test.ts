@@ -67,7 +67,7 @@ describe("runReporters", () => {
     await runReporters(report, ["json"], "./output");
 
     expect(mockCLI).not.toHaveBeenCalled();
-    expect(mockJSON).toHaveBeenCalledWith(report, "./output");
+    expect(mockJSON).toHaveBeenCalledWith(report, "./output", undefined);
     expect(mockHTML).not.toHaveBeenCalled();
   });
 
@@ -79,7 +79,7 @@ describe("runReporters", () => {
 
     expect(mockCLI).not.toHaveBeenCalled();
     expect(mockJSON).not.toHaveBeenCalled();
-    expect(mockHTML).toHaveBeenCalledWith(report, "./output");
+    expect(mockHTML).toHaveBeenCalledWith(report, "./output", undefined);
   });
 
   it("should call only markdown reporter when reporters is ['markdown']", async () => {
@@ -91,7 +91,7 @@ describe("runReporters", () => {
     expect(mockCLI).not.toHaveBeenCalled();
     expect(mockJSON).not.toHaveBeenCalled();
     expect(mockHTML).not.toHaveBeenCalled();
-    expect(mockMarkdown).toHaveBeenCalledWith(report, "./output");
+    expect(mockMarkdown).toHaveBeenCalledWith(report, "./output", undefined);
   });
 
   it("should call all reporters when all four are specified", async () => {
@@ -116,6 +116,36 @@ describe("runReporters", () => {
     expect(mockJSON).not.toHaveBeenCalled();
     expect(mockHTML).not.toHaveBeenCalled();
     expect(mockMarkdown).not.toHaveBeenCalled();
+  });
+
+  it("does not start output after cancellation", async () => {
+    const runReporters = await getRunReporters();
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      runReporters(
+        makeAuditReport(),
+        ["json", "html"],
+        "./output",
+        controller.signal,
+      ),
+    ).rejects.toMatchObject({ code: "ABORTED", phase: "reporters" });
+    expect(mockJSON).not.toHaveBeenCalled();
+    expect(mockHTML).not.toHaveBeenCalled();
+  });
+
+  it("wraps reporter failures with structured diagnostics", async () => {
+    const runReporters = await getRunReporters();
+    mockJSON.mockRejectedValueOnce(new Error("disk full"));
+
+    await expect(
+      runReporters(makeAuditReport(), ["json"], "./output"),
+    ).rejects.toMatchObject({
+      code: "REPORTER_ERROR",
+      phase: "reporters",
+      message: "Reporter failed: disk full",
+    });
   });
 });
 
@@ -157,7 +187,7 @@ describe("runMultiReporters", () => {
 
     await runMultiReporters(report, ["json"], "./output");
 
-    expect(mockMultiJSON).toHaveBeenCalledWith(report, "./output");
+    expect(mockMultiJSON).toHaveBeenCalledWith(report, "./output", undefined);
   });
 
   it("should call multi HTML reporter with outputDir", async () => {
@@ -166,7 +196,7 @@ describe("runMultiReporters", () => {
 
     await runMultiReporters(report, ["html"], "./output");
 
-    expect(mockMultiHTML).toHaveBeenCalledWith(report, "./output");
+    expect(mockMultiHTML).toHaveBeenCalledWith(report, "./output", undefined);
   });
 
   it("should call multi markdown reporter with outputDir", async () => {
@@ -175,7 +205,11 @@ describe("runMultiReporters", () => {
 
     await runMultiReporters(report, ["markdown"], "./output");
 
-    expect(mockMultiMarkdown).toHaveBeenCalledWith(report, "./output");
+    expect(mockMultiMarkdown).toHaveBeenCalledWith(
+      report,
+      "./output",
+      undefined,
+    );
   });
 
   it("should call all multi reporters when all specified", async () => {

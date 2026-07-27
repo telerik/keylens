@@ -32,6 +32,8 @@ const mockAuditMultiple =
   vi.fn<(urls: string[], config: unknown) => Promise<MultiPageReport>>();
 const mockCrawlOnly =
   vi.fn<(url: string, config: unknown) => Promise<CrawlResult>>();
+const mockRenderAuditReport = vi.fn().mockResolvedValue(undefined);
+const mockRenderMultiPageReport = vi.fn().mockResolvedValue(undefined);
 
 const mockAIInstance = {
   isAvailable: vi.fn().mockReturnValue(false),
@@ -45,6 +47,9 @@ vi.mock("@/index.js", () => ({
     mockAuditMultiple(...(args as [string[], unknown])),
   crawlOnly: (...args: unknown[]) =>
     mockCrawlOnly(...(args as [string, unknown])),
+  renderAuditReport: (...args: unknown[]) => mockRenderAuditReport(...args),
+  renderMultiPageReport: (...args: unknown[]) =>
+    mockRenderMultiPageReport(...args),
   AIAnalyzer: class MockAIAnalyzer {
     isAvailable = mockAIInstance.isAvailable;
     classifyWidgets = mockAIInstance.classifyWidgets;
@@ -90,13 +95,6 @@ vi.mock("@/index.js", () => ({
 
 vi.mock("@/utils/logger.js", () => ({
   setLogLevel: vi.fn(),
-}));
-
-const mockRunReporters = vi.fn().mockResolvedValue(undefined);
-const mockRunMultiReporters = vi.fn().mockResolvedValue(undefined);
-vi.mock("@/reporters/index.js", () => ({
-  runReporters: (...args: unknown[]) => mockRunReporters(...args),
-  runMultiReporters: (...args: unknown[]) => mockRunMultiReporters(...args),
 }));
 
 // ─── Tests ──────────────────────────────────────────────────────
@@ -529,7 +527,7 @@ describe("handleAudit", () => {
   beforeEach(() => {
     mockAudit.mockReset();
     mockAuditMultiple.mockReset();
-    mockRunReporters.mockReset();
+    mockRenderAuditReport.mockReset().mockResolvedValue(undefined);
   });
 
   it("calls audit with correct URL and returns JSON", async () => {
@@ -654,15 +652,15 @@ describe("handleAudit", () => {
     expect(config.maxTabs).toBe(50);
   });
 
-  it("does not call runReporters when no reporters configured", async () => {
+  it("does not render when no reporters are configured", async () => {
     mockAudit.mockResolvedValue(makeAuditReport());
 
     await handleAudit({ url: "https://test.com" });
 
-    expect(mockRunReporters).not.toHaveBeenCalled();
+    expect(mockRenderAuditReport).not.toHaveBeenCalled();
   });
 
-  it("calls runReporters when reporters are specified", async () => {
+  it("renders with reporter deadlines when reporters are specified", async () => {
     const report = makeAuditReport({ url: "https://test.com" });
     mockAudit.mockResolvedValue(report);
 
@@ -671,12 +669,13 @@ describe("handleAudit", () => {
       options: { reporters: ["html", "cli"], outputDir: "./out" },
     });
 
-    expect(mockRunReporters).toHaveBeenCalledOnce();
-    const [calledReport, calledReporters, calledDir] =
-      mockRunReporters.mock.calls[0]!;
+    expect(mockRenderAuditReport).toHaveBeenCalledOnce();
+    const [calledReport, calledReporters, calledDir, options] =
+      mockRenderAuditReport.mock.calls[0]!;
     expect(calledReporters).toEqual(["html", "cli"]);
     expect(calledDir).toBe("./out");
     expect(calledReport).toBe(report);
+    expect(options).toBe("silent");
   });
 });
 
@@ -684,7 +683,7 @@ describe("handleAuditMultiple", () => {
   beforeEach(() => {
     mockAudit.mockReset();
     mockAuditMultiple.mockReset();
-    mockRunMultiReporters.mockReset();
+    mockRenderMultiPageReport.mockReset().mockResolvedValue(undefined);
   });
 
   it("calls auditMultiple with correct URLs", async () => {
@@ -705,15 +704,15 @@ describe("handleAuditMultiple", () => {
     expect(result.isError).toBeUndefined();
   });
 
-  it("does not call runMultiReporters when no reporters configured", async () => {
+  it("does not render multi-page output when no reporters are configured", async () => {
     mockAuditMultiple.mockResolvedValue(makeMultiPageReport());
 
     await handleAuditMultiple({ urls: ["https://a.com"] });
 
-    expect(mockRunMultiReporters).not.toHaveBeenCalled();
+    expect(mockRenderMultiPageReport).not.toHaveBeenCalled();
   });
 
-  it("calls runMultiReporters when reporters are specified", async () => {
+  it("renders multi-page output with reporter deadlines", async () => {
     const report = makeMultiPageReport();
     mockAuditMultiple.mockResolvedValue(report);
 
@@ -722,12 +721,13 @@ describe("handleAuditMultiple", () => {
       options: { reporters: ["html", "json"], outputDir: "./out" },
     });
 
-    expect(mockRunMultiReporters).toHaveBeenCalledOnce();
-    const [calledReport, calledReporters, calledDir] =
-      mockRunMultiReporters.mock.calls[0]!;
+    expect(mockRenderMultiPageReport).toHaveBeenCalledOnce();
+    const [calledReport, calledReporters, calledDir, options] =
+      mockRenderMultiPageReport.mock.calls[0]!;
     expect(calledReporters).toEqual(["html", "json"]);
     expect(calledDir).toBe("./out");
     expect(calledReport).toBe(report);
+    expect(options).toBe("silent");
   });
 
   it("returns isError on failure", async () => {
