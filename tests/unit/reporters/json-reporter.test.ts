@@ -3,6 +3,7 @@ import {
   makeAuditReport,
   makeMultiPageReport,
   makeFocusedElement,
+  makeInlineAsset,
 } from "@tests/helpers/factories.js";
 
 // Mock fs/promises
@@ -54,7 +55,20 @@ describe("jsonReporter", () => {
       await import("@/reporters/json-reporter.js");
 
     const report = makeAuditReport({
-      pageScreenshot: "base64-screenshot-data-here",
+      pageScreenshotAssetId: "page",
+      assets: [
+        makeInlineAsset("page", "base64-screenshot-data-here"),
+        makeInlineAsset(
+          "focused",
+          "focused-screenshot-data",
+          "focused-element-screenshot",
+        ),
+        makeInlineAsset(
+          "unfocused",
+          "unfocused-screenshot-data",
+          "unfocused-element-screenshot",
+        ),
+      ],
       focusSequence: [
         {
           tabIndex: 1,
@@ -65,8 +79,8 @@ describe("jsonReporter", () => {
           boundingRect: { x: 0, y: 0, width: 100, height: 40 },
           tabindexAttr: null,
           hasFocusIndicator: null,
-          focusedScreenshot: "focused-screenshot-data",
-          unfocusedScreenshot: "unfocused-screenshot-data",
+          focusedScreenshotAssetId: "focused",
+          unfocusedScreenshotAssetId: "unfocused",
           outerHTML: "<a>Test</a>",
         },
       ],
@@ -122,17 +136,31 @@ describe("reportMultiJSON", () => {
       pages: [
         makeAuditReport({
           url: "https://a.com",
-          pageScreenshot: "page-screenshot-a",
+          pageScreenshotAssetId: "page",
+          assets: [
+            makeInlineAsset("page", "page-screenshot-a"),
+            makeInlineAsset(
+              "focused",
+              "focused-a",
+              "focused-element-screenshot",
+            ),
+            makeInlineAsset(
+              "unfocused",
+              "unfocused-a",
+              "unfocused-element-screenshot",
+            ),
+          ],
           focusSequence: [
             makeFocusedElement({
-              focusedScreenshot: "focused-a",
-              unfocusedScreenshot: "unfocused-a",
+              focusedScreenshotAssetId: "focused",
+              unfocusedScreenshotAssetId: "unfocused",
             }),
           ],
         }),
         makeAuditReport({
           url: "https://b.com",
-          pageScreenshot: "page-screenshot-b",
+          pageScreenshotAssetId: "page",
+          assets: [makeInlineAsset("page", "page-screenshot-b")],
         }),
       ],
     });

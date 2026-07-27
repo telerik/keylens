@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   loadConfig,
+  loadConfigInput,
   DEFAULT_CONFIG,
   hasConfiguredAIAPIKey,
   normalizeConfig,
@@ -46,7 +47,6 @@ describe("normalizeConfig", () => {
     expect(config.capture.limits.maxBytes).toBe(
       DEFAULT_CONFIG.capture.limits.maxBytes,
     );
-    expect(config.captureElementScreenshots).toBe(true);
     expect(config.timeouts.total).toBe(60_000);
 
     config.urls.push("https://example.com");
@@ -55,15 +55,24 @@ describe("normalizeConfig", () => {
     expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
   });
 
-  it("maps the legacy screenshot option into the new capture contract", () => {
-    const config = normalizeConfig({ captureElementScreenshots: true });
-
-    expect(config.captureElementScreenshots).toBe(true);
-    expect(config.capture.elements).toBe(true);
+  it("rejects fractional element capture limits", () => {
+    expect(() =>
+      normalizeConfig({ capture: { limits: { maxElements: 1.5 } } }),
+    ).toThrow("capture.limits.maxElements must be a non-negative integer");
   });
 });
 
 describe("loadConfig", () => {
+  it("preserves omitted fields when loading raw CLI input", async () => {
+    mockReadFile.mockResolvedValue(
+      JSON.stringify({ urls: ["https://x.test"] }),
+    );
+
+    const input = await loadConfigInput("minimal.json");
+
+    expect(input.capture).toBeUndefined();
+  });
+
   it("should return default config when no path is provided", async () => {
     const config = await loadConfig();
 

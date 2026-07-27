@@ -156,11 +156,60 @@ describe("Integration: audit pipeline", () => {
     expect(report.summary.failed).toBeGreaterThan(0);
   });
 
-  it("should include pageScreenshot as non-empty base64 string", async () => {
+  it("should keep nonvisual audits free of screenshot assets", async () => {
     const report = await audit(testPageUrl, makeConfig());
 
-    expect(report.pageScreenshot).toBeDefined();
-    expect(report.pageScreenshot!.length).toBeGreaterThan(100);
+    expect(report.pageScreenshotAssetId).toBeUndefined();
+    expect(report.assets).toEqual([]);
+    expect(report.crawl.capture.byteLength).toBe(0);
+  });
+
+  it("should capture a bounded page screenshot as a separate asset", async () => {
+    const report = await audit(
+      testPageUrl,
+      makeConfig({
+        capture: {
+          ...DEFAULT_CONFIG.capture,
+          page: "full",
+        },
+      }),
+    );
+
+    expect(report.pageScreenshotAssetId).toBe("page-screenshot");
+    expect(report.assets[0]).toEqual(
+      expect.objectContaining({
+        type: "page-screenshot",
+        byteLength: expect.any(Number),
+        storage: expect.objectContaining({ kind: "inline" }),
+      }),
+    );
+    expect(report.crawl.capture.byteLength).toBeGreaterThan(100);
+  });
+
+  it("should skip page capture before rasterization when dimensions exceed limits", async () => {
+    const report = await audit(
+      cleanPageUrl,
+      makeConfig({
+        capture: {
+          page: "full",
+          elements: false,
+          limits: {
+            ...DEFAULT_CONFIG.capture.limits,
+            maxDimension: 1,
+          },
+        },
+      }),
+    );
+
+    expect(report.assets).toEqual([]);
+    expect(report.crawl.capture).toEqual(
+      expect.objectContaining({
+        attempted: 1,
+        captured: 0,
+        skipped: 1,
+        byteLength: 0,
+      }),
+    );
   });
 
   it("should only write configured reporters when rendering is explicit", async () => {

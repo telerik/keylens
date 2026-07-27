@@ -3,7 +3,12 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { performance } from "node:perf_hooks";
-import { audit, auditMultiple } from "../src/index.js";
+import {
+  audit,
+  auditMultiple,
+  projectAuditReport,
+  projectMultiPageReport,
+} from "../src/index.js";
 import { normalizeConfig } from "../src/utils/config.js";
 import { setLogLevel } from "../src/utils/logger.js";
 import type { AuditReport, MultiPageReport } from "../src/types/index.js";
@@ -15,6 +20,7 @@ interface BenchmarkResult {
   rssPeakBytes: number;
   rssDeltaBytes: number;
   serializedBytes: number;
+  compactSerializedBytes: number;
   inlineScreenshotBytes: number;
   elementScreenshotCount: number;
   interactionResultCount: number;
@@ -26,23 +32,14 @@ const fixtureNames = ["standard", "interactions", "tall"] as const;
 
 function countScreenshotBytes(report: AuditReport | MultiPageReport): number {
   const pages = "pages" in report ? report.pages : [report];
-  return pages.reduce((total, page) => {
-    const pageBytes = page.pageScreenshot
-      ? Buffer.byteLength(page.pageScreenshot, "base64")
-      : 0;
-    const elementBytes = (page.focusSequence ?? []).reduce(
-      (sum, element) =>
-        sum +
-        (element.focusedScreenshot
-          ? Buffer.byteLength(element.focusedScreenshot, "base64")
-          : 0) +
-        (element.unfocusedScreenshot
-          ? Buffer.byteLength(element.unfocusedScreenshot, "base64")
-          : 0),
-      0,
-    );
-    return total + pageBytes + elementBytes;
-  }, 0);
+  return pages.reduce(
+    (total, page) =>
+      total +
+      page.assets
+        .filter((asset) => asset.mediaType.startsWith("image/"))
+        .reduce((sum, asset) => sum + asset.byteLength, 0),
+    0,
+  );
 }
 
 function countFocusedElements(report: AuditReport | MultiPageReport): number {
@@ -61,13 +58,11 @@ function countElementScreenshots(
   return pages.reduce(
     (total, page) =>
       total +
-      (page.focusSequence ?? []).reduce(
-        (count, element) =>
-          count +
-          Number(element.focusedScreenshot !== undefined) +
-          Number(element.unfocusedScreenshot !== undefined),
-        0,
-      ),
+      page.assets.filter(
+        (asset) =>
+          asset.type === "focused-element-screenshot" ||
+          asset.type === "unfocused-element-screenshot",
+      ).length,
     0,
   );
 }
@@ -98,6 +93,11 @@ async function measure(
   try {
     const report = await operation();
     const serialized = JSON.stringify(report);
+    const compact = JSON.stringify(
+      "pages" in report
+        ? projectMultiPageReport(report, { assets: "omit" })
+        : projectAuditReport(report, { assets: "omit" }),
+    );
     rssPeakBytes = Math.max(rssPeakBytes, process.memoryUsage().rss);
     return {
       name,
@@ -106,6 +106,7 @@ async function measure(
       rssPeakBytes,
       rssDeltaBytes: rssPeakBytes - rssStartBytes,
       serializedBytes: Buffer.byteLength(serialized),
+      compactSerializedBytes: Buffer.byteLength(compact),
       inlineScreenshotBytes: countScreenshotBytes(report),
       elementScreenshotCount: countElementScreenshots(report),
       interactionResultCount: countInteractionResults(report),

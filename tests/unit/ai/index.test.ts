@@ -5,6 +5,7 @@ import {
   makeFocusedElement,
   makeInteractiveElement,
   makeMultiPageReport,
+  makeInlineAsset,
 } from "@tests/helpers/factories.js";
 
 // Mock the logger to suppress output during tests
@@ -594,13 +595,14 @@ describe("AIAnalyzer", () => {
     it("should return empty array when not available", async () => {
       const ai = await createAnalyzer(makeAIConfig({ enabled: false }));
 
-      const result = await ai.scoreFocusIndicatorQuality([
-        makeFocusedElement({
-          focusedScreenshot: "base64",
-          unfocusedScreenshot: "base64",
-          hasFocusIndicator: true,
-        }),
-      ]);
+      const result = await ai.scoreFocusIndicatorQuality(
+        [
+          makeFocusedElement({
+            hasFocusIndicator: true,
+          }),
+        ],
+        [],
+      );
 
       expect(result).toEqual([]);
     });
@@ -622,13 +624,14 @@ describe("AIAnalyzer", () => {
         }),
       );
 
-      const result = await ai.scoreFocusIndicatorQuality([
-        makeFocusedElement({
-          focusedScreenshot: "base64",
-          unfocusedScreenshot: "base64",
-          hasFocusIndicator: true,
-        }),
-      ]);
+      const result = await ai.scoreFocusIndicatorQuality(
+        [
+          makeFocusedElement({
+            hasFocusIndicator: true,
+          }),
+        ],
+        [],
+      );
 
       expect(result).toEqual([]);
     });
@@ -650,9 +653,10 @@ describe("AIAnalyzer", () => {
         }),
       );
 
-      const result = await ai.scoreFocusIndicatorQuality([
-        makeFocusedElement({ hasFocusIndicator: true }),
-      ]);
+      const result = await ai.scoreFocusIndicatorQuality(
+        [makeFocusedElement({ hasFocusIndicator: true })],
+        [],
+      );
 
       expect(result).toEqual([]);
     });
@@ -674,13 +678,23 @@ describe("AIAnalyzer", () => {
         }),
       );
 
-      const result = await ai.scoreFocusIndicatorQuality([
-        makeFocusedElement({
-          focusedScreenshot: "base64",
-          unfocusedScreenshot: "base64",
-          hasFocusIndicator: false,
-        }),
-      ]);
+      const result = await ai.scoreFocusIndicatorQuality(
+        [
+          makeFocusedElement({
+            focusedScreenshotAssetId: "focused",
+            unfocusedScreenshotAssetId: "unfocused",
+            hasFocusIndicator: false,
+          }),
+        ],
+        [
+          makeInlineAsset("focused", "base64", "focused-element-screenshot"),
+          makeInlineAsset(
+            "unfocused",
+            "base64",
+            "unfocused-element-screenshot",
+          ),
+        ],
+      );
 
       expect(result).toEqual([]);
     });
@@ -1167,13 +1181,27 @@ describe("AIAnalyzer", () => {
         }),
       );
 
-      const result = await ai.scoreFocusIndicatorQuality([
-        makeFocusedElement({
-          focusedScreenshot: "base64-focused",
-          unfocusedScreenshot: "base64-unfocused",
-          hasFocusIndicator: true,
-        }),
-      ]);
+      const result = await ai.scoreFocusIndicatorQuality(
+        [
+          makeFocusedElement({
+            focusedScreenshotAssetId: "focused",
+            unfocusedScreenshotAssetId: "unfocused",
+            hasFocusIndicator: true,
+          }),
+        ],
+        [
+          makeInlineAsset(
+            "focused",
+            "base64-focused",
+            "focused-element-screenshot",
+          ),
+          makeInlineAsset(
+            "unfocused",
+            "base64-unfocused",
+            "unfocused-element-screenshot",
+          ),
+        ],
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].score).toBe(9);

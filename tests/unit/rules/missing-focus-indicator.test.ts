@@ -7,6 +7,7 @@ import {
 import {
   makeFocusedElement,
   makeCrawlResult,
+  makeInlineAsset,
 } from "@tests/helpers/factories.js";
 
 /** Create a solid-color PNG as base64. */
@@ -131,9 +132,21 @@ describe("MissingFocusIndicatorRule", () => {
           focusSequence: [
             makeFocusedElement({
               selector: "button.no-indicator",
-              focusedScreenshot: identicalPng,
-              unfocusedScreenshot: identicalPng,
+              focusedScreenshotAssetId: "focused",
+              unfocusedScreenshotAssetId: "unfocused",
             }),
+          ],
+          assets: [
+            makeInlineAsset(
+              "focused",
+              identicalPng,
+              "focused-element-screenshot",
+            ),
+            makeInlineAsset(
+              "unfocused",
+              identicalPng,
+              "unfocused-element-screenshot",
+            ),
           ],
         }),
       );
@@ -152,9 +165,21 @@ describe("MissingFocusIndicatorRule", () => {
           focusSequence: [
             makeFocusedElement({
               selector: "button.has-indicator",
-              focusedScreenshot: differentPng,
-              unfocusedScreenshot: identicalPng,
+              focusedScreenshotAssetId: "focused",
+              unfocusedScreenshotAssetId: "unfocused",
             }),
+          ],
+          assets: [
+            makeInlineAsset(
+              "focused",
+              differentPng,
+              "focused-element-screenshot",
+            ),
+            makeInlineAsset(
+              "unfocused",
+              identicalPng,
+              "unfocused-element-screenshot",
+            ),
           ],
         }),
       );
@@ -172,7 +197,7 @@ describe("MissingFocusIndicatorRule", () => {
           focusSequence: [
             makeFocusedElement({
               selector: "button.no-screenshots",
-              // no focusedScreenshot or unfocusedScreenshot
+              // no screenshot asset references
             }),
           ],
         }),
@@ -184,11 +209,27 @@ describe("MissingFocusIndicatorRule", () => {
     it("should set hasFocusIndicator based on diff result", async () => {
       const el = makeFocusedElement({
         selector: "button.test",
-        focusedScreenshot: differentPng,
-        unfocusedScreenshot: identicalPng,
+        focusedScreenshotAssetId: "focused",
+        unfocusedScreenshotAssetId: "unfocused",
       });
 
-      await rule.evaluate(makeCrawlResult({ focusSequence: [el] }));
+      await rule.evaluate(
+        makeCrawlResult({
+          focusSequence: [el],
+          assets: [
+            makeInlineAsset(
+              "focused",
+              differentPng,
+              "focused-element-screenshot",
+            ),
+            makeInlineAsset(
+              "unfocused",
+              identicalPng,
+              "unfocused-element-screenshot",
+            ),
+          ],
+        }),
+      );
 
       expect(el.hasFocusIndicator).toBe(true);
     });
