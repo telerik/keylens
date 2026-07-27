@@ -57,6 +57,11 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
       ...DEFAULT_CONFIG.capture,
       limits: { ...DEFAULT_CONFIG.capture.limits },
     },
+    interactions: {
+      ...DEFAULT_CONFIG.interactions,
+      actions: [...DEFAULT_CONFIG.interactions.actions],
+    },
+    multiPage: { ...DEFAULT_CONFIG.multiPage },
     timeouts: { ...DEFAULT_CONFIG.timeouts },
     reporters: [],
     outputDir: join(process.cwd(), "keylens-report"),
@@ -105,7 +110,7 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
     if (options.screenshots) {
       config.capture.elements = true;
     }
-    if (options.interactions) config.interactions = true;
+    if (options.interactions) config.interactions.enabled = true;
     if (options.ai) config.ai = { ...config.ai, enabled: true };
     if (options.reporters) config.reporters = options.reporters;
     if (options.outputDir) config.outputDir = options.outputDir;

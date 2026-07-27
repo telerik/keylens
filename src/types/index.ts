@@ -50,8 +50,11 @@ export interface KeylensConfig {
   /** Run in headed mode (visible browser) */
   headed: boolean;
 
-  /** Enable post-click interaction testing (click buttons, verify focus isn't lost) */
-  interactions: boolean;
+  /** Bounded post-activation focus testing */
+  interactions: InteractionConfig;
+
+  /** Multi-page browser reuse and concurrency policy */
+  multiPage: MultiPageConfig;
 
   /** Bounded screenshot capture policy */
   capture: CaptureConfig;
@@ -91,6 +94,36 @@ export interface CaptureSummary {
   decodedPixels: number;
 }
 
+export type InteractionAction = "click" | "enter" | "space";
+export type InteractionIsolation = "reload" | "none";
+export type InteractionNavigationPolicy = "block" | "allow";
+
+export interface InteractionConfig {
+  /** Enable post-activation focus testing */
+  enabled: boolean;
+  /** Maximum attempted element/action cases */
+  maxCases: number;
+  /** Timeout for each focus or activation operation */
+  timeout: number;
+  /** Optional CSS selectors limiting eligible controls */
+  include?: string[];
+  /** CSS selectors excluded with an explicit skipped outcome */
+  exclude?: string[];
+  /** Activation methods to test for each eligible control */
+  actions: InteractionAction[];
+  /** Reset page state before each attempted case */
+  isolation: InteractionIsolation;
+  /** Whether top-level navigation may proceed */
+  navigation: InteractionNavigationPolicy;
+  /** Skip controls whose accessible name indicates a destructive action */
+  excludeDestructive: boolean;
+}
+
+export interface MultiPageConfig {
+  /** Maximum isolated browser contexts audited concurrently */
+  concurrency: number;
+}
+
 export interface PhaseTimeoutConfig {
   /** Entire audit wall-time budget */
   total?: number;
@@ -113,7 +146,13 @@ export type AIConfigInput = Partial<Omit<AIConfig, "features" | "limits">> & {
 
 export interface KeylensConfigInput extends Omit<
   Partial<KeylensConfig>,
-  "viewport" | "rules" | "ai" | "capture" | "timeouts"
+  | "viewport"
+  | "rules"
+  | "ai"
+  | "capture"
+  | "interactions"
+  | "multiPage"
+  | "timeouts"
 > {
   viewport?: Partial<KeylensConfig["viewport"]>;
   rules?: Partial<RuleConfig>;
@@ -121,6 +160,8 @@ export interface KeylensConfigInput extends Omit<
   capture?: Partial<Omit<CaptureConfig, "limits">> & {
     limits?: Partial<CaptureLimits>;
   };
+  interactions?: Partial<InteractionConfig>;
+  multiPage?: Partial<MultiPageConfig>;
   timeouts?: Partial<PhaseTimeoutConfig>;
 }
 
@@ -453,6 +494,9 @@ export interface CrawlResult {
   /** Results of post-click interaction testing (if --interactions enabled) */
   interactionResults?: InteractionResult[];
 
+  /** Aggregate interaction case outcomes */
+  interactionSummary?: InteractionSummary;
+
   /** Capture resource usage and skipped/failed attempts */
   capture: CaptureSummary;
 }
@@ -469,7 +513,7 @@ export interface InteractionResult {
   };
 
   /** The action performed */
-  action: "click" | "enter" | "space";
+  action: InteractionAction;
 
   /** Where focus moved after the interaction (null = focus lost) */
   focusAfter: {
@@ -478,11 +522,36 @@ export interface InteractionResult {
     role: string;
   } | null;
 
-  /** Whether the focus position after interaction is reasonable */
-  focusReasonable: boolean;
+  /** Explicit outcome for attempted and skipped cases */
+  status: "passed" | "failed" | "skipped" | "error";
 
-  /** Description of the issue (if any) */
-  issue?: string;
+  /** Stable machine-readable outcome reason */
+  reason:
+    | "focus-preserved"
+    | "focus-moved"
+    | "focus-lost"
+    | "unexpected-focus"
+    | "excluded"
+    | "destructive"
+    | "limit-reached"
+    | "navigation-blocked"
+    | "element-missing"
+    | "action-failed";
+
+  /** Human-readable outcome detail */
+  message?: string;
+
+  /** Wall time for this case */
+  duration: number;
+}
+
+export interface InteractionSummary {
+  total: number;
+  attempted: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  errors: number;
 }
 
 // ─── Widget Classification ──────────────────────────────────────
@@ -637,10 +706,8 @@ export interface AuditReport {
     unreachedElements: number;
     cycleCompleted: boolean;
     duration: number;
-    /** Interaction cases executed when interaction testing is enabled */
-    interactionsAttempted?: number;
-    /** Interaction cases that produced an unreasonable focus result */
-    interactionsFailed?: number;
+    /** Interaction case outcomes when interaction testing is enabled */
+    interactions?: InteractionSummary;
     /** Capture resource usage and skipped/failed attempts */
     capture: CaptureSummary;
   };
@@ -689,6 +756,9 @@ export interface AuditReport {
 
   /** Interactive elements retained for optional staged enrichment */
   interactiveElements?: InteractiveElement[];
+
+  /** Per-case post-activation outcomes */
+  interactionResults?: InteractionResult[];
 
   /** Page dimensions for focus map overlay rendering */
   pageDimensions?: { width: number; height: number };

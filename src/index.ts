@@ -12,7 +12,8 @@ import type {
   RuleResult,
   AuditEvent,
 } from "./types/index.js";
-import { crawlPage } from "./crawler/index.js";
+import type { Browser } from "playwright";
+import { crawlPage, launchAuditBrowser } from "./crawler/index.js";
 import { runRules } from "./rules/index.js";
 import { runMultiReporters, runReporters } from "./reporters/index.js";
 import { AIAnalyzer } from "./ai/index.js";
@@ -172,10 +173,7 @@ function buildBaseReport(
       ).length,
       cycleCompleted: crawlResult.cycleCompleted,
       duration: crawlResult.crawlDuration,
-      interactionsAttempted: crawlResult.interactionResults?.length,
-      interactionsFailed: crawlResult.interactionResults?.filter(
-        (result) => !result.focusReasonable,
-      ).length,
+      interactions: crawlResult.interactionSummary,
       capture: crawlResult.capture,
     },
     rules: ruleResults,
@@ -204,6 +202,7 @@ function buildBaseReport(
     assets: crawlResult.assets,
     focusSequence: crawlResult.focusSequence,
     interactiveElements: crawlResult.interactiveElements,
+    interactionResults: crawlResult.interactionResults,
     pageDimensions: crawlResult.pageDimensions,
   };
   report.summary.score = computeScore(report);
@@ -214,6 +213,7 @@ async function auditBaseWithConfig(
   url: string,
   config: KeylensConfig,
   controls: ExecutionControls,
+  sharedBrowser?: Browser,
 ): Promise<AuditReport> {
   const startedAt = Date.now();
   logger.info(`Starting deterministic Keylens audit for ${url}`);
@@ -226,7 +226,12 @@ async function auditBaseWithConfig(
   let crawlResult: CrawlResult;
   try {
     emitPhase(controls, "phase-started", "crawl");
-    crawlResult = await crawlPage(url, config, crawlScope.signal);
+    crawlResult = await crawlPage(
+      url,
+      config,
+      crawlScope.signal,
+      sharedBrowser,
+    );
     throwIfAborted(crawlScope.signal, "crawl", url);
     emitPhase(controls, "phase-completed", "crawl");
   } finally {
@@ -489,11 +494,38 @@ async function auditMultipleBaseWithConfig(
   controls: ExecutionControls,
 ): Promise<MultiPageReport> {
   const startedAt = Date.now();
-  const pages: AuditReport[] = [];
-  for (const url of urls) {
-    pages.push(await auditBaseWithConfig(url, config, controls));
+  if (urls.length === 0) return buildMultiPageReport(urls, [], startedAt);
+
+  const browser = await launchAuditBrowser(config, controls.signal);
+  const pages = new Array<AuditReport>(urls.length);
+  let nextIndex = 0;
+  let firstError: unknown;
+
+  const worker = async () => {
+    while (firstError === undefined) {
+      const index = nextIndex++;
+      if (index >= urls.length) return;
+      try {
+        pages[index] = await auditBaseWithConfig(
+          urls[index]!,
+          config,
+          controls,
+          browser,
+        );
+      } catch (error) {
+        if (firstError === undefined) firstError = error;
+      }
+    }
+  };
+
+  try {
+    const workerCount = Math.min(config.multiPage.concurrency, urls.length);
+    await Promise.all(Array.from({ length: workerCount }, () => worker()));
+    if (firstError !== undefined) throw firstError;
+    return buildMultiPageReport(urls, pages, startedAt);
+  } finally {
+    await browser.close().catch(() => undefined);
   }
-  return buildMultiPageReport(urls, pages, startedAt);
 }
 
 async function enrichMultiPageAuditWithConfig(
@@ -655,6 +687,12 @@ export type {
   FocusedElement,
   InteractiveElement,
   InteractionResult,
+  InteractionSummary,
+  InteractionConfig,
+  InteractionAction,
+  InteractionIsolation,
+  InteractionNavigationPolicy,
+  MultiPageConfig,
   SkipLinkResult,
   WidgetClassification,
   APGPattern,

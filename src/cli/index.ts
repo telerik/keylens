@@ -204,7 +204,22 @@ program
           ...fileConfig.capture?.limits,
         },
       },
-      interactions: options.interactions || fileConfig.interactions || false,
+      interactions: {
+        ...DEFAULT_CONFIG.interactions,
+        ...fileConfig.interactions,
+        enabled:
+          options.interactions ||
+          fileConfig.interactions?.enabled ||
+          DEFAULT_CONFIG.interactions.enabled,
+        actions: [
+          ...(fileConfig.interactions?.actions ??
+            DEFAULT_CONFIG.interactions.actions),
+        ],
+      },
+      multiPage: {
+        ...DEFAULT_CONFIG.multiPage,
+        ...fileConfig.multiPage,
+      },
       timeouts: {
         ...DEFAULT_CONFIG.timeouts,
         ...fileConfig.timeouts,
