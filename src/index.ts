@@ -18,6 +18,11 @@ import { runMultiReporters, runReporters } from "./reporters/index.js";
 import { AIAnalyzer } from "./ai/index.js";
 import { logger, withLogLevel } from "./utils/logger.js";
 import { computeScore } from "./utils/score.js";
+import {
+  cloneAuditReport,
+  cloneMultiPageReport,
+  getInlineAssetData,
+} from "./utils/assets.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
 import { hasConfiguredAIAPIKey, normalizeConfig } from "./utils/config.js";
 import { createExecutionScope, throwIfAborted } from "./utils/execution.js";
@@ -171,6 +176,7 @@ function buildBaseReport(
       interactionsFailed: crawlResult.interactionResults?.filter(
         (result) => !result.focusReasonable,
       ).length,
+      capture: crawlResult.capture,
     },
     rules: ruleResults,
     summary: {
@@ -194,7 +200,8 @@ function buildBaseReport(
         (result) => ruleStatus(result) !== "error",
       ),
     },
-    pageScreenshot: crawlResult.pageScreenshot,
+    pageScreenshotAssetId: crawlResult.pageScreenshotAssetId,
+    assets: crawlResult.assets,
     focusSequence: crawlResult.focusSequence,
     interactiveElements: crawlResult.interactiveElements,
     pageDimensions: crawlResult.pageDimensions,
@@ -257,7 +264,7 @@ async function enrichAuditWithConfig(
   config: KeylensConfig,
   controls: ExecutionControls,
 ): Promise<AuditReport> {
-  const report = structuredClone(baseReport);
+  const report = cloneAuditReport(baseReport);
   report.config = sanitizeConfig(config);
   const aiScope = createExecutionScope({
     parentSignal: controls.signal,
@@ -274,7 +281,8 @@ async function enrichAuditWithConfig(
   const allViolations = report.rules.flatMap((result) => result.violations);
   const focusSequence = report.focusSequence ?? [];
   const interactiveElements = report.interactiveElements ?? [];
-  const pageScreenshot = report.pageScreenshot ?? "";
+  const pageScreenshot =
+    getInlineAssetData(report.assets, report.pageScreenshotAssetId) ?? "";
 
   try {
     emitPhase(controls, "phase-started", "ai");
@@ -297,7 +305,7 @@ async function enrichAuditWithConfig(
         pageScreenshot,
         report.pageDimensions,
       ),
-      ai.scoreFocusIndicatorQuality(focusSequence),
+      ai.scoreFocusIndicatorQuality(focusSequence, report.assets),
     ] as const);
     unwrapSettled(fixResult);
     const focusOrderAnalysis = unwrapSettled(focusOrderResult);
@@ -493,7 +501,7 @@ async function enrichMultiPageAuditWithConfig(
   config: KeylensConfig,
   controls: ExecutionControls,
 ): Promise<MultiPageReport> {
-  const report = structuredClone(baseReport);
+  const report = cloneMultiPageReport(baseReport);
   const aiScope = createExecutionScope({
     parentSignal: controls.signal,
     timeout: config.timeouts.ai,
@@ -547,7 +555,7 @@ export async function enrichMultiPageAudit(
   options: AIEnrichmentOptions = {},
 ): Promise<MultiPageReport> {
   const firstPageConfig = baseReport.pages[0]?.config;
-  if (!firstPageConfig) return structuredClone(baseReport);
+  if (!firstPageConfig) return cloneMultiPageReport(baseReport);
   const resolved = resolveEnrichmentOptions(firstPageConfig, options);
   return withLogLevel(resolved.logLevel, () =>
     withTotalBudget(resolved.config, resolved, undefined, (controls) =>
@@ -619,8 +627,10 @@ export type {
   AuditEvent,
   AuditAsset,
   AssetProjectionMode,
+  AssetProjectionOptions,
   CaptureConfig,
   CaptureLimits,
+  CaptureSummary,
   PageCaptureMode,
   PhaseTimeoutConfig,
   AuditPhase,
@@ -662,6 +672,14 @@ export { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
 export { DEFAULT_CONFIG, normalizeConfig } from "./utils/config.js";
 export { AIAnalyzer } from "./ai/index.js";
 export {
+  renderHTML,
+  renderMultiHTML,
+  renderMarkdown,
+  renderMultiMarkdown,
+  serializeJSON,
+  serializeMultiJSON,
+} from "./reporters/index.js";
+export {
   KeylensError,
   CrawlError,
   ConfigError,
@@ -670,4 +688,5 @@ export {
   AuditTimeoutError,
   ReporterError,
 } from "./errors.js";
+export { projectAuditReport, projectMultiPageReport } from "./utils/assets.js";
 export type { KeylensErrorCode, KeylensErrorOptions } from "./errors.js";

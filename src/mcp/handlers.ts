@@ -21,6 +21,7 @@ import type {
   AccessibleNameSuggestion,
 } from "../types/index.js";
 import { resolveAIAPIKey } from "../utils/config.js";
+import { getInlineAssetData } from "../utils/assets.js";
 import { setLogLevel } from "../utils/logger.js";
 import { SamplingTransport } from "./sampling.js";
 
@@ -52,6 +53,11 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
   const config: KeylensConfig = {
     ...DEFAULT_CONFIG,
     ai: { ...DEFAULT_CONFIG.ai, features: { ...DEFAULT_CONFIG.ai.features } },
+    capture: {
+      ...DEFAULT_CONFIG.capture,
+      limits: { ...DEFAULT_CONFIG.capture.limits },
+    },
+    timeouts: { ...DEFAULT_CONFIG.timeouts },
     reporters: [],
     outputDir: join(process.cwd(), "keylens-report"),
     headed: false,
@@ -96,7 +102,9 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
       config.waitForSelector = options.waitForSelector;
     if (options.waitAfterLoad !== undefined)
       config.waitAfterLoad = options.waitAfterLoad;
-    if (options.screenshots) config.captureElementScreenshots = true;
+    if (options.screenshots) {
+      config.capture.elements = true;
+    }
     if (options.interactions) config.interactions = true;
     if (options.ai) config.ai = { ...config.ai, enabled: true };
     if (options.reporters) config.reporters = options.reporters;
@@ -410,6 +418,7 @@ export async function handleValidateFocusOrder(
 
   try {
     const config = buildConfig({ ai: true, screenshots: true });
+    config.capture.page = "full";
     injectSampling(config, server);
     config.ai.features = {
       ...config.ai.features,
@@ -453,7 +462,10 @@ export async function handleValidateFocusOrder(
 
     const analysis = await ai.validateFocusOrder(
       crawlResult.focusSequence,
-      crawlResult.pageScreenshot,
+      getInlineAssetData(
+        crawlResult.assets,
+        crawlResult.pageScreenshotAssetId,
+      ) ?? "",
       crawlResult.pageDimensions,
     );
 

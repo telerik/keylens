@@ -3,6 +3,26 @@ import { resolve } from "path";
 import type { AuditReport, MultiPageReport } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 import { throwIfAborted } from "../utils/execution.js";
+import { projectAuditReport, projectMultiPageReport } from "../utils/assets.js";
+
+export function serializeJSON(report: AuditReport, pretty = true): string {
+  return JSON.stringify(
+    projectAuditReport(report, { assets: "omit" }),
+    null,
+    pretty ? 2 : undefined,
+  );
+}
+
+export function serializeMultiJSON(
+  report: MultiPageReport,
+  pretty = true,
+): string {
+  return JSON.stringify(
+    projectMultiPageReport(report, { assets: "omit" }),
+    null,
+    pretty ? 2 : undefined,
+  );
+}
 
 /**
  * Output audit results as a JSON file for CI/CD integration.
@@ -17,27 +37,13 @@ export async function reportJSON(
   await mkdir(dir, { recursive: true });
   throwIfAborted(signal, "reporters", report.url);
 
-  const jsonReport = stripScreenshots(report);
-
   const filePath = resolve(dir, "keylens-report.json");
-  await writeFile(filePath, JSON.stringify(jsonReport, null, 2), {
+  await writeFile(filePath, serializeJSON(report), {
     encoding: "utf-8",
     signal,
   });
 
   logger.success(`JSON report saved to ${filePath}`);
-}
-
-function stripScreenshots(report: AuditReport) {
-  return {
-    ...report,
-    pageScreenshot: undefined,
-    focusSequence: report.focusSequence?.map((el) => ({
-      ...el,
-      focusedScreenshot: undefined,
-      unfocusedScreenshot: undefined,
-    })),
-  };
 }
 
 /**
@@ -53,13 +59,8 @@ export async function reportMultiJSON(
   await mkdir(dir, { recursive: true });
   throwIfAborted(signal, "reporters");
 
-  const jsonReport = {
-    ...report,
-    pages: report.pages.map(stripScreenshots),
-  };
-
   const filePath = resolve(dir, "keylens-report.json");
-  await writeFile(filePath, JSON.stringify(jsonReport, null, 2), {
+  await writeFile(filePath, serializeMultiJSON(report), {
     encoding: "utf-8",
     signal,
   });

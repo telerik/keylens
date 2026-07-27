@@ -10,6 +10,10 @@ import { reportMarkdown, reportMultiMarkdown } from "./markdown-reporter.js";
 import { throwIfAborted } from "../utils/execution.js";
 import { ReporterError } from "../errors.js";
 
+export { serializeJSON, serializeMultiJSON } from "./json-reporter.js";
+export { renderHTML, renderMultiHTML } from "./html-reporter.js";
+export { renderMarkdown, renderMultiMarkdown } from "./markdown-reporter.js";
+
 /**
  * Run all configured reporters to output single-page audit results.
  */

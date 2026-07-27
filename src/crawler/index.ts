@@ -14,6 +14,8 @@ import type {
   InteractionResult,
   BoundingRect,
   SkipLinkResult,
+  CaptureSummary,
+  AuditAsset,
 } from "../types/index.js";
 import {
   SKIP_LINK_PATTERNS,
@@ -32,6 +34,11 @@ interface FocusedElementInfo {
   outerHTML: string;
   ariaAttributes: Record<string, string>;
   parentContext: string | null;
+}
+
+interface CapturedFocusedElement extends FocusedElement {
+  focusedScreenshot?: string;
+  unfocusedScreenshot?: string;
 }
 import { logger } from "../utils/logger.js";
 import {
@@ -60,6 +67,61 @@ const BROWSER_LAUNCHERS = {
 /** Fallback navigation timeout in ms when not configured. */
 const DEFAULT_NAVIGATION_TIMEOUT_MS = 30_000;
 
+class CaptureBudget {
+  readonly summary: CaptureSummary = {
+    attempted: 0,
+    captured: 0,
+    skipped: 0,
+    failed: 0,
+    byteLength: 0,
+    decodedPixels: 0,
+  };
+
+  constructor(private readonly config: KeylensConfig["capture"]) {}
+
+  allows(width: number, height: number): boolean {
+    this.summary.attempted++;
+    const pixels = Math.ceil(width) * Math.ceil(height);
+    const { maxDimension, maxPixels } = this.config.limits;
+    if (
+      width <= 0 ||
+      height <= 0 ||
+      (maxDimension !== undefined &&
+        (width > maxDimension || height > maxDimension)) ||
+      (maxPixels !== undefined &&
+        this.summary.decodedPixels + pixels > maxPixels)
+    ) {
+      this.summary.skipped++;
+      return false;
+    }
+    return true;
+  }
+
+  accept(buffer: Buffer, width: number, height: number): string | undefined {
+    const maxBytes = this.config.limits.maxBytes;
+    if (
+      maxBytes !== undefined &&
+      this.summary.byteLength + buffer.byteLength > maxBytes
+    ) {
+      this.summary.skipped++;
+      return undefined;
+    }
+    this.summary.captured++;
+    this.summary.byteLength += buffer.byteLength;
+    this.summary.decodedPixels += Math.ceil(width) * Math.ceil(height);
+    return buffer.toString("base64");
+  }
+
+  fail(): void {
+    this.summary.failed++;
+  }
+
+  skip(count = 1): void {
+    this.summary.attempted += count;
+    this.summary.skipped += count;
+  }
+}
+
 /**
  * Crawl a URL by tabbing through all focusable elements.
  * Records the complete focus sequence and discovers all interactive elements.
@@ -78,6 +140,7 @@ export async function crawlPage(
   let context: BrowserContext | undefined;
   let page: Page | undefined;
   let abortCleanup: Promise<void> | undefined;
+  const captureBudget = new CaptureBudget(config.capture);
 
   const closeOnAbort = () => {
     if (browser) {
@@ -187,12 +250,6 @@ export async function crawlPage(
     await page.waitForTimeout(config.waitAfterLoad);
     throwIfAborted(signal, "crawl", url);
 
-    // Take full-page screenshot
-    logger.info("Capturing page screenshot...");
-    const pageScreenshot = (await page.screenshot({ fullPage: true })).toString(
-      "base64",
-    );
-
     // Capture page dimensions
     const pageDimensions = (await page.evaluate(`(() => {
       return {
@@ -200,6 +257,15 @@ export async function crawlPage(
         height: Math.max(document.documentElement.scrollHeight, document.documentElement.clientHeight),
       };
     })()`)) as { width: number; height: number };
+
+    const pageScreenshot = await capturePageScreenshot(
+      page,
+      config,
+      pageDimensions,
+      captureBudget,
+      signal,
+      url,
+    );
 
     // Test skip link functionality (before main tab crawl)
     logger.info("Testing skip link...");
@@ -229,6 +295,7 @@ export async function crawlPage(
     const { focusSequence, cycleCompleted } = await crawlTabOrder(
       page,
       config,
+      captureBudget,
       signal,
       url,
     );
@@ -273,17 +340,20 @@ export async function crawlPage(
     const duration = Date.now() - startTime;
     throwIfAborted(signal, "crawl", url);
     logger.success(`Crawl completed in ${duration}ms`);
+    const extracted = extractCapturedAssets(pageScreenshot, focusSequence);
 
     return {
       url,
-      focusSequence,
+      focusSequence: extracted.focusSequence,
       interactiveElements,
       cycleCompleted,
-      pageScreenshot,
+      pageScreenshotAssetId: extracted.pageScreenshotAssetId,
+      assets: extracted.assets,
       crawlDuration: duration,
       pageDimensions,
       skipLinkResult,
       interactionResults,
+      capture: captureBudget.summary,
     };
   } catch (error) {
     throwIfAborted(signal, "crawl", url);
@@ -388,22 +458,61 @@ async function testSkipLink(
   return { found: false, functionWorks: false };
 }
 
+async function capturePageScreenshot(
+  page: Page,
+  config: KeylensConfig,
+  pageDimensions: { width: number; height: number },
+  budget: CaptureBudget,
+  signal?: AbortSignal,
+  url?: string,
+): Promise<string | undefined> {
+  if (config.capture.page === "none") return undefined;
+  throwIfAborted(signal, "capture", url);
+
+  const fullPage = config.capture.page === "full";
+  const dimensions = fullPage ? pageDimensions : config.viewport;
+  if (!budget.allows(dimensions.width, dimensions.height)) {
+    logger.warn(
+      `Skipped ${config.capture.page} page screenshot because it exceeds capture limits`,
+    );
+    return undefined;
+  }
+
+  try {
+    logger.info(`Capturing ${config.capture.page} page screenshot...`);
+    const buffer = await page.screenshot({ fullPage, type: "png" });
+    const data = budget.accept(buffer, dimensions.width, dimensions.height);
+    if (!data) {
+      logger.warn("Skipped page screenshot because it exceeds maxBytes");
+    }
+    return data;
+  } catch {
+    throwIfAborted(signal, "capture", url);
+    budget.fail();
+    logger.warn("Page screenshot capture failed; continuing without it");
+    return undefined;
+  }
+}
+
 /**
  * Tab through the page and record each focused element.
  */
 async function crawlTabOrder(
   page: Page,
   config: KeylensConfig,
+  captureBudget: CaptureBudget,
   signal?: AbortSignal,
   url?: string,
 ): Promise<{
-  focusSequence: FocusedElement[];
+  focusSequence: CapturedFocusedElement[];
   cycleCompleted: boolean;
 }> {
-  const focusSequence: FocusedElement[] = [];
+  const focusSequence: CapturedFocusedElement[] = [];
   let cycleCompleted = false;
   let firstSelector: string | null = null;
-  const captureScreenshots = config.captureElementScreenshots;
+  const captureScreenshots = config.capture.elements;
+  const maxElements =
+    config.capture.limits.maxElements ?? Number.POSITIVE_INFINITY;
   const tabDelay = config.tabDelay;
 
   // Click the body to reset sequential focus navigation starting point
@@ -481,10 +590,13 @@ async function crawlTabOrder(
     let computedFocusStyles:
       | { outline: string; boxShadow: string; border: string }
       | undefined;
-    if (captureScreenshots) {
+    const captureThisElement =
+      captureScreenshots && focusSequence.length < maxElements;
+    if (captureThisElement) {
       focusedScreenshot = await captureElementScreenshot(
         page,
         elementInfo.pageRect,
+        captureBudget,
         signal,
         url,
       );
@@ -505,20 +617,28 @@ async function crawlTabOrder(
         throwIfAborted(signal, "capture", url);
         // Ignore style capture failures
       }
+    } else if (captureScreenshots) {
+      captureBudget.skip(2);
     }
 
     // Capture unfocused screenshot of the *previous* element (if screenshots enabled)
     // The previous element just lost focus, so it's now in unfocused state
-    if (captureScreenshots && lastElement && !lastElement.unfocusedScreenshot) {
+    if (
+      captureScreenshots &&
+      lastElement &&
+      lastElement.tabIndex <= maxElements &&
+      !lastElement.unfocusedScreenshot
+    ) {
       lastElement.unfocusedScreenshot = await captureElementScreenshot(
         page,
         lastElement.pageRect ?? lastElement.boundingRect,
+        captureBudget,
         signal,
         url,
       );
     }
 
-    const focusedElement: FocusedElement = {
+    const focusedElement: CapturedFocusedElement = {
       tabIndex: focusSequence.length + 1,
       selector: elementInfo.selector,
       tagName: elementInfo.tagName,
@@ -543,7 +663,11 @@ async function crawlTabOrder(
   }
 
   // Capture unfocused screenshot of the last element (it just lost focus when cycle ends)
-  if (captureScreenshots && focusSequence.length > 0) {
+  if (
+    captureScreenshots &&
+    focusSequence.length > 0 &&
+    focusSequence.length <= maxElements
+  ) {
     const lastEl = focusSequence[focusSequence.length - 1];
     if (!lastEl.unfocusedScreenshot) {
       // Tab once more so the last element loses focus
@@ -552,6 +676,7 @@ async function crawlTabOrder(
       lastEl.unfocusedScreenshot = await captureElementScreenshot(
         page,
         lastEl.pageRect ?? lastEl.boundingRect,
+        captureBudget,
         signal,
         url,
       );
@@ -561,6 +686,60 @@ async function crawlTabOrder(
   return { focusSequence, cycleCompleted };
 }
 
+function extractCapturedAssets(
+  pageScreenshot: string | undefined,
+  focusSequence: CapturedFocusedElement[],
+): {
+  assets: AuditAsset[];
+  pageScreenshotAssetId?: string;
+  focusSequence: FocusedElement[];
+} {
+  const assets: AuditAsset[] = [];
+  const addAsset = (
+    id: string,
+    type: AuditAsset["type"],
+    data: string,
+  ): string => {
+    assets.push({
+      id,
+      type,
+      mediaType: "image/png",
+      byteLength: Buffer.byteLength(data, "base64"),
+      storage: { kind: "inline", data, encoding: "base64" },
+    });
+    return id;
+  };
+
+  const pageScreenshotAssetId = pageScreenshot
+    ? addAsset("page-screenshot", "page-screenshot", pageScreenshot)
+    : undefined;
+  const projectedSequence = focusSequence.map(
+    ({ focusedScreenshot, unfocusedScreenshot, ...element }) => ({
+      ...element,
+      focusedScreenshotAssetId: focusedScreenshot
+        ? addAsset(
+            `focus-${element.tabIndex}-focused`,
+            "focused-element-screenshot",
+            focusedScreenshot,
+          )
+        : undefined,
+      unfocusedScreenshotAssetId: unfocusedScreenshot
+        ? addAsset(
+            `focus-${element.tabIndex}-unfocused`,
+            "unfocused-element-screenshot",
+            unfocusedScreenshot,
+          )
+        : undefined,
+    }),
+  );
+
+  return {
+    assets,
+    pageScreenshotAssetId,
+    focusSequence: projectedSequence,
+  };
+}
+
 /**
  * Capture a screenshot of a specific element region on the page.
  * Returns base64-encoded PNG or undefined if capture fails.
@@ -568,6 +747,7 @@ async function crawlTabOrder(
 async function captureElementScreenshot(
   page: Page,
   rect: BoundingRect,
+  budget: CaptureBudget,
   signal?: AbortSignal,
   url?: string,
 ): Promise<string | undefined> {
@@ -581,14 +761,16 @@ async function captureElementScreenshot(
       width: rect.width + padding * 2,
       height: rect.height + padding * 2,
     };
+    if (!budget.allows(clip.width, clip.height)) return undefined;
 
     const buffer = await page.screenshot({
       clip,
       type: "png",
     });
-    return buffer.toString("base64");
+    return budget.accept(buffer, clip.width, clip.height);
   } catch {
     throwIfAborted(signal, "capture", url);
+    budget.fail();
     logger.debug(
       `Failed to capture element screenshot at (${rect.x}, ${rect.y})`,
     );
