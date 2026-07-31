@@ -24,6 +24,7 @@ const server = new McpServer({
 
 const auditOptionsSchema = z
   .object({
+    profile: z.enum(["fast", "balanced", "thorough"]).optional(),
     browser: z.enum(["chromium", "firefox", "webkit"]).optional(),
     viewport: z
       .object({
@@ -32,16 +33,17 @@ const auditOptionsSchema = z
       })
       .optional(),
     maxTabs: z.number().int().positive().optional(),
-    waitForSelector: z.string().optional(),
-    waitAfterLoad: z.number().int().nonnegative().optional(),
+    tabDelay: z.number().min(10).optional(),
+    waitForSelector: z.string().min(1).optional(),
+    waitAfterLoad: z.number().nonnegative().optional(),
     screenshots: z.boolean().optional(),
     interactions: z.boolean().optional(),
     ai: z.boolean().optional(),
     reporters: z
-      .array(z.enum(["cli", "json", "html"]))
+      .array(z.enum(["cli", "json", "html", "markdown"]))
       .optional()
       .describe(
-        'Output report formats to generate. Supported values: "cli", "json", "html". ' +
+        'Output report formats to generate. Supported values: "cli", "json", "html", "markdown". ' +
           'Use "html" to save an interactive HTML focus-map report to disk.',
       ),
     outputDir: z
@@ -51,6 +53,7 @@ const auditOptionsSchema = z
         "Directory where json/html report files will be written. Defaults to the current working directory.",
       ),
   })
+  .strict()
   .optional();
 
 // ─── Tool Registration ──────────────────────────────────────────

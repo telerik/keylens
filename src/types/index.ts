@@ -5,6 +5,9 @@
 // ─── Configuration ───────────────────────────────────────────────
 
 export interface KeylensConfig {
+  /** Execution accuracy/speed preset applied before explicit overrides */
+  profile: ExecutionProfile;
+
   /** URL(s) to audit */
   urls: string[];
 
@@ -63,6 +66,7 @@ export interface KeylensConfig {
   timeouts: PhaseTimeoutConfig;
 }
 
+export type ExecutionProfile = "fast" | "balanced" | "thorough";
 export type PageCaptureMode = "none" | "viewport" | "full";
 
 export interface CaptureLimits {
@@ -208,6 +212,22 @@ export interface RuleConfig {
   focusAfterInteraction: boolean;
 }
 
+export interface WcagReference {
+  id: string;
+  title: string;
+  url: string;
+}
+
+export interface RuleRemediation {
+  ruleId: string;
+  title: string;
+  description: string;
+  severity: Severity;
+  guidance: string;
+  codeExample?: string;
+  wcag: readonly WcagReference[];
+}
+
 /** Provider-agnostic transport for AI queries (e.g. MCP sampling). */
 export interface AITransport {
   query(prompt: string, signal?: AbortSignal): Promise<string>;
@@ -274,6 +294,7 @@ interface AuditEventBase {
   timestamp: string;
   elapsedMs: number;
   phase: AuditPhase;
+  url?: string;
 }
 
 export type AuditEvent =
@@ -294,6 +315,12 @@ export type AuditEvent =
       type: "asset-captured";
       assetType: AuditAssetType;
       byteLength: number;
+    })
+  | (AuditEventBase & {
+      type: "interaction-progress";
+      attempted: number;
+      completed: number;
+      maxCases: number;
     })
   | (AuditEventBase & {
       type: "interaction-completed";

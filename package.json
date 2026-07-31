@@ -37,6 +37,10 @@
     "./mcp": {
       "import": "./dist/mcp/server.js",
       "types": "./dist/mcp/server.d.ts"
+    },
+    "./guidance": {
+      "import": "./dist/guidance.js",
+      "types": "./dist/guidance.d.ts"
     }
   },
   "main": "./dist/index.js",
@@ -67,7 +71,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "benchmark": "tsx benchmarks/run.ts",
     "benchmark:typecheck": "tsc --noEmit -p benchmarks/tsconfig.json",
-    "validate": "npm run lint && npm run typecheck && npm run benchmark:typecheck && npm test && npm run build",
+    "validate": "npm run lint && npm run typecheck && npm run benchmark:typecheck && npm run build && npm test",
     "keylens": "tsx src/cli/index.ts",
     "prepublishOnly": "npm run build",
     "prepare": "git config core.hooksPath .husky",
@@ -99,6 +103,8 @@
     "@types/node": "^25.3.3",
     "@types/pngjs": "^6.0.5",
     "@vitest/coverage-v8": "^4.0.18",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "eslint": "^9.39.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.2",

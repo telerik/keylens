@@ -1,7 +1,8 @@
 import { defineConfig } from "tsup";
-import { readFileSync } from "fs";
+import { readFileSync, rmSync } from "fs";
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
+rmSync("./dist", { recursive: true, force: true });
 
 export default defineConfig([
   {
@@ -9,7 +10,7 @@ export default defineConfig([
     format: ["esm"],
     dts: true,
     sourcemap: true,
-    clean: true,
+    clean: false,
     splitting: false,
     target: "node22",
     outDir: "dist",
@@ -19,9 +20,20 @@ export default defineConfig([
     },
   },
   {
+    entry: { guidance: "src/guidance.ts" },
+    format: ["esm"],
+    dts: true,
+    sourcemap: true,
+    clean: false,
+    splitting: false,
+    target: "es2022",
+    platform: "neutral",
+    outDir: "dist",
+  },
+  {
     entry: { "cli/index": "src/cli/index.ts" },
     format: ["esm"],
-    dts: false,
+    dts: true,
     sourcemap: true,
     clean: false,
     splitting: false,

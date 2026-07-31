@@ -61,8 +61,11 @@ jobs:
           test -f dist/index.js
           test -f dist/index.d.ts
           test -f dist/cli/index.js
+          test -f dist/cli/index.d.ts
           test -f dist/mcp/server.js
           test -f dist/mcp/server.d.ts
+          test -f dist/guidance.js
+          test -f dist/guidance.d.ts
           head -1 dist/cli/index.js | grep -q '#!/usr/bin/env node'
           head -1 dist/mcp/server.js | grep -q '#!/usr/bin/env node'
       - name: Verify package

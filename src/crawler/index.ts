@@ -18,6 +18,7 @@ import type {
   SkipLinkResult,
   CaptureSummary,
   AuditAsset,
+  AuditEvent,
   InteractionSummary,
 } from "../types/index.js";
 import {
@@ -134,6 +135,8 @@ export async function crawlPage(
   config: KeylensConfig,
   signal?: AbortSignal,
   sharedBrowser?: Browser,
+  onEvent?: (event: AuditEvent) => void,
+  eventStartedAt = Date.now(),
 ): Promise<CrawlResult> {
   const startTime = Date.now();
   throwIfAborted(signal, "crawl", url);
@@ -247,6 +250,15 @@ export async function crawlPage(
       signal,
       url,
     );
+    if (pageScreenshot) {
+      emitAssetCaptured(
+        onEvent,
+        eventStartedAt,
+        url,
+        "page-screenshot",
+        pageScreenshot,
+      );
+    }
 
     // Test skip link functionality (before main tab crawl)
     logger.info("Testing skip link...");
@@ -279,6 +291,8 @@ export async function crawlPage(
       captureBudget,
       signal,
       url,
+      onEvent,
+      eventStartedAt,
     );
     logger.debug(
       `Recorded ${focusSequence.length} focused elements, cycle completed: ${cycleCompleted}`,
@@ -290,6 +304,13 @@ export async function crawlPage(
     // Post-click interaction testing (if enabled)
     let interactionResults: InteractionResult[] | undefined;
     if (config.interactions.enabled) {
+      onEvent?.({
+        type: "phase-started",
+        phase: "interactions",
+        url,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - eventStartedAt,
+      });
       logger.info("Testing post-click interactions...");
       const interactionScope = createExecutionScope({
         parentSignal: signal,
@@ -305,6 +326,8 @@ export async function crawlPage(
             config,
             interactionScope.signal,
             url,
+            onEvent,
+            eventStartedAt,
           ),
           interactionScope.signal,
           "interactions",
@@ -325,6 +348,24 @@ export async function crawlPage(
     throwIfAborted(signal, "crawl", url);
     logger.success(`Crawl completed in ${duration}ms`);
     const extracted = extractCapturedAssets(pageScreenshot, focusSequence);
+    if (interactionSummary) {
+      onEvent?.({
+        type: "interaction-completed",
+        phase: "interactions",
+        url,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - eventStartedAt,
+        attempted: interactionSummary.attempted,
+        completed: interactionSummary.attempted,
+      });
+      onEvent?.({
+        type: "phase-completed",
+        phase: "interactions",
+        url,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - eventStartedAt,
+      });
+    }
 
     return {
       url,
@@ -531,12 +572,52 @@ async function capturePageScreenshot(
 /**
  * Tab through the page and record each focused element.
  */
+function emitAssetCaptured(
+  onEvent: ((event: AuditEvent) => void) | undefined,
+  eventStartedAt: number,
+  url: string | undefined,
+  assetType: AuditAsset["type"],
+  data: string,
+): void {
+  onEvent?.({
+    type: "asset-captured",
+    phase: "capture",
+    url,
+    timestamp: new Date().toISOString(),
+    elapsedMs: Date.now() - eventStartedAt,
+    assetType,
+    byteLength: Buffer.byteLength(data, "base64"),
+  });
+}
+
+function emitCrawlProgress(
+  onEvent: ((event: AuditEvent) => void) | undefined,
+  eventStartedAt: number,
+  url: string | undefined,
+  tabsAttempted: number,
+  maxTabs: number,
+  elementsFocused: number,
+): void {
+  onEvent?.({
+    type: "crawl-progress",
+    phase: "crawl",
+    url,
+    timestamp: new Date().toISOString(),
+    elapsedMs: Date.now() - eventStartedAt,
+    tabsAttempted,
+    maxTabs,
+    elementsFocused,
+  });
+}
+
 async function crawlTabOrder(
   page: Page,
   config: KeylensConfig,
   captureBudget: CaptureBudget,
   signal?: AbortSignal,
   url?: string,
+  onEvent?: (event: AuditEvent) => void,
+  eventStartedAt = Date.now(),
 ): Promise<{
   focusSequence: CapturedFocusedElement[];
   cycleCompleted: boolean;
@@ -572,6 +653,14 @@ async function crawlTabOrder(
     } catch {
       throwIfAborted(signal, "crawl", url);
       logger.warn(`Tab press ${i + 1} timed out, skipping`);
+      emitCrawlProgress(
+        onEvent,
+        eventStartedAt,
+        url,
+        i + 1,
+        config.maxTabs,
+        focusSequence.length,
+      );
       continue;
     }
 
@@ -582,6 +671,14 @@ async function crawlTabOrder(
 
     if (!elementInfo) {
       // Focus is on body or document — may indicate end of cycle
+      emitCrawlProgress(
+        onEvent,
+        eventStartedAt,
+        url,
+        i + 1,
+        config.maxTabs,
+        focusSequence.length,
+      );
       continue;
     }
 
@@ -590,6 +687,14 @@ async function crawlTabOrder(
       firstSelector = elementInfo.selector;
     } else if (elementInfo.selector === firstSelector) {
       cycleCompleted = true;
+      emitCrawlProgress(
+        onEvent,
+        eventStartedAt,
+        url,
+        i + 1,
+        config.maxTabs,
+        focusSequence.length,
+      );
       break;
     }
 
@@ -634,6 +739,15 @@ async function crawlTabOrder(
         signal,
         url,
       );
+      if (focusedScreenshot) {
+        emitAssetCaptured(
+          onEvent,
+          eventStartedAt,
+          url,
+          "focused-element-screenshot",
+          focusedScreenshot,
+        );
+      }
 
       // Capture computed focus-related CSS styles while element is focused
       try {
@@ -670,6 +784,15 @@ async function crawlTabOrder(
         signal,
         url,
       );
+      if (lastElement.unfocusedScreenshot) {
+        emitAssetCaptured(
+          onEvent,
+          eventStartedAt,
+          url,
+          "unfocused-element-screenshot",
+          lastElement.unfocusedScreenshot,
+        );
+      }
     }
 
     const focusedElement: CapturedFocusedElement = {
@@ -694,6 +817,14 @@ async function crawlTabOrder(
     };
 
     focusSequence.push(focusedElement);
+    emitCrawlProgress(
+      onEvent,
+      eventStartedAt,
+      url,
+      i + 1,
+      config.maxTabs,
+      focusSequence.length,
+    );
   }
 
   // Capture unfocused screenshot of the last element (it just lost focus when cycle ends)
@@ -714,6 +845,15 @@ async function crawlTabOrder(
         signal,
         url,
       );
+      if (lastEl.unfocusedScreenshot) {
+        emitAssetCaptured(
+          onEvent,
+          eventStartedAt,
+          url,
+          "unfocused-element-screenshot",
+          lastEl.unfocusedScreenshot,
+        );
+      }
     }
   }
 
@@ -930,7 +1070,10 @@ function summarizeInteractions(
 ): InteractionSummary {
   return {
     total: results.length,
-    attempted: results.filter((result) => result.status !== "skipped").length,
+    attempted: results.filter(
+      (result) =>
+        result.status !== "skipped" || result.reason === "navigation-blocked",
+    ).length,
     passed: results.filter((result) => result.status === "passed").length,
     failed: results.filter((result) => result.status === "failed").length,
     skipped: results.filter((result) => result.status === "skipped").length,
@@ -944,11 +1087,32 @@ async function crawlInteractions(
   config: KeylensConfig,
   signal?: AbortSignal,
   url?: string,
+  onEvent?: (event: AuditEvent) => void,
+  eventStartedAt = Date.now(),
 ): Promise<InteractionResult[]> {
   const results: InteractionResult[] = [];
   const interactions = config.interactions;
   const targetUrl = url ?? page.url();
   let attempted = 0;
+  let completed = 0;
+  const record = (result: InteractionResult) => {
+    results.push(result);
+    const consumedBudget =
+      result.status !== "skipped" || result.reason === "navigation-blocked";
+    if (consumedBudget) {
+      completed++;
+      onEvent?.({
+        type: "interaction-progress",
+        phase: "interactions",
+        url,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - eventStartedAt,
+        attempted,
+        completed,
+        maxCases: interactions.maxCases,
+      });
+    }
+  };
   const candidates: FocusedElement[] = [];
   for (const element of focusSequence.filter(isInteractionCandidate)) {
     if (
@@ -971,7 +1135,7 @@ async function crawlInteractions(
         focusAfter: null,
       };
       if (attempted >= interactions.maxCases) {
-        results.push({
+        record({
           ...base,
           status: "skipped",
           reason: "limit-reached",
@@ -1001,7 +1165,7 @@ async function crawlInteractions(
         }
         const locator = await resolveInteractionLocator(page, element);
         if ((await locator.count()) === 0) {
-          results.push({
+          record({
             ...base,
             status: "error",
             reason: "element-missing",
@@ -1015,7 +1179,7 @@ async function crawlInteractions(
           !(await locatorMatchesAnySelector(locator, interactions.include))
         ) {
           attempted--;
-          results.push({
+          record({
             ...base,
             status: "skipped",
             reason: "excluded",
@@ -1026,7 +1190,7 @@ async function crawlInteractions(
         }
         if (await locatorMatchesAnySelector(locator, interactions.exclude)) {
           attempted--;
-          results.push({
+          record({
             ...base,
             status: "skipped",
             reason: "excluded",
@@ -1040,7 +1204,7 @@ async function crawlInteractions(
           (await isDestructiveControl(locator, element.accessibleName))
         ) {
           attempted--;
-          results.push({
+          record({
             ...base,
             status: "skipped",
             reason: "destructive",
@@ -1069,7 +1233,7 @@ async function crawlInteractions(
         throwIfAborted(signal, "interactions", url);
 
         if (navigationBlocked) {
-          results.push({
+          record({
             ...base,
             status: "skipped",
             reason: "navigation-blocked",
@@ -1127,7 +1291,7 @@ async function crawlInteractions(
             : focusAfter
               ? "unexpected-focus"
               : "focus-lost";
-        results.push({
+        record({
           ...base,
           focusAfter,
           status,
@@ -1140,7 +1304,7 @@ async function crawlInteractions(
         });
       } catch (error) {
         throwIfAborted(signal, "interactions", url);
-        results.push({
+        record({
           ...base,
           status: "error",
           reason: "action-failed",

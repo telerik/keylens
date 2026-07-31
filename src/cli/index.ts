@@ -12,11 +12,13 @@ import {
   DEFAULT_CONFIG,
   normalizeConfig,
 } from "../utils/config.js";
+import { ConfigError } from "../errors.js";
 import { createExecutionScope } from "../utils/execution.js";
 import { setLogLevel } from "../utils/logger.js";
 import type {
   KeylensConfig,
   KeylensConfigInput,
+  AuditEvent,
   LogLevel,
   PageCaptureMode,
   ReporterType,
@@ -29,6 +31,67 @@ const BANNER = `
 ${chalk.cyan.bold("Keylens")} ${chalk.gray(`v${VERSION}`)}
 ${chalk.gray("See your site through the lens of keyboard users.")}
 `;
+
+function parseViewport(value: string): { width: number; height: number } {
+  const match = /^(\d+)x(\d+)$/i.exec(value);
+  if (!match) {
+    throw new ConfigError(
+      `Invalid viewport "${value}". Expected WIDTHxHEIGHT, for example 1280x720.`,
+    );
+  }
+  return { width: Number(match[1]), height: Number(match[2]) };
+}
+
+interface CLIProgressState {
+  captureElements: boolean;
+  focusedCaptures: number;
+  unfocusedCaptures: number;
+  captureBytes: number;
+}
+
+function formatProgressBytes(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function updateProgress(
+  spinner: ReturnType<typeof ora>,
+  event: AuditEvent,
+  state: CLIProgressState,
+): void {
+  const page = event.url ? ` ${event.url}` : "";
+  if (event.type === "crawl-progress") {
+    const capture = state.captureElements
+      ? `, ${Math.min(state.focusedCaptures, state.unfocusedCaptures)} focus pairs, ${formatProgressBytes(state.captureBytes)}`
+      : "";
+    spinner.text = `Tabbing${state.captureElements ? " and capturing focus states" : ""}${page}: ${event.tabsAttempted}/${event.maxTabs} attempts, ${event.elementsFocused} focused${capture}`;
+  } else if (event.type === "asset-captured") {
+    if (event.assetType === "focused-element-screenshot") {
+      state.focusedCaptures++;
+      state.captureBytes += event.byteLength;
+    } else if (event.assetType === "unfocused-element-screenshot") {
+      state.unfocusedCaptures++;
+      state.captureBytes += event.byteLength;
+    }
+    if (
+      event.assetType === "focused-element-screenshot" ||
+      event.assetType === "unfocused-element-screenshot"
+    ) {
+      spinner.text = `Capturing focus states${page}: ${Math.min(state.focusedCaptures, state.unfocusedCaptures)} pairs, ${formatProgressBytes(state.captureBytes)}`;
+    }
+  } else if (event.type === "interaction-progress") {
+    spinner.text = `Testing interactions${page}: ${event.completed}/${event.maxCases} completed`;
+  } else if (event.type === "rule-started") {
+    spinner.text = `Checking ${event.ruleId}${page}`;
+  } else if (event.type === "interaction-completed") {
+    spinner.text = `Interactions${page}: ${event.completed}/${event.attempted} completed`;
+  } else if (event.type === "phase-started") {
+    spinner.text =
+      event.phase === "interactions"
+        ? `Testing interactions${page}: 0 completed`
+        : `${event.phase[0]!.toUpperCase()}${event.phase.slice(1)}${page}`;
+  }
+}
 
 const program = new Command();
 
@@ -45,35 +108,23 @@ program
   .description("Run a keyboard navigation audit on one or more URLs")
   .argument("[url]", "URL to audit (reads from config if omitted)")
   .option("-c, --config <path>", "path to keylens.config.json")
+  .option("--profile <profile>", "execution profile (fast, balanced, thorough)")
   .option(
     "-o, --output <reporters>",
     "reporters to use (comma-separated: cli,json,html,markdown)",
   )
-  .option(
-    "-d, --output-dir <dir>",
-    "output directory for reports",
-    "./keylens-report",
-  )
+  .option("-d, --output-dir <dir>", "output directory for reports")
   .option(
     "-b, --browser <browser>",
     "browser engine (chromium, firefox, webkit)",
-    "chromium",
   )
   .option("--headed", "run in headed mode (visible browser)", false)
   .option("--wait-for <selector>", "wait for this CSS selector before auditing")
-  .option("--wait <ms>", "wait this many ms after page load", "1000")
-  .option("--max-tabs <n>", "maximum tab presses", "500")
-  .option(
-    "--tab-delay <ms>",
-    "delay between tab presses in ms (min: 10)",
-    "250",
-  )
-  .option(
-    "--viewport <WxH>",
-    "viewport dimensions (e.g., 1280x720)",
-    "1280x720",
-  )
-  .option("--ai", "enable AI-powered analysis", false)
+  .option("--wait <ms>", "wait this many ms after page load")
+  .option("--max-tabs <n>", "maximum tab presses")
+  .option("--tab-delay <ms>", "delay between tab presses in ms (min: 10)")
+  .option("--viewport <WxH>", "viewport dimensions (e.g., 1280x720)")
+  .option("--ai", "enable experimental AI-powered analysis", false)
   .option(
     "--ai-model <model>",
     "AI model to use (default: claude-sonnet-4-20250514)",
@@ -83,7 +134,7 @@ program
     "--ai-base-url <url>",
     "AI provider base URL (for Azure AI Foundry, custom endpoints)",
   )
-  .option("--timeout <ms>", "navigation timeout in ms", "30000")
+  .option("--timeout <ms>", "navigation timeout in ms")
   .option(
     "--page-screenshot <mode>",
     "page screenshot mode (none, viewport, full); defaults to full for HTML reports",
@@ -93,186 +144,163 @@ program
     "capture per-element screenshots for focus indicator diffing",
     false,
   )
-  .option("--interactions", "test focus behavior after clicking buttons", false)
+  .option(
+    "--interactions",
+    "enable experimental bounded activation and focus checks",
+    false,
+  )
   .option("-q, --quiet", "suppress non-essential output", false)
   .option("-v, --verbose", "enable verbose/debug output", false)
   .action(async (url: string | undefined, options) => {
     console.log(BANNER);
-
-    // Set log level
-    if (options.quiet) setLogLevel("warn");
-    if (options.verbose) setLogLevel("debug");
-    const logLevel: LogLevel = options.verbose
-      ? "debug"
-      : options.quiet
-        ? "warn"
-        : "info";
-
-    // Load config file before resolving options with capability-based defaults.
-    let fileConfig: KeylensConfigInput = {};
-    if (options.config) {
-      fileConfig = await loadConfigInput(options.config);
-    }
-
-    // Parse viewport
-    const [vw, vh] = options.viewport.split("x").map(Number);
-    const viewport = { width: vw || 1280, height: vh || 720 };
-
-    // Validate and parse reporters
-    const VALID_REPORTERS = ["cli", "json", "html", "markdown"] as const;
-    const reporters = options.output
-      ? (options.output.split(",") as ReporterType[])
-      : [...(fileConfig.reporters ?? DEFAULT_CONFIG.reporters)];
-    const invalidReporters = reporters.filter(
-      (r: string) => !(VALID_REPORTERS as readonly string[]).includes(r),
-    );
-    if (invalidReporters.length > 0) {
-      console.error(
-        chalk.red(
-          `Invalid reporter(s): ${invalidReporters.join(", ")}. Valid options: ${VALID_REPORTERS.join(", ")}`,
-        ),
-      );
-      process.exit(2);
-    }
-
-    // Validate browser
-    const VALID_BROWSERS = ["chromium", "firefox", "webkit"] as const;
-    if (
-      !(VALID_BROWSERS as readonly string[]).includes(options.browser as string)
-    ) {
-      console.error(
-        chalk.red(
-          `Invalid browser: ${options.browser}. Valid options: ${VALID_BROWSERS.join(", ")}`,
-        ),
-      );
-      process.exit(2);
-    }
-
-    // Determine URLs to audit
-    const urls: string[] = url
-      ? [url]
-      : fileConfig.urls && fileConfig.urls.length > 0
-        ? fileConfig.urls
-        : [];
-
-    if (urls.length === 0) {
-      console.error(
-        chalk.red(
-          "No URL provided. Pass a URL argument or set urls in config file.",
-        ),
-      );
-      process.exit(2);
-    }
-
-    // Merge CLI options with file config and defaults
-    const pageCapture =
-      options.pageScreenshot ??
-      fileConfig.capture?.page ??
-      (reporters.includes("html") ? "full" : "none");
-    if (!["none", "viewport", "full"].includes(pageCapture)) {
-      console.error(
-        chalk.red("--page-screenshot must be one of: none, viewport, full"),
-      );
-      process.exit(2);
-    }
-    const captureElements =
-      options.screenshots || (fileConfig.capture?.elements ?? false);
-    const config: KeylensConfig = normalizeConfig({
-      ...DEFAULT_CONFIG,
-      ...fileConfig,
-      urls,
-      viewport,
-      rules: {
-        ...DEFAULT_CONFIG.rules,
-        ...fileConfig.rules,
-      },
-      reporters,
-      outputDir: options.outputDir,
-      browser: options.browser,
-      headed: options.headed,
-      waitForSelector: options.waitFor || fileConfig.waitForSelector,
-      waitAfterLoad: parseInt(options.wait, 10),
-      maxTabs: parseInt(options.maxTabs, 10),
-      tabDelay: Math.max(10, parseInt(options.tabDelay, 10) || 250),
-      capture: {
-        ...DEFAULT_CONFIG.capture,
-        ...fileConfig.capture,
-        page: pageCapture as PageCaptureMode,
-        elements: captureElements,
-        limits: {
-          ...DEFAULT_CONFIG.capture.limits,
-          ...fileConfig.capture?.limits,
-        },
-      },
-      interactions: {
-        ...DEFAULT_CONFIG.interactions,
-        ...fileConfig.interactions,
-        enabled:
-          options.interactions ||
-          fileConfig.interactions?.enabled ||
-          DEFAULT_CONFIG.interactions.enabled,
-        actions: [
-          ...(fileConfig.interactions?.actions ??
-            DEFAULT_CONFIG.interactions.actions),
-        ],
-      },
-      multiPage: {
-        ...DEFAULT_CONFIG.multiPage,
-        ...fileConfig.multiPage,
-      },
-      timeouts: {
-        ...DEFAULT_CONFIG.timeouts,
-        ...fileConfig.timeouts,
-      },
-      navigationTimeout: parseInt(options.timeout, 10) || 30000,
-      ai: {
-        ...DEFAULT_CONFIG.ai,
-        ...fileConfig.ai,
-        enabled: options.ai || fileConfig.ai?.enabled || false,
-        apiKey: fileConfig.ai?.apiKey,
-        model: options.aiModel || fileConfig.ai?.model,
-        provider:
-          options.aiProvider ||
-          fileConfig.ai?.provider ||
-          DEFAULT_CONFIG.ai.provider,
-        baseURL: options.aiBaseUrl || fileConfig.ai?.baseURL,
-        features: {
-          ...DEFAULT_CONFIG.ai.features,
-          ...fileConfig.ai?.features,
-        },
-        limits: {
-          ...DEFAULT_CONFIG.ai.limits,
-          ...fileConfig.ai?.limits,
-        },
-      },
-    });
-
-    const spinner = ora("Starting audit...").start();
-    const totalScope = createExecutionScope({
-      timeout: config.timeouts.total,
-      phase: "setup",
-      timeoutKind: "total",
-    });
+    let spinner: ReturnType<typeof ora> | undefined;
+    let totalScope: ReturnType<typeof createExecutionScope> | undefined;
 
     try {
-      spinner.stop();
+      // Set log level
+      if (options.quiet) setLogLevel("warn");
+      if (options.verbose) setLogLevel("debug");
+      const logLevel: LogLevel = options.verbose
+        ? "debug"
+        : options.quiet
+          ? "warn"
+          : "info";
+
+      // Load config file before resolving options with capability-based defaults.
+      let fileConfig: KeylensConfigInput = {};
+      if (options.config) {
+        fileConfig = await loadConfigInput(options.config);
+      }
+
+      const viewport = options.viewport
+        ? parseViewport(options.viewport)
+        : fileConfig.viewport;
+
+      const reporters = options.output
+        ? (options.output.split(",") as ReporterType[])
+        : [...(fileConfig.reporters ?? DEFAULT_CONFIG.reporters)];
+
+      const urls: string[] = url
+        ? [url]
+        : fileConfig.urls && fileConfig.urls.length > 0
+          ? fileConfig.urls
+          : [];
+
+      if (urls.length === 0) {
+        throw new ConfigError(
+          "No URL provided. Pass a URL argument or set urls in config file.",
+        );
+      }
+
+      const pageCapture =
+        options.pageScreenshot ??
+        fileConfig.capture?.page ??
+        (reporters.includes("html") ? "full" : "none");
+      const captureElements =
+        options.screenshots || (fileConfig.capture?.elements ?? false);
+      const config: KeylensConfig = normalizeConfig({
+        ...fileConfig,
+        ...(options.profile ? { profile: options.profile } : {}),
+        urls,
+        ...(viewport ? { viewport } : {}),
+        rules: {
+          ...fileConfig.rules,
+        },
+        reporters,
+        ...(options.outputDir ? { outputDir: options.outputDir } : {}),
+        ...(options.browser ? { browser: options.browser } : {}),
+        headed: options.headed || fileConfig.headed || false,
+        waitForSelector: options.waitFor || fileConfig.waitForSelector,
+        ...(options.wait ? { waitAfterLoad: Number(options.wait) } : {}),
+        ...(options.maxTabs ? { maxTabs: Number(options.maxTabs) } : {}),
+        ...(options.tabDelay ? { tabDelay: Number(options.tabDelay) } : {}),
+        capture: {
+          ...fileConfig.capture,
+          page: pageCapture as PageCaptureMode,
+          elements: captureElements,
+          limits: {
+            ...fileConfig.capture?.limits,
+          },
+        },
+        interactions: {
+          ...fileConfig.interactions,
+          enabled:
+            options.interactions || fileConfig.interactions?.enabled || false,
+          actions: [
+            ...(fileConfig.interactions?.actions ??
+              DEFAULT_CONFIG.interactions.actions),
+          ],
+        },
+        multiPage: {
+          ...fileConfig.multiPage,
+        },
+        timeouts: {
+          ...fileConfig.timeouts,
+        },
+        ...(options.timeout
+          ? { navigationTimeout: Number(options.timeout) }
+          : {}),
+        ai: {
+          ...fileConfig.ai,
+          enabled: options.ai || fileConfig.ai?.enabled || false,
+          apiKey: fileConfig.ai?.apiKey,
+          model: options.aiModel || fileConfig.ai?.model,
+          provider:
+            options.aiProvider ||
+            fileConfig.ai?.provider ||
+            DEFAULT_CONFIG.ai.provider,
+          baseURL: options.aiBaseUrl || fileConfig.ai?.baseURL,
+          features: {
+            ...fileConfig.ai?.features,
+          },
+          limits: {
+            ...fileConfig.ai?.limits,
+          },
+        },
+      });
+
+      spinner = ora({
+        text: "Starting audit...",
+        isSilent: options.quiet,
+      }).start();
+      totalScope = createExecutionScope({
+        timeout: config.timeouts.total,
+        phase: "setup",
+        timeoutKind: "total",
+      });
+      const progressStates = new Map<string, CLIProgressState>();
+      const onEvent = (event: AuditEvent) => {
+        const key = event.url ?? "";
+        let state = progressStates.get(key);
+        if (!state) {
+          state = {
+            captureElements: config.capture.elements,
+            focusedCaptures: 0,
+            unfocusedCaptures: 0,
+            captureBytes: 0,
+          };
+          progressStates.set(key, state);
+        }
+        updateProgress(spinner!, event, state);
+      };
 
       if (urls.length === 1) {
         const report = await audit(urls[0]!, {
           ...config,
           logLevel,
           signal: totalScope.signal,
+          onEvent,
         });
+        spinner.stop();
         await renderAuditReport(report, config.reporters, config.outputDir, {
           logLevel,
           signal: totalScope.signal,
         });
 
         if (report.summary.errors > 0) {
-          process.exit(2);
-        }
-        if (report.summary.totalErrors > 0) {
-          process.exit(1);
+          process.exitCode = 2;
+        } else if (report.summary.totalErrors > 0) {
+          process.exitCode = 1;
         }
       } else {
         // Multi-page audit
@@ -280,7 +308,9 @@ program
           ...config,
           logLevel,
           signal: totalScope.signal,
+          onEvent,
         });
+        spinner.stop();
         await renderMultiPageReport(
           multiReport,
           config.reporters,
@@ -289,20 +319,22 @@ program
         );
 
         if (multiReport.summary.ruleErrors > 0) {
-          process.exit(2);
-        }
-        if (multiReport.summary.totalErrors > 0) {
-          process.exit(1);
+          process.exitCode = 2;
+        } else if (multiReport.summary.totalErrors > 0) {
+          process.exitCode = 1;
         }
       }
     } catch (error) {
-      spinner.fail(chalk.red(`Audit failed: ${(error as Error).message}`));
+      spinner?.fail(chalk.red(`Audit failed: ${(error as Error).message}`));
+      if (!spinner) {
+        console.error(chalk.red(`Audit failed: ${(error as Error).message}`));
+      }
       if (options.verbose) {
         console.error(error);
       }
-      process.exit(2);
+      process.exitCode = 2;
     } finally {
-      totalScope.dispose();
+      totalScope?.dispose();
     }
   });
 
@@ -326,6 +358,7 @@ program
     const config = {
       $schema:
         "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
+      profile: "balanced",
       urls: ["https://example.com"],
       viewport: { width: 1280, height: 720 },
       tabDelay: 250,
@@ -352,7 +385,7 @@ program
 
 program
   .command("mcp")
-  .description("Start the Keylens MCP server (stdio transport)")
+  .description("Start the experimental Keylens MCP server (stdio transport)")
   .action(async () => {
     await import("../mcp/server.js");
   });
@@ -370,4 +403,9 @@ if (
   process.argv.splice(2, 0, "audit");
 }
 
-program.parse();
+try {
+  await program.parseAsync();
+} catch (error) {
+  console.error(chalk.red((error as Error).message));
+  process.exitCode = 2;
+}
