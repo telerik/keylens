@@ -86,4 +86,24 @@ describe("runRules", () => {
       expect(result.duration).toBeGreaterThanOrEqual(0);
     });
   });
+
+  it("emits rule progress with stable rule IDs", async () => {
+    const events: string[] = [];
+
+    await runRules(
+      makeCrawlResult(),
+      DEFAULT_CONFIG,
+      undefined,
+      (event) => {
+        if (event.type === "rule-started" || event.type === "rule-completed") {
+          events.push(`${event.type}:${event.ruleId}`);
+        }
+      },
+      Date.now(),
+    );
+
+    expect(events).toContain("rule-started:keyboard-trap");
+    expect(events).toContain("rule-completed:keyboard-trap");
+    expect(events).toHaveLength(16);
+  });
 });
