@@ -111,6 +111,10 @@ keylens audit https://example.com --browser firefox
 # Custom tab delay (slower tabbing)
 keylens audit https://example.com --tab-delay 500
 
+# Choose a preset, then override individual options if needed
+keylens audit https://example.com --profile fast
+keylens audit https://example.com --profile thorough --max-tabs 750
+
 # Custom navigation timeout (default: 30s)
 keylens audit https://example.com --timeout 60000
 
@@ -127,17 +131,19 @@ keylens audit https://example.com --headed
 ### Programmatic API
 
 ```typescript
-import { audit, DEFAULT_CONFIG } from "@telerik/keylens";
+import { auditBase, renderAuditReport } from "@telerik/keylens";
 
-const report = await audit("https://example.com", {
-  ...DEFAULT_CONFIG,
-  reporters: ["json"],
-  outputDir: "./a11y-reports",
-  ai: {
-    ...DEFAULT_CONFIG.ai,
-    enabled: true,
+const report = await auditBase("https://example.com", {
+  profile: "balanced",
+  capture: { page: "none" },
+  onEvent(event) {
+    if (event.type === "crawl-progress") {
+      console.log(event.tabsAttempted, event.elementsFocused);
+    }
   },
 });
+
+await renderAuditReport(report, ["json"], "./a11y-reports");
 
 if (report.summary.totalErrors > 0) {
   console.error(`Found ${report.summary.totalErrors} keyboard a11y errors`);
@@ -158,6 +164,7 @@ This creates `keylens.config.json`:
 ```json
 {
   "urls": ["https://example.com"],
+  "profile": "balanced",
   "viewport": { "width": 1280, "height": 720 },
   "rules": {
     "keyboardTrap": true,
@@ -195,6 +202,27 @@ Then run with:
 keylens audit https://example.com --config keylens.config.json
 ```
 
+### Execution profiles
+
+Profiles set the crawl timing defaults before explicit options are applied:
+
+| Profile    | Intended use                                     |
+| ---------- | ------------------------------------------------ |
+| `fast`     | Local iteration and broad smoke checks           |
+| `balanced` | Default CI and general auditing                  |
+| `thorough` | Slow or highly dynamic pages where accuracy wins |
+
+Raw options such as `maxTabs`, `tabTimeout`, `waitAfterLoad`, and `tabDelay`
+always override the selected profile.
+
+### Exit codes
+
+| Code | Meaning                                                 |
+| ---- | ------------------------------------------------------- |
+| `0`  | Audit completed with no error-severity violations       |
+| `1`  | Audit completed and found accessibility errors          |
+| `2`  | Invalid configuration, rule/runtime failure, or timeout |
+
 ## Rules
 
 | Rule                      | Severity | WCAG        | Description                                      |
@@ -206,11 +234,21 @@ keylens audit https://example.com --config keylens.config.json
 | `missing-focus-indicator` | Warning  | 2.4.7       | Finds elements with suppressed focus styles      |
 | `skip-link`               | Warning  | 2.4.1       | Validates skip navigation link presence          |
 | `focus-not-obscured`      | Error    | 2.4.11      | Detects focused elements hidden by overlays      |
-| `focus-after-interaction` | Warning  | 2.4.3/2.4.7 | Focus not lost after clicking buttons            |
+| `focus-after-interaction` | Error    | 2.4.3/2.4.7 | Validates focus after activating controls        |
+
+Package-owned remediation and canonical WCAG references are available from the
+browser-safe `@telerik/keylens/guidance` export:
+
+```typescript
+import {
+  getRuleRemediation,
+  getWcagReference,
+} from "@telerik/keylens/guidance";
+```
 
 ## AI Features
 
-Keylens optionally integrates with LLMs to provide intelligent analysis that pure heuristics can't match. **The tool works fully without AI** — these are enhancement features.
+Keylens optionally integrates with LLMs to provide intelligent analysis that pure heuristics can't match. **AI is experimental and outside the 1.0 stability guarantee.** The deterministic audit works fully without it.
 
 ### Enable AI
 
@@ -240,7 +278,7 @@ You can also use `ANTHROPIC_API_KEY` or set `ai.apiKey` in your config file.
 
 ## MCP Server
 
-Keylens includes an MCP server for integration with AI agents (Claude Desktop, VS Code Copilot, Cursor, etc.).
+Keylens includes an experimental MCP server for integration with AI agents (Claude Desktop, VS Code Copilot, Cursor, etc.). MCP tool contracts are outside the 1.0 stability guarantee.
 
 ### Setup
 
