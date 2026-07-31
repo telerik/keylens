@@ -6,6 +6,7 @@ import { tmpdir } from "os";
 import { join, resolve } from "path";
 import {
   audit,
+  auditMultiple,
   AuditAbortedError,
   AuditTimeoutError,
   renderAuditReport,
@@ -81,6 +82,70 @@ describe("Integration: audit pipeline", () => {
     expect(report.focusSequence).toBeDefined();
     expect(report.focusSequence!.length).toBeGreaterThan(0);
     expect(report.crawl.duration).toBeGreaterThan(0);
+  });
+
+  it("emits real crawl, rule, and asset progress", async () => {
+    const events: import("@/types/index.js").AuditEvent[] = [];
+
+    await audit(testPageUrl, {
+      ...makeConfig({
+        maxTabs: 5,
+        waitAfterLoad: 10,
+        tabDelay: 10,
+        capture: {
+          ...DEFAULT_CONFIG.capture,
+          page: "viewport",
+          limits: { ...DEFAULT_CONFIG.capture.limits },
+        },
+      }),
+      onEvent: (event) => events.push(event),
+    });
+
+    expect(
+      events.some(
+        (event) => event.type === "crawl-progress" && event.tabsAttempted > 0,
+      ),
+    ).toBe(true);
+    expect(
+      events.some(
+        (event) =>
+          event.type === "rule-started" && event.ruleId === "keyboard-trap",
+      ),
+    ).toBe(true);
+    expect(
+      events.some(
+        (event) =>
+          event.type === "asset-captured" &&
+          event.assetType === "page-screenshot",
+      ),
+    ).toBe(true);
+    expect(events.every((event) => event.url === testPageUrl)).toBe(true);
+    expect(
+      events.findIndex((event) => event.type === "asset-captured"),
+    ).toBeLessThan(
+      events.findIndex((event) => event.type === "crawl-progress"),
+    );
+  });
+
+  it("identifies progress from each page in a concurrent audit", async () => {
+    const events: import("@/types/index.js").AuditEvent[] = [];
+
+    await auditMultiple([testPageUrl, cleanPageUrl], {
+      ...makeConfig({
+        maxTabs: 2,
+        waitAfterLoad: 10,
+        tabDelay: 10,
+        multiPage: { concurrency: 2 },
+      }),
+      onEvent: (event) => events.push(event),
+    });
+
+    const crawlUrls = new Set(
+      events
+        .filter((event) => event.type === "crawl-progress")
+        .map((event) => event.url),
+    );
+    expect(crawlUrls).toEqual(new Set([testPageUrl, cleanPageUrl]));
   });
 
   it("aborts promptly and removes process cleanup listeners", async () => {
@@ -220,9 +285,9 @@ describe("Integration: audit pipeline", () => {
   });
 
   it("records bounded interaction outcomes without activating unsafe controls", async () => {
-    const report = await audit(
-      interactionsPageUrl,
-      makeConfig({
+    const events: import("@/types/index.js").AuditEvent[] = [];
+    const report = await audit(interactionsPageUrl, {
+      ...makeConfig({
         maxTabs: 20,
         waitAfterLoad: 10,
         tabDelay: 10,
@@ -234,7 +299,8 @@ describe("Integration: audit pipeline", () => {
           exclude: [".excluded"],
         },
       }),
-    );
+      onEvent: (event) => events.push(event),
+    });
 
     expect(report.crawl.interactions).toEqual(
       expect.objectContaining({
@@ -301,6 +367,40 @@ describe("Integration: audit pipeline", () => {
         }),
       ]),
     );
+    const interactionStart = events.findIndex(
+      (event) =>
+        event.type === "phase-started" && event.phase === "interactions",
+    );
+    const interactionProgress = events.findIndex(
+      (event) => event.type === "interaction-progress",
+    );
+    expect(interactionStart).toBeGreaterThan(-1);
+    expect(interactionProgress).toBeGreaterThan(interactionStart);
+    expect(
+      events.some(
+        (event) =>
+          event.type === "interaction-progress" &&
+          event.completed > 0 &&
+          event.maxCases === 10,
+      ),
+    ).toBe(true);
+    const interactionSummary = events.findIndex(
+      (event) => event.type === "interaction-completed",
+    );
+    const interactionEnd = events.findIndex(
+      (event) =>
+        event.type === "phase-completed" && event.phase === "interactions",
+    );
+    expect(interactionSummary).toBeGreaterThan(interactionProgress);
+    expect(interactionEnd).toBeGreaterThan(interactionSummary);
+    const lastInteractionProgress = [...events]
+      .reverse()
+      .find((event) => event.type === "interaction-progress");
+    expect(
+      lastInteractionProgress?.type === "interaction-progress"
+        ? lastInteractionProgress.attempted
+        : undefined,
+    ).toBe(report.crawl.interactions?.attempted);
   });
 
   it("caps attempted interaction cases and reports remaining cases as skipped", async () => {

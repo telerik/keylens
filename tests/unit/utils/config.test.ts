@@ -73,22 +73,60 @@ describe("normalizeConfig", () => {
   it("rejects fractional element capture limits", () => {
     expect(() =>
       normalizeConfig({ capture: { limits: { maxElements: 1.5 } } }),
-    ).toThrow("capture.limits.maxElements must be a non-negative integer");
+    ).toThrow("capture.limits.maxElements");
   });
 
   it("rejects invalid interaction and multi-page limits", () => {
     expect(() => normalizeConfig({ interactions: { maxCases: -1 } })).toThrow(
-      "interactions.maxCases must be a non-negative integer",
+      "interactions.maxCases",
     );
     expect(() => normalizeConfig({ interactions: { timeout: 0 } })).toThrow(
-      "interactions.timeout must be a positive number",
+      "interactions.timeout",
     );
     expect(() =>
       normalizeConfig({ interactions: { timeout: Number.NaN } }),
-    ).toThrow("interactions.timeout must be a positive number");
+    ).toThrow("interactions.timeout");
     expect(() => normalizeConfig({ multiPage: { concurrency: 0 } })).toThrow(
-      "multiPage.concurrency must be a positive integer",
+      "multiPage.concurrency",
     );
+  });
+
+  it("applies execution profiles before explicit overrides", () => {
+    expect(normalizeConfig({ profile: "fast" })).toMatchObject({
+      profile: "fast",
+      maxTabs: 400,
+      tabTimeout: 500,
+      waitAfterLoad: 250,
+      tabDelay: 25,
+    });
+    expect(
+      normalizeConfig({ profile: "thorough", tabDelay: 750 }),
+    ).toMatchObject({
+      profile: "thorough",
+      maxTabs: 1000,
+      tabDelay: 750,
+    });
+  });
+
+  it("rejects unknown options with their configuration path", () => {
+    expect(() => normalizeConfig({ unknownOption: true } as never)).toThrow(
+      "unknownOption",
+    );
+    expect(() => normalizeConfig({ rules: { typo: true } } as never)).toThrow(
+      "rules.typo",
+    );
+  });
+
+  it("accepts only callable programmatic AI transports", () => {
+    expect(() =>
+      normalizeConfig({ ai: { transport: "invalid" } } as never),
+    ).toThrow("ai.transport");
+
+    const transport = {
+      query: vi.fn().mockResolvedValue("ok"),
+      queryVision: vi.fn().mockResolvedValue("ok"),
+    };
+    expect(normalizeConfig({ ai: { transport } }).ai.transport).toBe(transport);
   });
 });
 
@@ -101,6 +139,19 @@ describe("loadConfig", () => {
     const input = await loadConfigInput("minimal.json");
 
     expect(input.capture).toBeUndefined();
+  });
+
+  it("validates config files and strips the schema hint", async () => {
+    mockReadFile.mockResolvedValue(
+      JSON.stringify({
+        $schema: "./keylens.config.schema.json",
+        profile: "fast",
+      }),
+    );
+
+    const input = await loadConfigInput("profile.json");
+
+    expect(input).toEqual({ profile: "fast" });
   });
 
   it("should return default config when no path is provided", async () => {

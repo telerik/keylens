@@ -160,6 +160,8 @@ describe("audit", () => {
       expect.objectContaining(config),
       expect.any(AbortSignal),
       undefined,
+      undefined,
+      expect.any(Number),
     );
   });
 
@@ -174,6 +176,8 @@ describe("audit", () => {
       defaultCrawlResult,
       expect.objectContaining(config),
       expect.any(AbortSignal),
+      undefined,
+      expect.any(Number),
     );
   });
 
@@ -771,12 +775,16 @@ describe("auditMultiple", () => {
       expect.anything(),
       expect.any(AbortSignal),
       expect.anything(),
+      undefined,
+      expect.any(Number),
     );
     expect(mockCrawlPage).toHaveBeenCalledWith(
       "https://b.com",
       expect.anything(),
       expect.any(AbortSignal),
       expect.anything(),
+      undefined,
+      expect.any(Number),
     );
   });
 

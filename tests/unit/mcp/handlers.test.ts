@@ -208,16 +208,23 @@ describe("buildConfig", () => {
     expect(config.browser).toBe("firefox");
   });
 
-  it("ignores invalid KEYLENS_BROWSER values", () => {
+  it("rejects invalid KEYLENS_BROWSER values", () => {
     process.env.KEYLENS_BROWSER = "invalid-browser";
-    const config = buildConfig();
-    expect(config.browser).toBe("chromium");
+    expect(() => buildConfig()).toThrow("browser");
   });
 
-  it("ignores invalid KEYLENS_MAX_TABS values", () => {
+  it("rejects invalid KEYLENS_MAX_TABS values", () => {
     process.env.KEYLENS_MAX_TABS = "not-a-number";
-    const config = buildConfig();
-    expect(config.maxTabs).toBe(500);
+    expect(() => buildConfig()).toThrow("maxTabs");
+  });
+
+  it("applies execution profiles before explicit options", () => {
+    const fast = buildConfig({ profile: "fast" });
+    const overridden = buildConfig({ profile: "fast", maxTabs: 50 });
+
+    expect(fast.tabDelay).toBe(25);
+    expect(fast.maxTabs).toBe(400);
+    expect(overridden.maxTabs).toBe(50);
   });
 
   it("applies reporters and outputDir options", () => {

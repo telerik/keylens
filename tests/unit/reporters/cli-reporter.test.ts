@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { reportCLI, reportMultiCLI } from "@/reporters/cli-reporter.js";
 import {
   makeAuditReport,
+  makeFocusedElement,
   makeMultiPageReport,
 } from "@tests/helpers/factories.js";
 import { setLogLevel } from "@/utils/logger.js";
@@ -121,6 +122,93 @@ describe("CLI Reporter", () => {
     const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
     expect(allOutput).toContain("Audit incomplete");
     expect(allOutput).not.toContain("All checks passed!");
+  });
+
+  it("shows interaction case details when interaction evaluation errors", () => {
+    const report = makeAuditReport({
+      rules: [
+        {
+          ruleId: "focus-after-interaction",
+          status: "error",
+          passed: false,
+          violations: [],
+          duration: 10,
+          error: {
+            code: "RULE_ERROR",
+            message: "1 interaction case(s) could not be evaluated",
+          },
+        },
+      ],
+      interactionResults: [
+        {
+          element: {
+            selector: "#stale-button",
+            tagName: "button",
+            role: "button",
+            accessibleName: "Open",
+          },
+          action: "click",
+          focusAfter: null,
+          status: "error",
+          reason: "element-missing",
+          message: "Control no longer exists after page reset: #stale-button",
+          duration: 5,
+        },
+      ],
+    });
+
+    reportCLI(report);
+
+    const allErrors = errorSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(allErrors).toContain("#stale-button");
+    expect(allErrors).toContain("element-missing");
+    expect(allErrors).toContain("Control no longer exists");
+  });
+
+  it("reports focus screenshot coverage", () => {
+    const report = makeAuditReport();
+    report.config.capture.elements = true;
+    report.crawl.capture = {
+      attempted: 5,
+      captured: 4,
+      skipped: 1,
+      failed: 0,
+      byteLength: 3072,
+      decodedPixels: 100,
+    };
+    report.assets = [
+      {
+        id: "focused",
+        type: "focused-element-screenshot",
+        mediaType: "image/png",
+        byteLength: 1024,
+        storage: { kind: "inline", data: "a", encoding: "base64" },
+      },
+      {
+        id: "unfocused",
+        type: "unfocused-element-screenshot",
+        mediaType: "image/png",
+        byteLength: 2048,
+        storage: { kind: "inline", data: "b", encoding: "base64" },
+      },
+    ];
+    report.focusSequence = [
+      makeFocusedElement({
+        focusedScreenshotAssetId: "focused",
+        unfocusedScreenshotAssetId: "unfocused",
+      }),
+    ];
+
+    reportCLI(report);
+
+    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(allOutput).toContain("Focus screenshots:");
+    expect(allOutput).toContain("1 complete pair(s)");
+    expect(allOutput).toContain("3.0 KB");
+    expect(allOutput).toContain("Capture omissions:");
+    expect(allOutput).toContain(
+      "1 skipped, 0 failed across page and focus captures",
+    );
   });
 
   it("should truncate elements to 5 and show overflow count", () => {
