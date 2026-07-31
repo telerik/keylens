@@ -32,6 +32,7 @@ npm-debug.log*
 # Test Artifacts
 tests/integration/screenshots/
 tests/integration/reports/
+benchmark-results.json
 
 # VitePress
 docs/.vitepress/dist/

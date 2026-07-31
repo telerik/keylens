@@ -1,108 +1,99 @@
-# Getting Started
+# Getting started
 
-## Prerequisites
+Keylens verifies runtime keyboard navigation. Static analyzers answer whether markup
+could be accessible; Keylens launches a real browser, presses Tab, and records what
+actually happens.
 
-### GitHub Packages Authentication
+## Requirements
 
-> **Private alpha:** Keylens is currently distributed through GitHub Packages. These one-time setup steps are required before installing.
+- Node.js 22 or later
+- A Playwright-supported operating system
+- Access to the `@telerik/keylens` GitHub Package
+- A GitHub token with `read:packages`
 
-1. **Authenticate with GitHub**
+Keylens is not currently distributed from the public npm registry, and `1.0.0` is not
+published.
 
-   ```bash
-   gh auth login --scopes read:packages
-   ```
-
-2. **Configure the @telerik registry**
-
-   ```bash
-   echo "@telerik:registry=https://npm.pkg.github.com" >> ~/.npmrc
-   ```
-
-3. **Write the auth token to `~/.npmrc`**
-
-   ```bash
-   echo "//npm.pkg.github.com/:_authToken=$(gh auth token)" >> ~/.npmrc
-   ```
-
-### Runtime Requirements
-
-- **Node.js 22+** is required.
-- Keylens uses [Playwright](https://playwright.dev) to drive browsers. On first run, it will prompt you to install browser binaries if needed:
+## Authenticate and install
 
 ```bash
+gh auth login --scopes read:packages
+npm config set @telerik:registry https://npm.pkg.github.com
+npm config set //npm.pkg.github.com/:_authToken "$(gh auth token)"
+npm install --save-dev @telerik/keylens@dev
 npx playwright install chromium
 ```
 
-## Quick Start
+The `@dev` tag is the current prerelease channel. Keep credentials in user or CI
+configuration; do not commit tokens to `.npmrc`.
 
-Run a keyboard navigation audit on any URL without installing anything:
-
-```bash
-npx @telerik/keylens@dev audit https://your-site.com
-```
-
-## Installation
-
-### Global
+## Run the first audit
 
 ```bash
-npm install -g @telerik/keylens@dev
+npx keylens audit https://example.com
 ```
 
-### Project Dependency
+By default, Keylens:
+
+1. starts headless Chromium;
+2. loads the page at `domcontentloaded`, then waits 1 second;
+3. tests the first five focus stops for a skip link;
+4. discovers interactive elements in the top-level document;
+5. presses Tab until focus cycles or the `balanced` profile reaches 500 attempts;
+6. evaluates eight deterministic rules;
+7. prints a CLI report.
+
+No page or element screenshots are captured by the default CLI report, controls are
+not activated, and AI is disabled.
+
+## Save reports
 
 ```bash
-npm install --save-dev @telerik/keylens@dev
+npx keylens audit https://example.com \
+  --output cli,json,html,markdown \
+  --output-dir ./keylens-report
 ```
 
-Add a script to your `package.json`:
+HTML output requests a full-page screenshot by default so it can draw a focus map.
+JSON omits binary assets. See [CLI reference](./cli) for filenames and exit codes.
+
+## Audit an SPA
+
+```bash
+npx keylens audit https://example.com/app \
+  --wait-for "[data-app-ready]" \
+  --wait 1500
+```
+
+`--wait-for` waits for the selector using `tabTimeout`; `--wait` then adds a fixed
+settling delay. Neither option proves that all later lazy content or application states
+have loaded. Audit significant routes and states separately.
+
+## Audit multiple pages
 
 ```json
 {
-  "scripts": {
-    "test:keyboard": "keylens audit http://localhost:3000"
-  }
+  "urls": [
+    "https://example.com/",
+    "https://example.com/products",
+    "https://example.com/checkout"
+  ],
+  "multiPage": { "concurrency": 2 },
+  "reporters": ["cli", "json"]
 }
 ```
 
-## Your First Audit
-
 ```bash
-keylens audit https://example.com
+npx keylens audit --config keylens.config.json
 ```
 
-This will:
+Multi-page audits reuse one browser, create isolated contexts, preserve input order in
+the report, and process at most the configured concurrency.
 
-1. Launch a headless Chromium browser
-2. Navigate to the URL and capture a full-page screenshot
-3. Test skip link functionality (if present)
-4. Discover all interactive elements on the page
-5. Press Tab through every focusable element, recording the focus sequence
-6. Run all 8 rules against the crawl results
-7. Print results to your terminal
+## Next steps
 
-## Multi-Page Scanning
-
-To audit multiple pages in a single run, set `urls` in your config file:
-
-```json
-{
-  "urls": ["https://example.com", "https://example.com/about"],
-  "reporters": ["cli", "html"]
-}
-```
-
-Then run without a URL argument:
-
-```bash
-keylens audit --config keylens.config.json
-```
-
-The HTML report will include a tabbed interface with a focus order map for each page.
-
-## Next Steps
-
-- [CLI Reference](/guide/cli) — All flags and options
-- [Configuration](/guide/configuration) — Config file setup
-- [AI Features](/guide/ai) — Enable AI-powered analysis
-- [Rules](/rules/) — What Keylens checks for
+- [Configuration and profiles](./configuration)
+- [Programmatic API](/api/)
+- [CI/CD](./ci-cd)
+- [Known limitations](./limitations)
+- [Rules](/rules/)

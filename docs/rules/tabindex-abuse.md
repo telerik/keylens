@@ -12,7 +12,8 @@ Detects elements with positive `tabindex` values (`tabindex="1"`, `tabindex="5"`
 
 ## How it works
 
-During the tab crawl, each focused element's `tabindex` attribute is recorded. Any element with `tabindex` greater than 0 is flagged.
+Keylens inspects all discovered interactive elements, including elements that the Tab
+crawl did not reach. Any numeric `tabindex` greater than 0 is flagged.
 
 ## Why it matters
 

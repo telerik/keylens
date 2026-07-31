@@ -3,10 +3,38 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Keylens",
   description:
-    "Keyboard navigation testing CLI. See your site through the lens of keyboard users.",
-  base: "/",
-  head: [["link", { rel: "icon", type: "image/svg+xml", href: "/logo.svg" }]],
+    "Keyboard navigation testing with real browsers. Press Tab and record what actually happens.",
+  base: "/keylens/",
+  head: [
+    [
+      "link",
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/keylens/logo.svg",
+      },
+    ],
+    ["meta", { property: "og:type", content: "website" }],
+    ["meta", { property: "og:title", content: "Keylens" }],
+    [
+      "meta",
+      {
+        property: "og:description",
+        content:
+          "Keyboard navigation testing with real browsers. Press Tab and record what actually happens.",
+      },
+    ],
+    ["meta", { name: "twitter:card", content: "summary" }],
+  ],
+  cleanUrls: true,
+  sitemap: {
+    hostname: "https://telerik.github.io/keylens/",
+  },
+  lastUpdated: true,
   themeConfig: {
+    search: {
+      provider: "local",
+    },
     nav: [
       { text: "Guide", link: "/guide/getting-started" },
       { text: "Rules", link: "/rules/" },
@@ -23,10 +51,19 @@ export default defineConfig({
           { text: "Getting Started", link: "/guide/getting-started" },
           { text: "CLI Reference", link: "/guide/cli" },
           { text: "Configuration", link: "/guide/configuration" },
+          { text: "Programmatic API", link: "/api/" },
+          { text: "CI/CD", link: "/guide/ci-cd" },
+          { text: "Performance", link: "/guide/performance" },
+          { text: "Known Limitations", link: "/guide/limitations" },
+          { text: "Migration Guide", link: "/guide/ga-migration" },
+        ],
+      },
+      {
+        text: "Experimental",
+        items: [
           { text: "AI Features", link: "/guide/ai" },
           { text: "MCP Server", link: "/guide/mcp" },
           { text: "Agent Skill", link: "/guide/agent-skill" },
-          { text: "CI/CD Integration", link: "/guide/ci-cd" },
         ],
       },
       {
@@ -50,8 +87,21 @@ export default defineConfig({
         ],
       },
       {
-        text: "API",
-        items: [{ text: "Programmatic Usage", link: "/api/" }],
+        text: "Project",
+        items: [
+          {
+            text: "Support Policy",
+            link: "https://github.com/telerik/keylens/blob/master/SUPPORT.md",
+          },
+          {
+            text: "Security",
+            link: "https://github.com/telerik/keylens/blob/master/SECURITY.md",
+          },
+          {
+            text: "Changelog",
+            link: "https://github.com/telerik/keylens/blob/master/CHANGELOG.md",
+          },
+        ],
       },
     ],
     socialLinks: [

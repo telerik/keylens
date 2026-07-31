@@ -7,67 +7,69 @@
 | WCAG     | 2.4.3, 2.4.7              |
 | Config   | `focusAfterInteraction`   |
 
-## What It Checks
+## What it checks
 
-After clicking a button or `role="button"` element, focus should remain on a sensible target — the clicked element itself, a child, or a newly opened container (e.g., a dialog). If focus reverts to `<body>` or is lost entirely, that's a problem for keyboard users who lose their place on the page.
+For each attempted activation, focus must remain on the original control or move to a
+visible interactive or managed target. Lost focus and unexpected noninteractive focus
+are failures.
 
-This rule requires the `--interactions` flag (or `interactions: true` in config) to collect data. Without it, the rule has no interaction results to evaluate and passes automatically.
+The rule requires experimental interactions. Without interaction data it passes with
+no violations, which means “not tested,” not that activation behavior is valid.
 
-## How It Works
+## Eligible controls
 
-1. The crawler's `crawlInteractions()` phase runs after the tab crawl
-2. It focuses each button/`role="button"` element from the focus sequence
-3. It clicks the element and checks `document.activeElement`
-4. If focus is on `<body>` or `null`, the interaction is marked as `focusReasonable: false`
-5. Each failed interaction produces a separate violation
+Candidates come from the recorded focus sequence and include buttons,
+`role="button"`, and button/checkbox/radio inputs. The configured action list can
+contain `click`, `enter`, and `space`.
 
-Links are skipped (to avoid page navigation) and `type="submit"` inputs are skipped (to avoid form submission).
+Default safeguards:
 
-## Examples
+- at most 20 attempted cases;
+- 2-second timeout for each focus or activation operation;
+- page reload before each case;
+- top-level navigation blocked;
+- likely destructive labels skipped;
+- optional include/exclude selector policies.
 
-### Fail
+These safeguards are heuristic and cannot prevent every side effect. Use disposable
+test data and narrow `include` selectors.
 
-```html
-<!-- Button that loses focus on click -->
-<button onclick="this.blur()">Bad Button</button>
-```
+## Outcomes
 
-### Pass
+Each `interactionResults[]` item has:
 
-```html
-<!-- Button that keeps focus -->
-<button onclick="openDialog()">Open Settings</button>
+- `passed` with `focus-preserved` or `focus-moved`;
+- `failed` with `focus-lost` or `unexpected-focus`;
+- `skipped` with `excluded`, `destructive`, `limit-reached`, or
+  `navigation-blocked`;
+- `error` with `element-missing` or `action-failed`.
 
-<!-- Focus moves to dialog (reasonable) -->
-<dialog id="settings">...</dialog>
-```
+Failed cases become error-severity violations. If there are only errored cases, the rule
+has `status: "error"`, the score is incomplete, and the CLI exits `2`. Inspect JSON for
+the action, resulting focus, stable reason, message, and duration of every case.
 
 ## Configuration
 
-Enable interaction testing via CLI:
-
-```bash
-keylens audit https://example.com --interactions
-```
-
-Or via config file:
-
 ```json
 {
-  "interactions": true,
-  "rules": {
-    "focusAfterInteraction": true
-  }
+  "interactions": {
+    "enabled": true,
+    "maxCases": 20,
+    "timeout": 2000,
+    "include": [".audit-safe"],
+    "exclude": [".opens-payment"],
+    "actions": ["click", "enter", "space"],
+    "isolation": "reload",
+    "navigation": "block",
+    "excludeDestructive": true
+  },
+  "timeouts": { "interactions": 30000 },
+  "rules": { "focusAfterInteraction": true }
 }
 ```
 
-To disable this rule while keeping interaction testing:
+## How to fix
 
-```json
-{
-  "interactions": true,
-  "rules": {
-    "focusAfterInteraction": false
-  }
-}
-```
+When activation removes a control or opens transient UI, move focus to a visible,
+logical target such as the opened dialog. Restore focus to the trigger or another
+deterministic control when the UI closes.

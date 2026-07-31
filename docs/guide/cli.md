@@ -1,121 +1,109 @@
-# CLI Reference
+# CLI reference
 
 ## Commands
 
 ### `keylens audit [url]`
 
-Run a keyboard navigation audit on one or more URLs. The URL argument is optional — when omitted, Keylens reads URLs from the config file's `urls` array.
+Alias: `keylens scan [url]`. An HTTP(S) URL can also be passed directly as shorthand.
+The URL argument overrides `urls` from the config file. Without an argument, all
+configured URLs are audited.
 
-| Flag                       | Default            | Description                                                    |
-| -------------------------- | ------------------ | -------------------------------------------------------------- |
-| `-c, --config <path>`      | —                  | Path to config file                                            |
-| `-o, --output <reporters>` | `cli`              | Reporters (comma-separated: `cli`, `json`, `html`, `markdown`) |
-| `-d, --output-dir <dir>`   | `./keylens-report` | Output directory for reports                                   |
-| `-b, --browser <name>`     | `chromium`         | Browser engine: `chromium`, `firefox`, `webkit`                |
-| `--headed`                 | `false`            | Run with a visible browser window                              |
-| `--wait-for <selector>`    | —                  | Wait for CSS selector before auditing                          |
-| `--wait <ms>`              | `1000`             | Wait after page load (ms)                                      |
-| `--max-tabs <n>`           | `500`              | Max Tab presses before stopping                                |
-| `--tab-delay <ms>`         | `250`              | Delay between tab presses in ms (min: 10)                      |
-| `--viewport <WxH>`         | `1280x720`         | Viewport dimensions                                            |
-| `--timeout <ms>`           | `30000`            | Navigation timeout in ms                                       |
-| `--screenshots`            | `false`            | Capture per-element focused/unfocused screenshots              |
-| `--interactions`           | `false`            | Test focus behavior after clicking buttons                     |
-| `--ai`                     | `false`            | Enable AI analysis                                             |
-| `--ai-model <model>`       | —                  | AI model to use (overrides config)                             |
-| `-q, --quiet`              | `false`            | Suppress non-essential output                                  |
-| `-v, --verbose`            | `false`            | Enable debug output                                            |
+| Option                     | Default            | Description                                    |
+| -------------------------- | ------------------ | ---------------------------------------------- |
+| `-c, --config <path>`      | —                  | JSON config path                               |
+| `--profile <profile>`      | `balanced`         | `fast`, `balanced`, or `thorough`              |
+| `-o, --output <reporters>` | `cli`              | Comma-separated `cli,json,html,markdown`       |
+| `-d, --output-dir <dir>`   | `./keylens-report` | File reporter destination                      |
+| `-b, --browser <browser>`  | `chromium`         | `chromium`, `firefox`, or `webkit`             |
+| `--headed`                 | `false`            | Show the browser                               |
+| `--wait-for <selector>`    | —                  | Wait for a CSS selector before the fixed delay |
+| `--wait <ms>`              | profile value      | Fixed delay after load                         |
+| `--max-tabs <n>`           | profile value      | Maximum Tab attempts                           |
+| `--tab-delay <ms>`         | profile value      | Delay after each Tab; minimum 10 ms            |
+| `--viewport <WxH>`         | `1280x720`         | Browser viewport                               |
+| `--timeout <ms>`           | `30000`            | Navigation timeout                             |
+| `--page-screenshot <mode>` | capability-based   | `none`, `viewport`, or `full`                  |
+| `--screenshots`            | `false`            | Capture bounded focus-state pairs              |
+| `--interactions`           | `false`            | Enable experimental bounded activations        |
+| `--ai`                     | `false`            | Enable experimental AI                         |
+| `--ai-model <model>`       | provider default   | Override the AI model                          |
+| `--ai-provider <provider>` | `anthropic`        | `anthropic` or `openai`                        |
+| `--ai-base-url <url>`      | —                  | OpenAI-compatible or Azure endpoint            |
+| `-q, --quiet`              | `false`            | Suppress nonessential output                   |
+| `-v, --verbose`            | `false`            | Enable debug diagnostics                       |
 
-#### `--screenshots`
+CLI values override config values. `--headed`, `--screenshots`, `--interactions`, and
+`--ai` enable their features; they do not provide `--no-*` forms.
 
-When enabled, Keylens captures per-element screenshots during the tab crawl:
+### Page screenshots and focus-state pairs
 
-- **Focused screenshot** — taken immediately after each element receives focus
-- **Unfocused screenshot** — taken of the previous element (which just lost focus)
+These are separate capture modes:
 
-These pairs are compared pixel-by-pixel using [pixelmatch](https://github.com/mapbox/pixelmatch). If no visible difference is found (below a 1% threshold), the element is flagged as missing a focus indicator with **Error** severity — providing stronger evidence than the CSS heuristic alone.
+- `--page-screenshot viewport|full` captures one page image. `none` disables it.
+- `--screenshots` captures a focused image when an element receives focus and an
+  unfocused image after it loses focus.
 
-```bash
-keylens audit https://example.com --screenshots
-```
+When `--page-screenshot` is omitted, HTML output defaults to `full`; all other output
+sets page capture to `none`. Explicit config or CLI values take precedence.
 
-#### `--interactions`
+Focus pairs are bounded by `capture.limits`. The CLI progress display reports Tab
+attempts, focus stops, completed pairs, and bytes while work runs. The final CLI report
+shows complete/partial pair coverage plus skipped or failed capture totals.
 
-When enabled, Keylens clicks buttons and `role="button"` elements after the tab crawl and verifies that focus isn't lost (i.e., doesn't revert to `<body>`). Links are skipped to avoid navigation, and `type="submit"` inputs are skipped to avoid form submission.
-
-Each element where focus is lost produces an **Error**-severity violation under the `focus-after-interaction` rule (WCAG 2.4.3, 2.4.7).
-
-```bash
-keylens audit https://example.com --interactions
-```
-
-Combine with other flags:
-
-```bash
-keylens audit https://example.com --interactions --screenshots --output html
-```
-
-#### `--tab-delay`
-
-Controls the delay (in milliseconds) between consecutive Tab key presses during the crawl. The default is 250ms. The minimum accepted value is 10ms.
+`missing-focus-indicator` compares only complete pairs. If a pair is absent because of
+a limit, clipping problem, animation, or capture failure, that element receives no
+pixel-diff result. The rule can still apply its much narrower inline-style heuristic.
 
 ```bash
-# Slower tabbing for complex pages with animations
-keylens audit https://example.com --tab-delay 500
-
-# Faster tabbing for simple pages
-keylens audit https://example.com --tab-delay 50
+npx keylens audit https://example.com \
+  --screenshots --page-screenshot viewport --output cli,json
 ```
 
-#### Markdown Reporter
+### Experimental interactions
 
-Use `--output markdown` (or `-o markdown`) to generate a Markdown report file (`keylens-report.md` for single-page, `keylens-report-multi.md` for multi-page audits).
+`--interactions` enables the config-defined policy. Defaults are a maximum of 20 cases,
+2 seconds per focus/activation operation, `click` only, page reload before each case,
+blocked top-level navigation, and destructive-control exclusion.
 
-```bash
-keylens audit https://example.com --output markdown
+Detailed outcomes are stored in `interactionResults`:
 
-# Combine with other reporters
-keylens audit https://example.com --output cli,markdown
-```
+- `passed`: focus stayed on the control or moved to a visible interactive/managed target;
+- `failed`: focus was lost or moved to an invalid target;
+- `skipped`: excluded/destructive/over-limit case or blocked navigation;
+- `error`: the element disappeared or the action failed.
 
-## Multi-Page Scanning
+The CLI summarizes errors but intentionally truncates detail. Generate JSON and inspect
+`interactionResults[]` and `crawl.interactions` for status, stable reason, message,
+action, resulting focus, and duration.
 
-When multiple URLs are configured, Keylens audits each page sequentially and produces an aggregate report.
+### Reports
 
-Using a config file with multiple URLs:
+| Reporter   | File                                                                 |
+| ---------- | -------------------------------------------------------------------- |
+| `cli`      | stdout                                                               |
+| `json`     | `keylens-report.json`                                                |
+| `html`     | `keylens-report.html`                                                |
+| `markdown` | `keylens-report.md`, or `keylens-report-multi.md` for multiple pages |
 
-```bash
-# keylens.config.json has urls: ["https://example.com", "https://example.com/about"]
-keylens audit --config keylens.config.json --output html
-```
-
-Or pass a single URL directly:
-
-```bash
-keylens audit https://example.com
-```
-
-When a single URL is passed as an argument, it takes precedence over the config file's `urls` array.
-
-Multi-page reports include:
-
-- **CLI**: each page printed separately, followed by an aggregate summary
-- **JSON**: single file containing all page reports with aggregate totals
-- **HTML**: tabbed interface with per-page sections, each with its own focus order map
-- **Markdown**: single file with per-page sections and aggregate summary
+The JSON reporter omits binary assets and screenshot asset IDs. Use the programmatic
+projection APIs when inline bytes or external references are required.
 
 ### `keylens init`
 
-Generate a `keylens.config.json` in the current directory.
+Creates or overwrites `keylens.config.json` with a concise starter configuration.
 
 ### `keylens mcp`
 
-Start the Keylens MCP server over stdio. Used by AI agents (Claude Desktop, VS Code Copilot, Cursor) to run keyboard accessibility audits. See [MCP Server](/guide/mcp) for setup instructions.
+Starts the **experimental** MCP server over stdio. See [MCP server](./mcp).
 
-## Exit Codes
+## Exit codes
 
-| Code | Meaning                                  |
-| ---- | ---------------------------------------- |
-| `0`  | Audit passed (no errors)                 |
-| `1`  | Audit found errors                       |
-| `2`  | Audit failed to run (crash/config error) |
+| Code | Meaning                                                                                                       |
+| ---: | ------------------------------------------------------------------------------------------------------------- |
+|  `0` | Complete audit with no error-severity violations                                                              |
+|  `1` | Complete audit with at least one error-severity accessibility violation                                       |
+|  `2` | Audit incomplete because of configuration, navigation, timeout, reporter, runtime, or rule evaluation failure |
+
+Warnings alone return `0`. A rule evaluator error takes precedence over accessibility
+violations and returns `2`; inspect `summary.errors`, rule `status: "error"`, and the
+incomplete score marker.

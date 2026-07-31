@@ -452,6 +452,25 @@ export async function launchAuditBrowser(
  * Test skip link functionality by tabbing through the first few elements,
  * finding a skip link, pressing Enter, and verifying focus moves to main content.
  */
+async function resetSequentialFocus(
+  page: Page,
+  tabDelay: number,
+): Promise<void> {
+  await page.evaluate(`(() => {
+    const body = document.body;
+    const previousTabindex = body.getAttribute("tabindex");
+    body.setAttribute("tabindex", "-1");
+    body.focus({ preventScroll: true });
+    if (previousTabindex === null) {
+      body.removeAttribute("tabindex");
+    } else {
+      body.setAttribute("tabindex", previousTabindex);
+    }
+    window.scrollTo(0, 0);
+  })()`);
+  await page.waitForTimeout(tabDelay);
+}
+
 async function testSkipLink(
   page: Page,
   tabDelay: number,
@@ -459,9 +478,7 @@ async function testSkipLink(
   url?: string,
 ): Promise<SkipLinkResult> {
   throwIfAborted(signal, "crawl", url);
-  // Click body to reset sequential focus navigation starting point
-  await page.mouse.click(0, 0);
-  await page.waitForTimeout(tabDelay);
+  await resetSequentialFocus(page, tabDelay);
 
   // Tab through first 5 elements looking for a skip link
   for (let i = 0; i < 5; i++) {
@@ -510,9 +527,7 @@ async function testSkipLink(
 
     const functionWorks = focusTarget !== null;
 
-    // Click body to reset sequential focus navigation starting point
-    await page.mouse.click(0, 0);
-    await page.waitForTimeout(tabDelay);
+    await resetSequentialFocus(page, tabDelay);
 
     return {
       found: true,
@@ -526,9 +541,7 @@ async function testSkipLink(
     };
   }
 
-  // No skip link found — click body to reset for main crawl
-  await page.mouse.click(0, 0);
-  await page.waitForTimeout(tabDelay);
+  await resetSequentialFocus(page, tabDelay);
 
   return { found: false, functionWorks: false };
 }
@@ -630,9 +643,7 @@ async function crawlTabOrder(
     config.capture.limits.maxElements ?? Number.POSITIVE_INFINITY;
   const tabDelay = config.tabDelay;
 
-  // Click the body to reset sequential focus navigation starting point
-  await page.mouse.click(0, 0);
-  await page.waitForTimeout(tabDelay);
+  await resetSequentialFocus(page, tabDelay);
 
   for (let i = 0; i < config.maxTabs; i++) {
     throwIfAborted(signal, "crawl", url);

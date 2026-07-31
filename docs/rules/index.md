@@ -28,7 +28,9 @@ Keylens runs a set of rules against the keyboard focus sequence it captures from
 :::
 
 ::: info Opt-in data collection
-**Focus After Interaction** requires `--interactions` (or `interactions: true` in config) to collect interaction data. Without it, the rule passes automatically with no violations.
+**Focus After Interaction** requires `--interactions` (or
+`interactions.enabled: true` in config). Without interaction data, the rule passes with
+no violations; that pass does not mean activation behavior was tested.
 :::
 
 ## Disabling Rules
@@ -45,6 +47,5 @@ In `keylens.config.json`:
 }
 ```
 
-## Contributing Rules
-
-Each rule implements the `Rule` interface from `src/types/index.ts`. See the [API reference](/api/) for the interface definition and existing rules in `src/rules/` for examples.
+Rule evaluator failures are reported separately from violations. They make the
+deterministic score incomplete and produce CLI exit code `2`.

@@ -1,54 +1,43 @@
-# Agent Skill
+# Experimental agent skill
 
-Keylens ships with an agent skill for Claude Code and compatible agent platforms. The `/keylens` skill provides guided keyboard accessibility auditing workflows.
+The package includes an experimental, user-invokable `keylens` agent skill under
+`skill/`. The skill and agent workflows are outside the stable core contract.
 
-## What's included
-
-The skill files are bundled in the npm package under `skill/`:
-
-```
+```text
 skill/
-  SKILL.md              # Skill definition with instructions
+  SKILL.md
   references/
-    rules.md            # Condensed reference for all 8 rules
-    fix-patterns.md     # Code-level fix patterns by rule
+    rules.md
+    fix-patterns.md
 ```
 
-## Using with Claude Code
+The skill gives compatible coding agents a compact workflow for:
 
-When the Keylens MCP server is configured, you can ask Claude Code to run keyboard accessibility audits directly:
+- running CLI audits and saving JSON;
+- choosing screenshot or interaction evidence;
+- reading summary, crawl coverage, and per-rule results;
+- applying rule-specific remediation patterns;
+- rerunning the deterministic audit after changes.
 
-> "Run a keylens audit on `http://localhost:3000` and fix any issues"
+## Use safely
 
-The agent will use the MCP tools to audit the page and apply fixes based on the structured results.
+Before asking an agent to audit:
 
-## Skill Contents
+1. install Keylens from GitHub Packages and install the selected Playwright browser;
+2. start the target application yourself;
+3. use a test environment without production secrets or customer data;
+4. keep interactions disabled unless the target controls and limits are known safe;
+5. review code changes and rerun tests manually.
 
-### SKILL.md
+If the agent uses MCP, configure the [experimental MCP server](./mcp). Otherwise it can
+invoke the locally installed `keylens` binary through a terminal.
 
-The main skill file includes:
+```text
+Audit http://127.0.0.1:3000 with Keylens. Save JSON, explain incomplete
+coverage separately from accessibility failures, and propose fixes without
+enabling interactions or AI.
+```
 
-- Installation verification
-- Common audit workflows (basic, AI-enabled, screenshots, multi-page)
-- How to interpret JSON results
-- Quick-reference table of all 8 rules
-- Exit code semantics
-
-### references/rules.md
-
-Condensed reference for each rule:
-
-- Rule ID and WCAG criterion
-- What it detects
-- Common causes
-- How to fix
-
-### references/fix-patterns.md
-
-Ready-to-use code snippets organized by rule:
-
-- Keyboard trap: Escape key handlers
-- Unreachable elements: Native elements and tabindex
-- Focus indicators: `:focus-visible` CSS
-- Skip links: HTML and CSS patterns
-- Focus management: Post-interaction focus handling
+Agents must distinguish exit code `1` (accessibility findings) from `2` (incomplete
+audit), and must not treat warnings, AI suggestions, or a score as conformance proof.
+See [Known limitations](./limitations).

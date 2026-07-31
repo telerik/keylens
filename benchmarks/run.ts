@@ -1,5 +1,5 @@
 import { createServer, type Server } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { performance } from "node:perf_hooks";
@@ -12,6 +12,7 @@ import {
 import { normalizeConfig } from "../src/utils/config.js";
 import { setLogLevel } from "../src/utils/logger.js";
 import type { AuditReport, MultiPageReport } from "../src/types/index.js";
+import { BENCHMARK_BUDGETS } from "./budgets.js";
 
 interface BenchmarkResult {
   name: string;
@@ -25,6 +26,23 @@ interface BenchmarkResult {
   elementScreenshotCount: number;
   interactionResultCount: number;
   focusedElements: number;
+}
+
+interface BenchmarkReport {
+  generatedAt: string;
+  runtime: {
+    node: string;
+    platform: NodeJS.Platform;
+    arch: string;
+    cpuCount: number;
+  };
+  config: {
+    tabDelay: number;
+    tabTimeout: number;
+    maxTabs: number;
+    waitAfterLoad: number;
+  };
+  results: BenchmarkResult[];
 }
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
@@ -115,6 +133,43 @@ async function measure(
   } finally {
     console.log = originalConsoleLog;
     clearInterval(sampler);
+  }
+}
+
+function enforceBudgets(results: BenchmarkResult[]): void {
+  const failures: string[] = [];
+  for (const result of results) {
+    const budget = BENCHMARK_BUDGETS[result.name];
+    if (!budget) {
+      failures.push(`${result.name}: no benchmark budget is defined`);
+      continue;
+    }
+    const checks: Array<[string, number, number]> = [
+      ["wallTimeMs", result.wallTimeMs, budget.wallTimeMs],
+      ["rssDeltaBytes", result.rssDeltaBytes, budget.rssDeltaBytes],
+      [
+        "compactSerializedBytes",
+        result.compactSerializedBytes,
+        budget.compactSerializedBytes,
+      ],
+    ];
+    if (budget.inlineScreenshotBytes !== undefined) {
+      checks.push([
+        "inlineScreenshotBytes",
+        result.inlineScreenshotBytes,
+        budget.inlineScreenshotBytes,
+      ]);
+    }
+    for (const [metric, actual, maximum] of checks) {
+      if (actual > maximum) {
+        failures.push(
+          `${result.name}.${metric}: ${actual} exceeds budget ${maximum}`,
+        );
+      }
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(`Benchmark budget failures:\n- ${failures.join("\n- ")}`);
   }
 }
 
@@ -218,28 +273,29 @@ async function main(): Promise<void> {
       );
     }
 
-    process.stdout.write(
-      `${JSON.stringify(
-        {
-          generatedAt: new Date().toISOString(),
-          runtime: {
-            node: process.version,
-            platform: process.platform,
-            arch: process.arch,
-            cpuCount: navigator.hardwareConcurrency,
-          },
-          config: {
-            tabDelay: baseConfig.tabDelay,
-            tabTimeout: baseConfig.tabTimeout,
-            maxTabs: baseConfig.maxTabs,
-            waitAfterLoad: baseConfig.waitAfterLoad,
-          },
-          results,
-        },
-        null,
-        2,
-      )}\n`,
-    );
+    const report: BenchmarkReport = {
+      generatedAt: new Date().toISOString(),
+      runtime: {
+        node: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        cpuCount: navigator.hardwareConcurrency,
+      },
+      config: {
+        tabDelay: baseConfig.tabDelay,
+        tabTimeout: baseConfig.tabTimeout,
+        maxTabs: baseConfig.maxTabs,
+        waitAfterLoad: baseConfig.waitAfterLoad,
+      },
+      results,
+    };
+    const serialized = `${JSON.stringify(report, null, 2)}\n`;
+    process.stdout.write(serialized);
+    const outputPath = process.env.KEYLENS_BENCHMARK_OUTPUT;
+    if (outputPath) await writeFile(outputPath, serialized, "utf8");
+    if (process.env.KEYLENS_BENCHMARK_ENFORCE === "1") {
+      enforceBudgets(results);
+    }
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => (error ? reject(error) : resolve())),

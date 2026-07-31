@@ -27,14 +27,19 @@ Elements matching these patterns are flagged with **Warning** severity.
 
 ### Phase 2: Screenshot Comparison (with `--screenshots`)
 
-When `--screenshots` is enabled, the crawler captures:
+When `--screenshots` is enabled and capture budgets permit, the crawler captures:
 
 - A **focused screenshot** of each element immediately after it receives focus
 - An **unfocused screenshot** of the same element after focus moves away
 
-These are compared pixel-by-pixel using [pixelmatch](https://github.com/mapbox/pixelmatch). If fewer than 1% of pixels differ, the element is considered to have no visible focus indicator and is flagged with **Error** severity.
+Only complete, same-sized pairs are compared with
+[pixelmatch](https://github.com/mapbox/pixelmatch). If fewer than 1% of pixels differ,
+the element is flagged with **Error** severity.
 
-This provides stronger evidence than the CSS heuristic, as it catches cases where focus styles are removed via external stylesheets, CSS classes, or are simply too subtle to see.
+This provides stronger evidence than the inline HTML heuristic, but it is not a
+contrast measurement or WCAG conformance proof. Animation, clipping, antialiasing,
+content changes, and indicators painted outside the captured rectangle can cause false
+results. Missing or failed pairs receive no screenshot result.
 
 ## Examples
 

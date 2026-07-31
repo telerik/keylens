@@ -1,35 +1,88 @@
 # Configuration
 
-## Config File
-
-Generate a config file with:
+Generate a starter file:
 
 ```bash
-keylens init
+npx keylens init
 ```
 
-This creates `keylens.config.json` with all defaults. The file supports JSON Schema for IDE autocomplete — add the `$schema` property:
+Config is strict JSON. Unknown keys, invalid URLs, and out-of-range values fail before
+the audit. Partial nested objects are accepted and merged with defaults.
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json"
+  "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
+  "urls": ["https://example.com"],
+  "profile": "balanced",
+  "capture": { "page": "none", "elements": false },
+  "reporters": ["cli", "json"]
 }
 ```
 
-## Full Example
+Precedence is:
+
+```text
+defaults < selected profile < explicit config values < CLI values
+```
+
+## Execution profiles
+
+Profiles set only `maxTabs`, `tabTimeout`, `waitAfterLoad`, and `tabDelay`.
+
+| Profile    | Max Tabs | Tab timeout | Load wait | Tab delay | Use                                |
+| ---------- | -------: | ----------: | --------: | --------: | ---------------------------------- |
+| `fast`     |      400 |      500 ms |    250 ms |     25 ms | Local smoke checks on stable pages |
+| `balanced` |      500 |    3,000 ms |  1,000 ms |    250 ms | Default general and CI audit       |
+| `thorough` |    1,000 |    5,000 ms |  2,000 ms |    500 ms | Slow, animated, or large pages     |
+
+Explicit values override the profile. A profile never disables capture, interaction,
+or timeout limits.
+
+## Full configuration shape
 
 ```json
 {
-  "urls": [],
+  "profile": "balanced",
+  "urls": ["https://example.com"],
   "viewport": { "width": 1280, "height": 720 },
   "maxTabs": 500,
   "tabTimeout": 3000,
+  "waitForSelector": "[data-app-ready]",
   "waitAfterLoad": 1000,
   "tabDelay": 250,
   "browser": "chromium",
+  "navigationTimeout": 30000,
   "headed": false,
-  "captureElementScreenshots": false,
-  "interactions": false,
+  "capture": {
+    "page": "none",
+    "elements": false,
+    "limits": {
+      "maxElements": 200,
+      "maxDimension": 16384,
+      "maxPixels": 40000000,
+      "maxBytes": 52428800
+    }
+  },
+  "interactions": {
+    "enabled": false,
+    "maxCases": 20,
+    "timeout": 2000,
+    "include": [".audit-safe"],
+    "exclude": [".opens-payment"],
+    "actions": ["click"],
+    "isolation": "reload",
+    "navigation": "block",
+    "excludeDestructive": true
+  },
+  "multiPage": { "concurrency": 2 },
+  "timeouts": {
+    "total": 120000,
+    "crawl": 90000,
+    "rules": 10000,
+    "interactions": 30000,
+    "ai": 30000,
+    "reporters": 15000
+  },
   "rules": {
     "keyboardTrap": true,
     "unreachableElements": true,
@@ -40,7 +93,7 @@ This creates `keylens.config.json` with all defaults. The file supports JSON Sch
     "focusNotObscured": true,
     "focusAfterInteraction": true
   },
-  "reporters": ["cli"],
+  "reporters": ["cli", "json"],
   "outputDir": "./keylens-report",
   "ai": {
     "enabled": false,
@@ -53,55 +106,71 @@ This creates `keylens.config.json` with all defaults. The file supports JSON Sch
       "focusIndicatorQuality": false,
       "accessibleNameInference": false,
       "crossPagePatterns": true
-    }
+    },
+    "limits": { "batchSize": 10, "maxWidgets": 20, "maxElements": 10 }
   }
 }
 ```
 
-## Key Options
+All timeout values and capture byte limits are milliseconds and bytes respectively.
+Omit optional `include`, `exclude`, and timeout budgets when they are not needed.
 
-### `urls`
+## Exhaustive audit within budgets
 
-An array of URLs to audit. When running `keylens audit` without a URL argument, these URLs are used. If multiple URLs are specified, Keylens runs a multi-page audit and produces an aggregate report.
+“Exhaustive” means enabling all available deterministic evidence collection while
+retaining enforced safety limits; it does not mean unbounded or complete WCAG coverage.
 
 ```json
 {
-  "urls": [
-    "https://example.com",
-    "https://example.com/about",
-    "https://example.com/contact"
-  ]
+  "profile": "thorough",
+  "capture": {
+    "page": "full",
+    "elements": true,
+    "limits": {
+      "maxElements": 400,
+      "maxDimension": 16384,
+      "maxPixels": 80000000,
+      "maxBytes": 104857600
+    }
+  },
+  "interactions": {
+    "enabled": true,
+    "maxCases": 50,
+    "timeout": 3000,
+    "actions": ["click", "enter", "space"],
+    "isolation": "reload",
+    "navigation": "block",
+    "excludeDestructive": true
+  },
+  "timeouts": {
+    "total": 300000,
+    "crawl": 180000,
+    "rules": 30000,
+    "interactions": 90000,
+    "reporters": 30000
+  },
+  "reporters": ["cli", "json", "html", "markdown"]
 }
 ```
 
-### `captureElementScreenshots`
+Review selectors and limits for the target environment before enabling interactions.
+Use `include` to restrict activation to known-safe controls. AI remains a separate,
+experimental choice and is not required for an exhaustive deterministic audit.
 
-When `true`, the crawler captures per-element focused and unfocused screenshots during the tab crawl. These are compared via pixelmatch to detect missing focus indicators with higher confidence. Equivalent to `--screenshots` CLI flag.
+## Capture degradation
 
-### `interactions`
+The capture budget is shared by the page image and focus-state images. `maxDimension`
+limits each image; `maxPixels` and `maxBytes` limit cumulative decoded pixels and
+encoded bytes. `maxElements` limits focus-state pairs. Exceeding a limit skips capture
+rather than failing the audit. `crawl.capture` reports attempted, captured, skipped,
+failed, byte, and pixel totals.
 
-When `true`, the crawler clicks buttons and `role="button"` elements after the tab crawl and checks whether focus is maintained. Links and submit inputs are skipped. Equivalent to `--interactions` CLI flag. Requires the `focusAfterInteraction` rule to be enabled (it is by default).
+## Multi-page execution
 
-### `tabDelay`
+`multiPage.concurrency` controls isolated contexts in one reused browser. The default is 2. The first page failure stops new work and rejects the multi-page operation; it does
+not return a partial multi-page report.
 
-Delay in milliseconds between consecutive Tab key presses during the crawl. Default is `250`. Minimum accepted value is `10`. Equivalent to `--tab-delay` CLI flag. Increase this value for pages with heavy animations or transitions; decrease it for faster audits on simple pages.
+## AI configuration
 
-### `reporters`
-
-Array of reporter types to use: `"cli"`, `"json"`, `"html"`, `"markdown"`. The HTML reporter includes a visual focus order map overlay when page screenshots and focus sequence data are available. For multi-page audits, the HTML report shows a tabbed interface with per-page sections. The Markdown reporter outputs to `keylens-report.md` (single-page) or `keylens-report-multi.md` (multi-page).
-
-### `rules`
-
-Enable or disable individual rules. All rules are enabled by default.
-
-### `ai`
-
-See [AI Features](/guide/ai) for full configuration details.
-
-## Precedence
-
-CLI flags override config file values, which override defaults:
-
-```
-defaults < keylens.config.json < CLI flags
-```
+AI is disabled by default and experimental. See [AI features](./ai) for providers,
+credentials, data handling, and feature-specific limits.

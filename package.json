@@ -1,7 +1,7 @@
 {
   "name": "@telerik/keylens",
   "version": "0.1.0",
-  "description": "Keyboard navigation testing CLI. See your site through the lens of keyboard users.",
+  "description": "Real-browser keyboard navigation testing for the CLI, CI, and programmatic audits.",
   "keywords": [
     "accessibility",
     "a11y",
@@ -55,7 +55,10 @@
     "keylens.config.schema.json",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "SUPPORT.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -70,7 +73,9 @@
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "benchmark": "tsx benchmarks/run.ts",
+    "benchmark:ci": "KEYLENS_BENCHMARK_ENFORCE=1 KEYLENS_BENCHMARK_OUTPUT=benchmark-results.json tsx benchmarks/run.ts",
     "benchmark:typecheck": "tsc --noEmit -p benchmarks/tsconfig.json",
+    "package:verify": "npm run build && node scripts/verify-package.mjs",
     "validate": "npm run lint && npm run typecheck && npm run benchmark:typecheck && npm run build && npm test",
     "keylens": "tsx src/cli/index.ts",
     "prepublishOnly": "npm run build",
