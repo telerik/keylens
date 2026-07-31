@@ -7,10 +7,10 @@ import {
   renderAuditReport,
   renderMultiPageReport,
   AIAnalyzer,
-  DEFAULT_CONFIG,
 } from "../index.js";
 import type {
   KeylensConfig,
+  KeylensConfigInput,
   AuditReport,
   MultiPageReport,
   FocusedElement,
@@ -19,8 +19,9 @@ import type {
   RuleViolation,
   WidgetClassification,
   AccessibleNameSuggestion,
+  ExecutionProfile,
 } from "../types/index.js";
-import { resolveAIAPIKey } from "../utils/config.js";
+import { normalizeConfig, resolveAIAPIKey } from "../utils/config.js";
 import { getInlineAssetData } from "../utils/assets.js";
 import { setLogLevel } from "../utils/logger.js";
 import { SamplingTransport } from "./sampling.js";
@@ -28,6 +29,7 @@ import { SamplingTransport } from "./sampling.js";
 // ─── Types ──────────────────────────────────────────────────────
 
 export interface AuditOptions {
+  profile?: ExecutionProfile;
   browser?: "chromium" | "firefox" | "webkit";
   viewport?: { width?: number; height?: number };
   maxTabs?: number;
@@ -50,72 +52,56 @@ export interface McpToolResponse {
 // ─── Config Builder ─────────────────────────────────────────────
 
 export function buildConfig(options?: AuditOptions): KeylensConfig {
-  const config: KeylensConfig = {
-    ...DEFAULT_CONFIG,
-    ai: { ...DEFAULT_CONFIG.ai, features: { ...DEFAULT_CONFIG.ai.features } },
-    capture: {
-      ...DEFAULT_CONFIG.capture,
-      limits: { ...DEFAULT_CONFIG.capture.limits },
-    },
-    interactions: {
-      ...DEFAULT_CONFIG.interactions,
-      actions: [...DEFAULT_CONFIG.interactions.actions],
-    },
-    multiPage: { ...DEFAULT_CONFIG.multiPage },
-    timeouts: { ...DEFAULT_CONFIG.timeouts },
+  const input: KeylensConfigInput = {
     reporters: [],
     outputDir: join(process.cwd(), "keylens-report"),
     headed: false,
   };
 
-  // Environment variable overrides
   const envBrowser = process.env.KEYLENS_BROWSER;
-  if (envBrowser && ["chromium", "firefox", "webkit"].includes(envBrowser)) {
-    config.browser = envBrowser as KeylensConfig["browser"];
+  if (envBrowser) {
+    input.browser = envBrowser as KeylensConfig["browser"];
   }
 
   const envMaxTabs = process.env.KEYLENS_MAX_TABS;
   if (envMaxTabs) {
-    const parsed = parseInt(envMaxTabs, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      config.maxTabs = parsed;
-    }
+    input.maxTabs = Number(envMaxTabs);
   }
 
-  const aiKey = resolveAIAPIKey(config.ai);
-  if (aiKey) {
-    config.ai = { ...config.ai, apiKey: aiKey };
-  }
-
-  const aiBaseURL = process.env.KEYLENS_AI_BASE_URL;
-  if (aiBaseURL) {
-    config.ai = { ...config.ai, baseURL: aiBaseURL };
-  }
-
-  // Caller-provided options
   if (options) {
-    if (options.browser) config.browser = options.browser;
+    if (options.profile) input.profile = options.profile;
+    if (options.browser) input.browser = options.browser;
     if (options.viewport) {
-      config.viewport = {
-        width: options.viewport.width ?? config.viewport.width,
-        height: options.viewport.height ?? config.viewport.height,
-      };
+      input.viewport = { ...options.viewport };
     }
-    if (options.maxTabs) config.maxTabs = options.maxTabs;
-    if (options.tabDelay) config.tabDelay = Math.max(10, options.tabDelay);
+    if (options.maxTabs !== undefined) input.maxTabs = options.maxTabs;
+    if (options.tabDelay !== undefined) input.tabDelay = options.tabDelay;
     if (options.waitForSelector)
-      config.waitForSelector = options.waitForSelector;
+      input.waitForSelector = options.waitForSelector;
     if (options.waitAfterLoad !== undefined)
-      config.waitAfterLoad = options.waitAfterLoad;
+      input.waitAfterLoad = options.waitAfterLoad;
     if (options.screenshots) {
-      config.capture.elements = true;
+      input.capture = { elements: true };
     }
-    if (options.interactions) config.interactions.enabled = true;
-    if (options.ai) config.ai = { ...config.ai, enabled: true };
-    if (options.reporters) config.reporters = options.reporters;
-    if (options.outputDir) config.outputDir = options.outputDir;
+    if (options.interactions) input.interactions = { enabled: true };
+    if (options.ai) input.ai = { enabled: true };
+    if (options.reporters) input.reporters = options.reporters;
+    if (options.outputDir) input.outputDir = options.outputDir;
   }
 
+  let config = normalizeConfig(input);
+  const aiKey = resolveAIAPIKey(config.ai);
+  const aiBaseURL = process.env.KEYLENS_AI_BASE_URL;
+  if (aiKey || aiBaseURL) {
+    config = normalizeConfig({
+      ...config,
+      ai: {
+        ...config.ai,
+        apiKey: aiKey,
+        baseURL: aiBaseURL ?? config.ai.baseURL,
+      },
+    });
+  }
   return config;
 }
 

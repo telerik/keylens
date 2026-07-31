@@ -1,5 +1,6 @@
 import type {
   CrawlResult,
+  AuditEvent,
   KeylensConfig,
   Rule,
   RuleResult,
@@ -50,6 +51,8 @@ export async function runRules(
   crawlResult: CrawlResult,
   config: KeylensConfig,
   signal?: AbortSignal,
+  onEvent?: (event: AuditEvent) => void,
+  eventStartedAt = Date.now(),
 ): Promise<RuleResult[]> {
   const results: RuleResult[] = [];
   const enabledRules = ALL_RULES.filter((rule) => {
@@ -63,6 +66,14 @@ export async function runRules(
     throwIfAborted(signal, "rules", crawlResult.url);
     logger.debug(`Running rule: ${rule.name}`);
     const startTime = Date.now();
+    onEvent?.({
+      type: "rule-started",
+      phase: "rules",
+      url: crawlResult.url,
+      timestamp: new Date().toISOString(),
+      elapsedMs: Date.now() - eventStartedAt,
+      ruleId: rule.id,
+    });
 
     try {
       const result = await raceWithSignal(
@@ -77,6 +88,14 @@ export async function runRules(
       result.ruleDescription = rule.description;
       result.wcag = rule.wcag;
       results.push(result);
+      onEvent?.({
+        type: "rule-completed",
+        phase: "rules",
+        url: crawlResult.url,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - eventStartedAt,
+        ruleId: rule.id,
+      });
 
       logger.rule(
         result.passed,
@@ -99,6 +118,14 @@ export async function runRules(
           code: "RULE_ERROR",
           message: (error as Error).message,
         },
+      });
+      onEvent?.({
+        type: "rule-completed",
+        phase: "rules",
+        url: crawlResult.url,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - eventStartedAt,
+        ruleId: rule.id,
       });
     }
   }

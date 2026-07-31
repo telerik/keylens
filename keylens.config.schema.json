@@ -3,7 +3,15 @@
   "title": "Keylens Configuration",
   "description": "Configuration file for Keylens keyboard navigation testing.",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
+    "$schema": { "type": "string" },
+    "profile": {
+      "type": "string",
+      "enum": ["fast", "balanced", "thorough"],
+      "default": "balanced",
+      "description": "Execution preset applied before explicit option overrides."
+    },
     "urls": {
       "type": "array",
       "items": { "type": "string", "format": "uri" },
@@ -11,26 +19,31 @@
     },
     "viewport": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
-        "width": { "type": "number", "default": 1280 },
-        "height": { "type": "number", "default": 720 }
+        "width": { "type": "number", "exclusiveMinimum": 0, "default": 1280 },
+        "height": { "type": "number", "exclusiveMinimum": 0, "default": 720 }
       }
     },
     "maxTabs": {
-      "type": "number",
+      "type": "integer",
+      "minimum": 1,
       "default": 500,
       "description": "Max Tab presses before aborting."
     },
     "tabTimeout": {
       "type": "number",
+      "exclusiveMinimum": 0,
       "default": 3000
     },
     "waitForSelector": {
       "type": "string",
+      "minLength": 1,
       "description": "CSS selector to wait for before starting."
     },
     "waitAfterLoad": {
       "type": "number",
+      "minimum": 0,
       "default": 1000
     },
     "tabDelay": {
@@ -41,6 +54,7 @@
     },
     "rules": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "keyboardTrap": { "type": "boolean", "default": true },
         "unreachableElements": { "type": "boolean", "default": true },
@@ -62,6 +76,7 @@
     },
     "outputDir": {
       "type": "string",
+      "minLength": 1,
       "default": "./keylens-report"
     },
     "browser": {
@@ -71,6 +86,7 @@
     },
     "capture": {
       "type": "object",
+      "additionalProperties": false,
       "description": "Bounded screenshot capture policy. Programmatic audits default to no page screenshot.",
       "properties": {
         "page": {
@@ -81,20 +97,21 @@
         "elements": { "type": "boolean", "default": false },
         "limits": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "maxElements": { "type": "integer", "minimum": 0, "default": 200 },
             "maxDimension": {
-              "type": "number",
+              "type": "integer",
               "minimum": 1,
               "default": 16384
             },
             "maxPixels": {
-              "type": "number",
+              "type": "integer",
               "minimum": 1,
               "default": 40000000
             },
             "maxBytes": {
-              "type": "number",
+              "type": "integer",
               "minimum": 1,
               "default": 52428800
             }
@@ -104,25 +121,37 @@
     },
     "timeouts": {
       "type": "object",
+      "additionalProperties": false,
       "description": "Enforced wall-time budgets for audit phases.",
       "properties": {
-        "total": { "type": "number", "minimum": 1 },
-        "crawl": { "type": "number", "minimum": 1 },
-        "rules": { "type": "number", "minimum": 1 },
-        "interactions": { "type": "number", "minimum": 1 },
-        "ai": { "type": "number", "minimum": 1 },
-        "reporters": { "type": "number", "minimum": 1 }
+        "total": { "type": "number", "exclusiveMinimum": 0 },
+        "crawl": { "type": "number", "exclusiveMinimum": 0 },
+        "rules": { "type": "number", "exclusiveMinimum": 0 },
+        "interactions": { "type": "number", "exclusiveMinimum": 0 },
+        "ai": { "type": "number", "exclusiveMinimum": 0 },
+        "reporters": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
     "interactions": {
       "type": "object",
+      "additionalProperties": false,
       "description": "Bounded post-activation focus testing.",
       "properties": {
         "enabled": { "type": "boolean", "default": false },
         "maxCases": { "type": "integer", "minimum": 0, "default": 20 },
-        "timeout": { "type": "number", "minimum": 1, "default": 2000 },
-        "include": { "type": "array", "items": { "type": "string" } },
-        "exclude": { "type": "array", "items": { "type": "string" } },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 2000
+        },
+        "include": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "exclude": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
         "actions": {
           "type": "array",
           "items": { "enum": ["click", "enter", "space"] },
@@ -135,6 +164,7 @@
     },
     "multiPage": {
       "type": "object",
+      "additionalProperties": false,
       "description": "Browser reuse and bounded concurrency for multi-page audits.",
       "properties": {
         "concurrency": { "type": "integer", "minimum": 1, "default": 2 }
@@ -142,6 +172,7 @@
     },
     "ai": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean", "default": false },
         "provider": {
@@ -151,13 +182,15 @@
           "description": "AI provider. Use 'openai' for OpenAI, Azure AI Foundry, or any OpenAI-compatible endpoint."
         },
         "apiKey": { "type": "string" },
-        "model": { "type": "string" },
+        "model": { "type": "string", "minLength": 1 },
         "baseURL": {
           "type": "string",
+          "format": "uri",
           "description": "Base URL for the AI provider. Set this for Azure AI Foundry or other custom OpenAI-compatible endpoints."
         },
         "features": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "focusOrderValidation": { "type": "boolean", "default": true },
             "fixSuggestions": { "type": "boolean", "default": true },
@@ -170,22 +203,23 @@
         },
         "limits": {
           "type": "object",
+          "additionalProperties": false,
           "description": "Batch and element limits for AI features.",
           "properties": {
             "batchSize": {
-              "type": "number",
+              "type": "integer",
               "default": 10,
               "minimum": 1,
               "description": "Fix suggestion chunk size."
             },
             "maxWidgets": {
-              "type": "number",
+              "type": "integer",
               "default": 20,
               "minimum": 1,
               "description": "Max widgets for classification."
             },
             "maxElements": {
-              "type": "number",
+              "type": "integer",
               "default": 10,
               "minimum": 1,
               "description": "Max elements per AI feature call (name inference, focus scoring, cross-page)."
@@ -196,6 +230,7 @@
     },
     "navigationTimeout": {
       "type": "number",
+      "exclusiveMinimum": 0,
       "default": 30000,
       "description": "Timeout in ms for page navigation (default: 30000)."
     },

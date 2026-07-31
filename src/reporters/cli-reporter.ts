@@ -8,6 +8,12 @@ import type {
 } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 /**
  * Output audit results to the terminal with colored formatting.
  */
@@ -40,6 +46,46 @@ export function reportCLI(report: AuditReport): void {
     crawl.cycleCompleted ? chalk.green("Yes") : chalk.yellow("No"),
   );
   console.log(chalk.bold("Duration:"), chalk.gray(`${crawl.duration}ms`));
+  if (report.config.capture.elements) {
+    const focusSequence = report.focusSequence ?? [];
+    const pairs = focusSequence.filter(
+      (element) =>
+        element.focusedScreenshotAssetId && element.unfocusedScreenshotAssetId,
+    ).length;
+    const partialPairs = focusSequence.filter(
+      (element) =>
+        Boolean(element.focusedScreenshotAssetId) !==
+        Boolean(element.unfocusedScreenshotAssetId),
+    ).length;
+    const focusAssetIds = new Set(
+      focusSequence.flatMap((element) =>
+        [
+          element.focusedScreenshotAssetId,
+          element.unfocusedScreenshotAssetId,
+        ].filter((id): id is string => Boolean(id)),
+      ),
+    );
+    const focusAssets =
+      report.assets?.filter((asset) => focusAssetIds.has(asset.id)) ?? [];
+    const focusBytes = focusAssets.reduce(
+      (total, asset) => total + asset.byteLength,
+      0,
+    );
+    const coverage = [
+      `${pairs} complete pair(s)`,
+      `${formatBytes(focusBytes)}`,
+    ];
+    if (partialPairs > 0) {
+      coverage.push(`${partialPairs} partial pair(s)`);
+    }
+    console.log(chalk.bold("Focus screenshots:"), coverage.join(", "));
+    if (crawl.capture.skipped > 0 || crawl.capture.failed > 0) {
+      console.log(
+        chalk.bold("Capture omissions:"),
+        `${crawl.capture.skipped} skipped, ${crawl.capture.failed} failed across page and focus captures`,
+      );
+    }
+  }
 
   logger.blank();
   logger.divider();
@@ -52,6 +98,24 @@ export function reportCLI(report: AuditReport): void {
       logger.error(
         `${rule.ruleId}: rule evaluation error — ${rule.error?.message ?? "unknown error"}`,
       );
+      if (rule.ruleId === "focus-after-interaction") {
+        const interactionErrors =
+          report.interactionResults?.filter(
+            (result) => result.status === "error",
+          ) ?? [];
+        for (const result of interactionErrors.slice(0, 5)) {
+          console.error(
+            chalk.gray(
+              `  └─ ${result.element.selector} [${result.reason}]: ${result.message ?? "unknown error"}`,
+            ),
+          );
+        }
+        if (interactionErrors.length > 5) {
+          console.error(
+            chalk.gray(`  └─ ... and ${interactionErrors.length - 5} more`),
+          );
+        }
+      }
     } else if (rule.passed) {
       logger.rule(true, rule.ruleId);
     } else {

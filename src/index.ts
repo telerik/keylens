@@ -100,10 +100,12 @@ function emitPhase(
   controls: ExecutionControls,
   type: "phase-started" | "phase-completed",
   phase: AuditEvent["phase"],
+  url?: string,
 ): void {
   controls.onEvent?.({
     type,
     phase,
+    url,
     timestamp: new Date().toISOString(),
     elapsedMs: Date.now() - controls.startedAt,
   });
@@ -225,15 +227,17 @@ async function auditBaseWithConfig(
   });
   let crawlResult: CrawlResult;
   try {
-    emitPhase(controls, "phase-started", "crawl");
+    emitPhase(controls, "phase-started", "crawl", url);
     crawlResult = await crawlPage(
       url,
       config,
       crawlScope.signal,
       sharedBrowser,
+      controls.onEvent,
+      controls.startedAt,
     );
     throwIfAborted(crawlScope.signal, "crawl", url);
-    emitPhase(controls, "phase-completed", "crawl");
+    emitPhase(controls, "phase-completed", "crawl", url);
   } finally {
     crawlScope.dispose();
   }
@@ -247,10 +251,16 @@ async function auditBaseWithConfig(
   });
   let ruleResults: RuleResult[];
   try {
-    emitPhase(controls, "phase-started", "rules");
-    ruleResults = await runRules(crawlResult, config, rulesScope.signal);
+    emitPhase(controls, "phase-started", "rules", url);
+    ruleResults = await runRules(
+      crawlResult,
+      config,
+      rulesScope.signal,
+      controls.onEvent,
+      controls.startedAt,
+    );
     throwIfAborted(rulesScope.signal, "rules", url);
-    emitPhase(controls, "phase-completed", "rules");
+    emitPhase(controls, "phase-completed", "rules", url);
   } finally {
     rulesScope.dispose();
   }
@@ -290,7 +300,7 @@ async function enrichAuditWithConfig(
     getInlineAssetData(report.assets, report.pageScreenshotAssetId) ?? "";
 
   try {
-    emitPhase(controls, "phase-started", "ai");
+    emitPhase(controls, "phase-started", "ai", report.url);
     const [
       fixResult,
       focusOrderResult,
@@ -329,7 +339,7 @@ async function enrichAuditWithConfig(
     throwIfAborted(aiScope.signal, "ai", report.url);
     report.timings.ai = Date.now() - startedAt;
     report.timings.total = baseReport.timings.total + report.timings.ai;
-    emitPhase(controls, "phase-completed", "ai");
+    emitPhase(controls, "phase-completed", "ai", report.url);
     return report;
   } finally {
     aiScope.dispose();
@@ -638,7 +648,14 @@ export async function crawlOnly(
         url,
       });
       try {
-        return await crawlPage(url, resolved.config, scope.signal);
+        return await crawlPage(
+          url,
+          resolved.config,
+          scope.signal,
+          undefined,
+          controls.onEvent,
+          controls.startedAt,
+        );
       } finally {
         scope.dispose();
       }
@@ -663,6 +680,7 @@ export type {
   CaptureConfig,
   CaptureLimits,
   CaptureSummary,
+  ExecutionProfile,
   PageCaptureMode,
   PhaseTimeoutConfig,
   AuditPhase,
@@ -704,10 +722,24 @@ export type {
   AIReportSummary,
   CrossPagePattern,
   CrossPagePatternType,
+  RuleRemediation,
+  WcagReference,
 } from "./types/index.js";
 
 export { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
-export { DEFAULT_CONFIG, normalizeConfig } from "./utils/config.js";
+export {
+  DEFAULT_CONFIG,
+  EXECUTION_PROFILES,
+  KEYLENS_CONFIG_INPUT_SCHEMA,
+  normalizeConfig,
+  validateConfigInput,
+} from "./utils/config.js";
+export {
+  RULE_CATALOG,
+  getRuleCatalog,
+  getRuleRemediation,
+  getWcagReference,
+} from "./guidance.js";
 export { AIAnalyzer } from "./ai/index.js";
 export {
   renderHTML,
