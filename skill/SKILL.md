@@ -2,7 +2,7 @@
 name: keylens
 description: Run keyboard navigation accessibility audits on web pages using a real browser.
 user-invokable: true
-argument-hint: "[url] [--screenshots] [--interactions] [--ai] [--tab-delay <ms>]"
+argument-hint: "[url] [--profile <profile>] [--screenshots] [--interactions] [--ai]"
 license: MIT
 compatibility: VS Code with terminal access
 metadata:
@@ -20,7 +20,9 @@ metadata:
    npx keylens --version
    ```
 
-   If not installed, the user needs: `npm install -g @telerik/keylens && npx playwright install chromium`
+   If it is not installed, explain that Keylens currently comes from GitHub
+   Packages and follow the authenticated installation steps in the repository
+   README. Do not assume the package is available from the public npm registry.
 
 2. Run a basic audit:
 
@@ -35,7 +37,15 @@ metadata:
 
 ## Common Workflows
 
-### Full audit with AI analysis
+### Thorough deterministic audit
+
+```bash
+npx keylens audit <URL> --profile thorough --screenshots --output cli,json,html
+```
+
+Execution profiles do not remove capture, interaction, or timeout budgets.
+
+### Full audit with experimental AI analysis
 
 ```bash
 npx keylens audit <URL> --ai --output cli,json,html --output-dir ./keylens-report
@@ -47,7 +57,7 @@ npx keylens audit <URL> --ai --output cli,json,html --output-dir ./keylens-repor
 npx keylens audit <URL> --screenshots --output cli,json
 ```
 
-### Audit with interaction testing (button click focus retention)
+### Audit with experimental interaction testing
 
 ```bash
 npx keylens audit <URL> --interactions --output cli,json
@@ -78,7 +88,10 @@ The JSON report contains:
 
 - `summary.totalErrors` / `summary.totalWarnings` — counts by severity
 - `rules[]` — per-rule pass/fail with violations
+- `rules[].status` — `passed`, `failed`, or `error`; evaluator errors make the score incomplete
 - `crawl.totalFocusableElements` / `crawl.unreachedElements` — coverage
+- `crawl.capture` — captured, skipped, failed, byte, and pixel counts
+- `interactionResults[]` — detailed passed, failed, skipped, and errored activation cases
 - `widgetClassifications[]` — AI widget pattern identification (when --ai)
 - `aiFocusOrderAnalysis` — AI focus order assessment (when --ai)
 
@@ -100,6 +113,6 @@ See [fix patterns](references/fix-patterns.md) for code-level solutions.
 
 ## Exit Codes
 
-- **0**: All rules passed
-- **1**: At least one error-severity violation found
-- **2**: Audit failed (bad URL, config error, browser issue)
+- **0**: No error-severity violations or rule evaluation errors (warnings may exist)
+- **1**: At least one error-severity accessibility violation
+- **2**: Invalid config, runtime/reporter failure, or incomplete rule evaluation

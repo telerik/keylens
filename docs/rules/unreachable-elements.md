@@ -8,7 +8,8 @@
 
 ## What it checks
 
-Detects interactive elements (buttons, links, inputs, etc.) that are visible on the page but never receive focus during keyboard navigation.
+Detects visible elements matched by Keylens's interactive selector set that never
+receive focus during the bounded Tab crawl.
 
 ## How it works
 
@@ -21,8 +22,8 @@ Detects interactive elements (buttons, links, inputs, etc.) that are visible on 
 ### Fail
 
 ```html
-<!-- Click handler on a div — not keyboard focusable -->
-<div onclick="doSomething()" class="card">Click me</div>
+<!-- Discovered by role, but not in the Tab sequence -->
+<div role="button" onclick="doSomething()" class="card">Click me</div>
 ```
 
 ### Pass
@@ -37,3 +38,7 @@ Detects interactive elements (buttons, links, inputs, etc.) that are visible on 
 - Use native interactive elements (`<button>`, `<a href>`, `<input>`) instead of `<div>` or `<span>` with click handlers
 - If you must use a non-interactive element, add `tabindex="0"` and appropriate `role`
 - Ensure elements with `display: none` or `visibility: hidden` are not discoverable as interactive
+
+Keylens does not infer arbitrary JavaScript click handlers, traverse iframes, or
+traverse shadow roots. An incomplete Tab cycle or changing DOM can also produce false
+unreachable results.

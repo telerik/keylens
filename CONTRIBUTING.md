@@ -16,13 +16,13 @@ First off, thank you for considering contributing to Keylens! Accessibility tool
 git clone https://github.com/telerik/keylens.git
 cd keylens
 
-# Install dependencies
-npm install
+# Install dependencies exactly as locked
+npm ci
 
-# Install Playwright browsers
-npx playwright install chromium
+# Install every engine used by CI
+npx playwright install chromium firefox webkit
 
-# Run in development mode
+# Run from source
 npm run keylens -- audit https://example.com
 ```
 
@@ -35,6 +35,7 @@ src/
 ├── rules/        # Individual audit rules
 ├── reporters/    # Output formatters (CLI, JSON, HTML, Markdown)
 ├── ai/           # AI integration (Anthropic)
+├── mcp/          # Experimental MCP adapter
 ├── utils/        # Shared utilities
 ├── types/        # TypeScript type definitions
 └── index.ts      # Main audit engine & public API
@@ -48,6 +49,10 @@ src/
 npm run dev          # Build in watch mode
 npm run build        # Production build
 npm run test         # Run unit tests
+npm run test:coverage # Run unit coverage with GA thresholds
+npm run test:integration # Run browser integration tests
+npm run benchmark:ci # Enforce performance/resource/payload budgets
+npm run package:verify # Install and verify the packed consumer artifact
 npm run test:watch   # Run tests in watch mode
 npm run lint         # Check for lint errors
 npm run lint:fix     # Auto-fix lint errors
@@ -124,10 +129,14 @@ Create `tests/unit/rules/my-new-rule.test.ts` with test cases covering pass and 
 
 1. **Branch from `develop`** — use descriptive branch names like `feat/roving-tabindex-rule` or `fix/crawl-timeout`.
 2. **Write tests** — every new rule and feature should have tests.
-3. **Run the full check** before opening a PR:
+3. **Run the full checks** before opening a PR:
    ```bash
-   npm run lint && npm run typecheck && npm test
+   npm run validate
+   npm run docs:build
+   npm run package:verify
    ```
+   Crawler changes should also run `npm run test:integration` with
+   `KEYLENS_TEST_BROWSER` set to `chromium`, `firefox`, and `webkit`.
 4. **Keep PRs focused** — one feature or fix per PR.
 5. **Update docs** if your change affects the public API or CLI.
 

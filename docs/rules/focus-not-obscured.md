@@ -8,7 +8,8 @@
 
 ## What it checks
 
-Detects when focused elements are entirely hidden behind other content such as sticky headers, fixed footers, cookie banners, or overlays.
+Detects when another element covers the center point of a focused element. This is a
+single-point overlap heuristic, not a measurement of the covered area.
 
 ## How it works
 
@@ -17,7 +18,11 @@ For each focused element during the tab crawl, the crawler:
 1. Gets the element's bounding rectangle
 2. Calculates the center point of the element
 3. Uses `document.elementFromPoint()` at that center
-4. If the topmost element at that point is not the focused element (and they don't have a parent-child relationship), the element is considered obscured
+4. If the topmost element at that point is unrelated to the focused element, the
+   element is considered obscured.
+
+Partial overlap away from the center can be missed, and an intentional child/ancestor
+relationship is not flagged.
 
 ## Examples
 

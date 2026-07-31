@@ -37,25 +37,25 @@ A CLI tool that uses Playwright under the hood to:
 - Launch headless browser, navigate to URL
 - Programmatically press Tab repeatedly until focus cycles back to start
 - Record each focused element: selector, accessible name, role, bounding rect, page rect (absolute coords), tab index
-- Capture full-page screenshot and page dimensions for report overlays
+- Capture page dimensions and an optional bounded page screenshot for report overlays
 - Compare focus order to visual layout order (left-to-right, top-to-bottom)
 - Output a numbered focus sequence
 
 ### 2. Problem Detection Rules (8 implemented)
 
-- **Keyboard trap** (WCAG 2.1.2): focus enters an element and Tab/Shift+Tab can't leave it (detected via consecutive duplicate selectors)
+- **Keyboard trap** (WCAG 2.1.2): forward Tab appears stuck (detected via consecutive duplicate selectors) or does not complete a cycle
 - **Unreachable interactives** (WCAG 2.1.1): `<button>`, `<a href>`, `<input>`, etc. discovered on page but never reached via Tab
 - **Focus order vs visual order mismatch** (WCAG 2.4.3): element position in tab sequence doesn't match its screen position (with tolerance for minor discrepancies)
 - **Positive tabindex abuse** (WCAG 2.4.3): any `tabindex > 0` detected — disrupts natural tab order
 - **Missing focus indicator** (WCAG 2.4.7): two-phase detection — CSS heuristic checks for `outline: none` patterns (severity: warning), then pixelmatch screenshot comparison confirms no visible focus style change (severity: error when `--screenshots` enabled)
-- **Skip link** (WCAG 2.4.1): crawler functionally tests skip links — tabs through first 5 elements, identifies skip link by pattern, presses Enter, verifies focus moves to main content. Falls back to heuristic pattern matching when crawler data unavailable
+- **Skip link** (WCAG 2.4.1): crawler tabs through the first 5 elements, identifies a skip-link pattern, presses Enter, and records the resulting focus target. The current pass check only establishes that focus is not lost to the document; manual destination verification remains necessary
 - **Focus not obscured** (WCAG 2.4.11): checks if focused elements are hidden behind overlays or other content using `elementFromPoint` at the element's center
-- **Focus after interaction** (WCAG 2.4.3, 2.4.7): when `--interactions` is enabled, clicks buttons and `role="button"` elements and verifies focus isn't lost to `<body>`. Each failed interaction is a separate error-severity violation
+- **Focus after interaction** (WCAG 2.4.3, 2.4.7): when experimental interactions are enabled, runs bounded configured activations against eligible controls and verifies focus remains on a valid target. Each failed interaction is a separate error-severity violation
 
 ### 3. Report Outputs
 
 - **CLI:** colored terminal output with pass/fail/warning per rule, multi-page aggregate summary
-- **JSON:** machine-readable for CI integration (exit code 1 on failures), screenshots stripped for file size
+- **JSON:** machine-readable for CI integration; binary assets omitted. CLI exit codes distinguish accessibility failures (`1`) from incomplete audits (`2`)
 - **HTML:** interactive visual focus order map — page screenshot as background with numbered circle markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red. Multi-page reports use tabbed UI with per-page focus maps
 
 ### 4. Multi-Page Scanning
@@ -76,8 +76,7 @@ npx keylens https://example.com
 # With options
 npx keylens https://example.com \
   --output html \
-  --threshold warning \
-  --include-interactions \
+  --interactions \
   --wait-for "#app-loaded"
 
 # Config file for multi-page
@@ -87,7 +86,7 @@ npx keylens --config keylens.config.json
 ### Example Output
 
 ```
-keylens v1.0.0 — Keyboard Navigation Audit
+keylens v<current> — Keyboard Navigation Audit
 
 URL: https://example.com
 Focusable elements found: 47
@@ -95,7 +94,7 @@ Tab cycle completed: 42 elements reached
 
 ✗ TRAP DETECTED at element #12
   <div role="combobox" class="search-dropdown">
-  Focus entered but could not exit via Tab or Shift+Tab
+  Focus remained on the same element during forward Tab navigation
 
 ✗ 5 UNREACHABLE INTERACTIVE ELEMENTS
   <button class="carousel-next"> — not in tab order
@@ -158,10 +157,10 @@ keylens/
 - **Playwright over Puppeteer** — cross-browser support (Chromium, Firefox, WebKit), better API, actively maintained
 - **Rule-based architecture** — each check is a standalone module, easy to add new rules or let community contribute them
 - **Two-phase focus indicator detection** — fast CSS heuristic first (detects `outline: none` patterns in inline styles), then pixel-accurate screenshot comparison via pixelmatch when `--screenshots` is enabled. Screenshot-confirmed violations are severity "error" vs heuristic "warning"
-- **Skip link functional testing** — crawler tabs through first 5 elements, identifies skip links by regex pattern, presses Enter, verifies focus actually moves to a main content target (`<main>`, `[role="main"]`, `#main-content`, `#content`, `#main`)
+- **Skip link functional testing** — crawler tabs through first 5 elements, identifies skip links by regex pattern, presses Enter, and records the resulting focus target; current pass logic only checks that focus remains on a non-document element
 - **Per-element focused/unfocused screenshots** — during tab crawl, captures focused state of current element + unfocused state of previous element (which just lost focus), enabling before/after pixelmatch comparison
 - **HTML focus order overlay** — `buildFocusMapHTML()` renders page screenshot as background with numbered markers at each focused element, SVG connecting lines showing tab flow. Percentage-based positioning via `pageRect` / `pageDimensions`. Violation markers colored red
-- **Multi-page scanning** — `auditMultiple()` sequentially audits multiple URLs, aggregates results into `MultiPageReport`. CLI URL is optional; reads from config `urls` when omitted. Tabbed HTML report with per-page focus maps
+- **Multi-page scanning** — `auditMultiple()` reuses one browser with bounded concurrency and aggregates results into `MultiPageReport`. CLI URL is optional; reads from config `urls` when omitted. Tabbed HTML report with per-page focus maps
 - **HTML escaping throughout** — all user-supplied strings escaped in HTML output to prevent XSS
 - **Use tabbable npm package as a reference** — compare its computed tabbable list against what actually receives focus to find discrepancies
 
@@ -169,7 +168,7 @@ keylens/
 
 | Feature                      | axe-core / Pa11y | Accessibility Insights | Keylens                                             |
 | ---------------------------- | ---------------- | ---------------------- | --------------------------------------------------- |
-| Runs in CI                   | Yes              | No                     | Yes (exit code 1 on errors)                         |
+| Runs in CI                   | Yes              | No                     | Yes (exit codes 0/1/2)                              |
 | Actually tabs through page   | No               | Manual only            | Yes, automated                                      |
 | Detects keyboard traps       | No               | Manual only            | Yes                                                 |
 | Focus order visualization    | No               | Manual only            | Yes, HTML overlay with numbered markers + SVG lines |
@@ -377,7 +376,7 @@ npx keylens https://example.com
 
 ### Phase 3 (Complete)
 
-- Post-click interaction testing — `--interactions` flag, `crawlInteractions()` clicks buttons and `role="button"` elements, verifies focus isn't lost. New `focus-after-interaction` rule (WCAG 2.4.3/2.4.7, error severity)
+- Bounded post-activation interaction testing — `--interactions` enables the configured safety policy and the `focus-after-interaction` rule (WCAG 2.4.3/2.4.7, error severity)
 - AI widget classification — `classifyWidgets()` identifies APG patterns (dialog, menu, tabs, accordion, combobox, disclosure, tooltip) with confidence scores and expected keyboard behaviors. Results displayed in CLI and HTML reports
 
 ### Phase 5 (AI High-Impact — Complete)
@@ -391,7 +390,7 @@ npx keylens https://example.com
 ### Phase 6 (AI Medium-Impact — Complete)
 
 - Focus indicator quality scoring — `scoreFocusIndicatorQuality()` sends focused/unfocused screenshot pairs to vision model, returns `FocusIndicatorScore` with score (1-10), contrast assessment, visibility assessment, and improvement recommendations. Only scores elements with confirmed focus indicators (`hasFocusIndicator === true`) and both screenshots present. Limited to 10 per audit
-- Enhanced structured report summaries — `generateSummary()` returns structured `AIReportSummary` with overview, critical issues, prioritized fixes (with effort/impact), overall score (1-100), and recommendation. Falls back to plain string for backward compatibility. New `generateMultiPageSummary()` for multi-page audits
+- Enhanced structured report summaries — `generateSummary()` returns structured `AIReportSummary` with overview, critical issues, prioritized fixes (with effort/impact), an AI severity rating (1-100), and recommendation. Falls back to plain string for backward compatibility. New `generateMultiPageSummary()` for multi-page audits
 - Cross-page pattern detection — `detectCrossPagePatterns()` uses heuristic pre-filtering (`findSharedSelectors`, `findSkipLinkInconsistencies`) to minimize AI calls, then enriches findings via AI. Detects inconsistent tab order, missing components, inconsistent focus styles, and skip link inconsistencies across pages. Falls back to heuristic-only patterns if AI call fails
 
 ### Phase 4 (Ecosystem)
@@ -408,7 +407,7 @@ npx keylens https://example.com
 
 **Dynamic content:** SPAs that load content lazily or change DOM after interactions. Mitigation: `--wait-for` selector option, configurable timeouts.
 
-**Modals and overlays:** Focus behavior changes based on interaction state. The `--interactions` flag (Phase 3) addresses this by clicking buttons and verifying focus isn't lost.
+**Modals and overlays:** Focus behavior changes based on interaction state. Experimental interactions sample bounded post-activation focus behavior but do not exhaustively crawl every resulting state.
 
 **False positives on focus order:** "Logical" order is subjective in complex layouts. Mitigation: flag as warnings not errors, let users configure expected order.
 

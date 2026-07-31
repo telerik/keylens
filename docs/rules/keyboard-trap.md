@@ -8,12 +8,15 @@
 
 ## What it checks
 
-Detects elements that trap keyboard focus — the user can press Tab or Shift+Tab but focus stays on the same element.
+Detects evidence that forward Tab navigation is stuck or does not cycle. Keylens does
+not run a separate Shift+Tab escape test.
 
 ## How it works
 
 1. **Consecutive duplicate detection**: If the same element selector appears consecutively in the focus sequence, focus is likely trapped.
-2. **Incomplete cycle warning**: If the tab cycle never returns to the first element (within `maxTabs` presses), a warning is raised indicating a possible infinite trap.
+2. **Incomplete cycle warning**: If the tab cycle never returns to the first element
+   within `maxTabs` attempts, a warning is raised. Large or changing pages and timed-out
+   Tab presses can also cause this warning.
 
 ## Examples
 

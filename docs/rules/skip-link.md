@@ -8,7 +8,8 @@
 
 ## What it checks
 
-Validates that a skip navigation link is present and actually moves focus to the main content area.
+Looks for a skip-navigation pattern and checks that activation leaves focus on a
+non-document element.
 
 ## How it works
 
@@ -21,17 +22,22 @@ Before the main tab crawl, the crawler:
 1. Tabs through the first 5 focusable elements
 2. Checks each element against skip link patterns (e.g., "skip to content", "jump to main")
 3. If found, presses **Enter** on the skip link
-4. Verifies focus moves to a main content target: `<main>`, `[role="main"]`, `#main-content`, `#content`, or `#main`
+4. Records whether focus is on a known main target, a descendant, an element ID, or
+   another element tag
 
 **Results:**
 
-- Skip link found and works → **Pass**
-- Skip link found but doesn't move focus → **Error** (broken skip link is worse than no skip link)
+- Skip link found and focus is not on `<body>`/the document → **Pass**
+- Skip link found but focus is lost to the document → **Error**
 - No skip link found → **Warning**
 
 ### Heuristic Fallback
 
 When the functional test is not available, the rule scans the first 5 elements in the focus sequence for skip link patterns in their accessible name or HTML.
+
+The current functional check does not prove that the destination is main content or
+matches the link fragment; a link that retains focus can pass. Confirm the recorded
+target manually.
 
 ### Skip Link Patterns
 

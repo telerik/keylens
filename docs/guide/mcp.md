@@ -1,48 +1,15 @@
-# MCP Server
+# Experimental MCP server
 
-Keylens includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that exposes keyboard accessibility auditing as tools for AI agents.
+The Model Context Protocol server and its tool contracts are experimental. It uses
+stdio, starts through `keylens mcp`, `keylens-mcp`, or the
+`@telerik/keylens/mcp` package subpath, and writes protocol data only to stdout.
 
-## Setup
+## Installation
 
-### Claude Desktop
-
-Add to `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "keylens": {
-      "command": "npx",
-      "args": ["-y", "@telerik/keylens", "mcp"],
-      "env": {
-        "ANTHROPIC_API_KEY": "sk-ant-..."
-      }
-    }
-  }
-}
-```
-
-### VS Code (Copilot / Cursor)
-
-Add to your workspace `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "keylens": {
-      "command": "npx",
-      "args": ["-y", "@telerik/keylens", "mcp"],
-      "env": {
-        "ANTHROPIC_API_KEY": "sk-ant-..."
-      }
-    }
-  }
-}
-```
-
-### Direct binary
-
-If installed globally, you can use the binary directly:
+Install Keylens and Chromium first. Because distribution is through GitHub Packages,
+the MCP client's process must be able to read your authenticated npm configuration.
+Prefer a project or global installation over asking an agent to download an unpinned
+package on every run.
 
 ```json
 {
@@ -54,105 +21,91 @@ If installed globally, you can use the binary directly:
 }
 ```
 
-## Available Tools
+If the client requires `npx`, configure the `@telerik` registry and authentication
+before starting the client:
 
-### `keylens_audit`
+```json
+{
+  "mcpServers": {
+    "keylens": {
+      "command": "npx",
+      "args": ["-y", "@telerik/keylens@dev", "mcp"]
+    }
+  }
+}
+```
 
-Run a keyboard navigation accessibility audit on a single URL.
+Do not place API keys directly in a checked-in MCP configuration.
 
-**Input:**
+## Tools
 
-| Parameter              | Type                                          | Required | Description                                                                   |
-| ---------------------- | --------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
-| `url`                  | string                                        | Yes      | URL to audit                                                                  |
-| `options.browser`      | `"chromium"` \| `"firefox"` \| `"webkit"`     | No       | Browser engine (default: chromium)                                            |
-| `options.viewport`     | `{ width?, height? }`                         | No       | Viewport dimensions                                                           |
-| `options.maxTabs`      | number                                        | No       | Maximum tab presses (default: 500)                                            |
-| `options.screenshots`  | boolean                                       | No       | Enable screenshot-based focus indicator detection                             |
-| `options.interactions` | boolean                                       | No       | Enable post-click interaction testing                                         |
-| `options.ai`           | boolean                                       | No       | Enable AI analysis (requires API key)                                         |
-| `options.reporters`    | `("cli" \| "json" \| "html" \| "markdown")[]` | No       | Output formats to generate. Use `["html"]` to save an HTML report to disk.    |
-| `options.outputDir`    | string                                        | No       | Directory for `json`/`html` report files (default: current working directory) |
+| Tool                           | Purpose                                    |
+| ------------------------------ | ------------------------------------------ |
+| `keylens_audit`                | Single-page audit and compact report       |
+| `keylens_audit_multiple`       | Multi-page audit and compact aggregate     |
+| `keylens_classify_widgets`     | AI widget classification                   |
+| `keylens_validate_focus_order` | AI analysis or raw focus sequence fallback |
 
-**Output:** Full `AuditReport` JSON (screenshots stripped).
+The two audit tools accept:
 
-#### Generating an HTML report
+| Option            | Type                                       |
+| ----------------- | ------------------------------------------ |
+| `profile`         | `fast`, `balanced`, or `thorough`          |
+| `browser`         | `chromium`, `firefox`, or `webkit`         |
+| `viewport`        | partial `{ width, height }`                |
+| `maxTabs`         | positive integer                           |
+| `tabDelay`        | number, minimum 10                         |
+| `waitForSelector` | nonempty string                            |
+| `waitAfterLoad`   | nonnegative number                         |
+| `screenshots`     | boolean                                    |
+| `interactions`    | boolean                                    |
+| `ai`              | boolean                                    |
+| `reporters`       | array of `cli`, `json`, `html`, `markdown` |
+| `outputDir`       | string                                     |
 
-To write an interactive HTML focus-map report to disk in addition to the JSON response, pass `reporters` and `outputDir`:
+MCP does not currently expose the complete stable config surface, including capture
+limits, phase timeouts, interaction policy, page capture mode, or multi-page
+concurrency. Use the CLI or library when those controls are required.
+
+By default, MCP returns a compact semantic response and writes nothing. Passing
+`reporters` opts into reporter side effects; `outputDir` defaults to
+`./keylens-report` under the server's working directory.
 
 ```json
 {
   "url": "https://example.com",
   "options": {
-    "reporters": ["html"],
+    "profile": "balanced",
+    "reporters": ["json"],
     "outputDir": "./keylens-report"
   }
 }
 ```
 
-The file is written to `<outputDir>/keylens-report.html`.
+Compact responses omit image assets, echoed config, geometry, element HTML, and other
+large fields. File reporters contain their normal output.
 
-### `keylens_audit_multiple`
+## AI and sampling
 
-Audit multiple URLs with cross-page pattern detection.
+Direct API credentials take priority. Without a direct key, a client advertising MCP
+sampling receives `sampling/createMessage` requests and can provide the model. If
+neither is available, the audit tools still return deterministic data;
+`keylens_classify_widgets` reports that AI is unavailable, and focus-order validation
+returns the raw sequence.
 
-**Input:**
+Sampling can prompt for approval and sends audit context to the MCP client's selected
+model. The same nondeterminism and data-handling cautions in [Experimental AI](./ai)
+apply.
 
-| Parameter | Type            | Required | Description                                            |
-| --------- | --------------- | -------- | ------------------------------------------------------ |
-| `urls`    | string[]        | Yes      | URLs to audit                                          |
-| `options` | (same as above) | No       | Shared options (including `reporters` and `outputDir`) |
+## Environment variables
 
-**Output:** `MultiPageReport` JSON with aggregate summary and cross-page patterns. If `reporters` includes `"html"`, an interactive tabbed multi-page report is also saved to disk.
+| Variable              | Purpose                           |
+| --------------------- | --------------------------------- |
+| `KEYLENS_BROWSER`     | MCP default browser               |
+| `KEYLENS_MAX_TABS`    | MCP default Tab limit             |
+| `KEYLENS_AI_API_KEY`  | Provider-neutral AI key           |
+| `ANTHROPIC_API_KEY`   | Anthropic key fallback            |
+| `OPENAI_API_KEY`      | OpenAI key fallback               |
+| `KEYLENS_AI_BASE_URL` | Custom/OpenAI-compatible base URL |
 
-### `keylens_classify_widgets`
-
-Identify WAI-ARIA APG widget patterns (dialog, menu, tabs, accordion, combobox, disclosure, tooltip) and report expected keyboard behaviors.
-
-Requires an AI API key.
-
-**Input:**
-
-| Parameter | Type   | Required | Description    |
-| --------- | ------ | -------- | -------------- |
-| `url`     | string | Yes      | URL to analyze |
-
-**Output:** Array of `WidgetClassification` objects with pattern, confidence, and expected keyboard interactions.
-
-### `keylens_validate_focus_order`
-
-Check if the keyboard focus order on a page is logical. Uses vision-based AI analysis when available.
-
-**Input:**
-
-| Parameter | Type   | Required | Description     |
-| --------- | ------ | -------- | --------------- |
-| `url`     | string | Yes      | URL to validate |
-
-**Output:** `AIFocusOrderResult` with issues and overall assessment, or raw focus sequence if AI is unavailable.
-
-## Zero-Config AI via Sampling
-
-When the MCP client supports **sampling** (e.g. Claude Desktop, Copilot), Keylens can use the client's own AI model for analysis — **no separate API key required**.
-
-The priority chain is automatic:
-
-1. **Direct API key** configured → uses direct API (fastest, no approval prompts)
-2. **No key, client supports sampling** → uses the client's model via `sampling/createMessage`
-3. **Neither** → returns non-AI results (still useful)
-
-This means MCP users with a Copilot license or Claude Desktop subscription get AI-powered analysis (fix suggestions, focus order validation, widget classification, etc.) out of the box.
-
-## Environment Variables
-
-| Variable             | Description                                              |
-| -------------------- | -------------------------------------------------------- |
-| `KEYLENS_BROWSER`    | Default browser engine (`chromium`, `firefox`, `webkit`) |
-| `KEYLENS_MAX_TABS`   | Default maximum tab presses                              |
-| `KEYLENS_AI_KEY`     | AI API key (highest priority)                            |
-| `KEYLENS_AI_API_KEY` | AI API key (medium priority)                             |
-| `ANTHROPIC_API_KEY`  | AI API key (lowest priority)                             |
-
-## Transport
-
-The MCP server uses **stdio transport** (JSON-RPC over stdin/stdout). All diagnostic output goes to stderr.
+Use the normal config or CLI for options not exposed by the MCP adapter.

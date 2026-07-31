@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cross-browser keyboard fixture</title>
+    <style>
+      :focus {
+        outline: 3px solid #005fcc;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main" class="skip-link" tabindex="1">Skip to main content</a>
+    <nav><a href="#docs">Documentation</a></nav>
+    <main id="main" tabindex="-1">
+      <input id="preserve" type="text" role="button" value="Preserve focus" />
+      <input aria-label="Search" />
+      <a href="#ordered" tabindex="2">Positive tabindex example</a>
+    </main>
+    <script>
+      const focusMain = () => {
+        document.getElementById("main").focus();
+      };
+      const skipLink = document.querySelector(".skip-link");
+      skipLink.addEventListener("click", focusMain);
+      skipLink.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          focusMain();
+        }
+      });
+      document.getElementById("preserve").addEventListener("click", () => {});
+    </script>
+  </body>
+</html>

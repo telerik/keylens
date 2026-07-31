@@ -1,58 +1,101 @@
-# CI/CD Integration
+# CI/CD integration
 
-Keylens is designed for CI pipelines. It exits with code `1` when errors are found, and code `0` when the audit passes.
+Keylens has three stable exit classes:
 
-## GitHub Actions
+| Code | CI interpretation                                                          |
+| ---: | -------------------------------------------------------------------------- |
+|  `0` | Complete audit; no error-severity violations                               |
+|  `1` | Complete audit; accessibility errors found                                 |
+|  `2` | Incomplete audit; configuration, runtime, timeout, reporter, or rule error |
+
+Warnings alone do not fail the job. Do not collapse codes `1` and `2`: code `1` is a
+valid test result, while code `2` means the result is not complete enough to trust.
+
+## GitHub Packages authentication
+
+Keylens is currently hosted on GitHub Packages. Store a token with `read:packages` as a
+secret and configure the scoped registry. Never commit the token.
 
 ```yaml
-name: Accessibility
+- uses: actions/setup-node@v4
+  with:
+    node-version: 22
+    registry-url: https://npm.pkg.github.com
+    scope: "@telerik"
+- run: npm ci
+  env:
+    NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Depending on package visibility and repository permissions, use a dedicated
+fine-grained or classic token with package read access instead of `GITHUB_TOKEN`.
+
+## GitHub Actions example
+
+```yaml
+name: Keyboard accessibility
+
 on: [push, pull_request]
 
 jobs:
-  keyboard-a11y:
+  keylens:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@telerik"
       - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npx playwright install --with-deps chromium
-      - run: npm start &
-      - run: npx wait-on http://localhost:3000
-      - run: npx @telerik/keylens audit http://localhost:3000 --output json
+      - run: npm run start &
+      - run: npx wait-on http://127.0.0.1:3000
+      - name: Audit keyboard navigation
+        run: >-
+          npx keylens audit http://127.0.0.1:3000
+          --profile balanced
+          --output cli,json
+          --output-dir ./keylens-report
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: keylens-report
+          path: ./keylens-report/
 ```
 
-## Using JSON Output
+`wait-on` must already be a project dependency or be replaced with the project's
+existing server-readiness command. Pin package versions in the project lockfile rather
+than downloading an unpinned CLI during the job.
 
-The JSON report (`keylens-report.json`) can be parsed by other tools or uploaded as a CI artifact:
+## Inspecting JSON
 
-```yaml
-- run: npx @telerik/keylens audit http://localhost:3000 --output json -d ./reports
-- uses: actions/upload-artifact@v4
-  if: always()
-  with:
-    name: keylens-report
-    path: ./reports/
-```
+The JSON report omits binary assets but retains semantic coverage:
 
-## Using Markdown Output
+- `summary.totalErrors`: accessibility errors;
+- `summary.errors`: rule evaluators that failed;
+- `summary.scoreComplete`: whether all enabled rules were evaluated;
+- `crawl.cycleCompleted`: whether focus returned to the first stop;
+- `crawl.capture`: captured, skipped, and failed asset totals;
+- `crawl.interactions`: aggregate experimental interaction outcomes;
+- `interactionResults`: each passed, failed, skipped, or errored interaction case.
 
-The Markdown reporter generates a portable `keylens-report.md` (or `keylens-report-multi.md` for multi-page audits) that renders natively in GitHub PR comments, wiki pages, and issue bodies:
+Archive JSON even when the command exits nonzero. Treat `scoreComplete: false`, capture
+omissions, an incomplete Tab cycle, and interaction errors as coverage signals, not as
+passes.
 
-```yaml
-- run: npx @telerik/keylens audit http://localhost:3000 --output markdown -d ./reports
-- uses: actions/upload-artifact@v4
-  if: always()
-  with:
-    name: keylens-markdown-report
-    path: ./reports/
-```
+## Stable pages and budgets
 
-## Exit Codes
+For repeatable CI:
 
-| Code | Meaning             |
-| ---- | ------------------- |
-| `0`  | Audit passed        |
-| `1`  | Errors found        |
-| `2`  | Audit failed to run |
+- audit a locally served, production-like build;
+- wait for an application-ready selector;
+- freeze or mock changing content;
+- use an explicit viewport and browser;
+- set `timeouts.total` and relevant phase budgets;
+- use `capture.limits`, interaction limits, and bounded multi-page concurrency;
+- audit multiple browsers in separate jobs when cross-browser behavior matters.
+
+See [Configuration](./configuration) and [Known limitations](./limitations).

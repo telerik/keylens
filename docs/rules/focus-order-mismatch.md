@@ -18,6 +18,10 @@ Detects when the keyboard focus order significantly differs from the visual layo
 
 The tolerance of 3 positions avoids false positives from minor layout variations (e.g., a logo link that's visually centered but first in DOM order).
 
+This geometric heuristic assumes top-to-bottom, left-to-right layout. It does not
+understand language direction, component semantics, or author intent, so findings
+require human review.
+
 ## Examples
 
 ### Fail
@@ -49,4 +53,5 @@ The tolerance of 3 positions avoids false positives from minor layout variations
 
 - Match DOM order to visual order — CSS layout (flexbox `order`, grid placement, `position: absolute`) should not reorder content in ways that confuse focus sequence
 - Remove positive `tabindex` values (see [Tabindex Abuse](/rules/tabindex-abuse))
-- Use CSS to visually rearrange without changing DOM order when possible
+- Keep DOM, reading, and visual order aligned; avoid CSS reordering that creates a
+  different keyboard sequence

@@ -1,0 +1,120 @@
+# Known limitations
+
+Keylens provides evidence about one automated keyboard path in one browser state. It is
+not a WCAG conformance checker and does not replace manual keyboard, screen reader,
+zoom, contrast, or static semantic testing.
+
+## Dynamic pages and waiting
+
+Navigation waits for `domcontentloaded`, optionally waits for one CSS selector, then
+uses a fixed delay. The selector wait uses `tabTimeout`; navigation uses
+`navigationTimeout`.
+
+This does not guarantee that background requests, streamed UI, lazy routes, animation,
+virtualized lists, or later state changes are complete. A page can mutate while the Tab
+crawl is running, which can change selectors, focus order, and element counts.
+
+Expose an application-ready marker, use a suitable fixed delay, stabilize changing
+data, and audit significant routes and states independently.
+
+## One state, overlays, and composite widgets
+
+The main crawl records the state present after initial load and skip-link probing. It
+does not systematically open every modal, menu, accordion, tab panel, or disclosure.
+Hidden controls can therefore be absent, while controls behind an open overlay can
+appear unreachable.
+
+Experimental interactions test post-activation focus for eligible controls; they do
+not recrawl every resulting state or verify full widget keyboard patterns. Use
+state-specific URLs or fixtures and manual tests for overlays and composite widgets.
+
+The skip-link probe recognizes text patterns among the first five focus stops. Its
+functional pass currently establishes only that focus is not lost to the document
+after Enter; it does not prove that the destination is main content or matches the
+fragment target.
+
+## Iframes and shadow DOM
+
+Discovery and focused-element inspection run against the top-level `document`.
+Keylens does not traverse iframe documents or shadow roots. Browser focus may be
+represented by an iframe or shadow host rather than the internal focused control.
+Audit iframe documents as separate URLs when possible and test shadow-root internals
+with component-specific automation.
+
+## Focus screenshots
+
+`--screenshots` captures a clipped PNG for an element while focused and another after
+focus moves. A complete pair is compared for pixel change; it does not measure contrast
+or prove WCAG Focus Appearance conformance.
+
+False results can come from animation, caret blinking, content changes, antialiasing,
+scrolling, clipping, transparent effects outside the element rectangle, browser theme,
+device scale, or focus styles that do not alter enough pixels. Elements with different
+image dimensions or failed/omitted captures are not compared. The fallback heuristic
+only recognizes inline `outline: none`/`outline: 0` text in recorded outer HTML; it
+cannot understand external stylesheets or prove that an alternative indicator exists.
+
+Capture limits can skip a page image or focus pairs without failing the audit. Review
+CLI pair coverage, `crawl.capture`, and screenshot IDs before interpreting the
+missing-focus-indicator result.
+
+## Page screenshots and HTML maps
+
+Page capture is independent from focus-state pairs. HTML maps need a page image and
+page dimensions; without an image, the report degrades to nonvisual content. Viewport
+capture represents only the initial viewport, while focus coordinates can span the
+document. Full-page capture can be skipped when dimensions, pixels, or bytes exceed the
+configured budget.
+
+## Experimental interaction safety
+
+Interactions are opt-in because activation can mutate data or application state.
+Default safeguards reload before each case, block top-level navigation, exclude labels
+matching a limited destructive-word pattern, cap cases, and apply per-operation and
+phase timeouts.
+
+Safeguards are heuristic. They cannot recognize every destructive, financial,
+privacy-sensitive, or irreversible action; they do not roll back server-side effects.
+Navigation-blocked cases are skipped, and reload isolation can differ from a real user
+session. Restrict `include` to known-safe controls and use disposable test data.
+
+Detailed results distinguish `passed`, `failed`, `skipped`, and `error`. An interaction
+error makes `focus-after-interaction` a rule evaluation error only when no failed focus
+case already exists; inspect JSON rather than relying only on the terminal summary.
+
+## Browser and environment differences
+
+Chromium, Firefox, and WebKit can differ in native focus rings, sequential focus rules,
+platform preferences, form controls, font metrics, scrolling, and screenshot output.
+Headed and headless environments, operating systems, installed fonts, reduced-motion
+settings, and device scale can also change results. A pass in one environment does not
+establish a pass in another; pin CI and run separate browser jobs where required.
+
+## Focus-order heuristic
+
+The focus-order rule sorts rectangles top-to-bottom and then left-to-right for elements
+within 50 pixels vertically. It warns when an element differs by more than three
+positions. This is not language-direction aware and cannot understand intended reading
+order, component semantics, responsive relationships, or legitimate alternate
+sequences. Treat findings as review prompts.
+
+## Bounded and incomplete audits
+
+`maxTabs`, Tab timeouts, capture budgets, interaction limits, phase deadlines, aborts,
+and multi-page failures intentionally bound work. An incomplete Tab cycle may indicate
+a trap, a large page, unstable focus, or simply an insufficient limit. Skipped captures
+reduce visual-rule coverage.
+
+A rule evaluator failure is reported separately from a violation, sets
+`scoreComplete: false`, and causes CLI exit code `2`. The numeric score still exists
+for diagnostics but must not be compared as a complete score.
+
+## AI
+
+AI and MCP are experimental. AI output is nondeterministic, provider/model dependent,
+and can be wrong. Enabled features can send HTML snippets, selectors, accessible names,
+focus metadata, report data, and screenshots to a provider or MCP client's model.
+Provider retention, training, residency, and access policies apply.
+
+Do not send sensitive pages without organizational approval. Validate suggestions with
+deterministic results and manual testing, and do not use AI ratings as CI gates.
