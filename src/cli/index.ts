@@ -22,6 +22,7 @@ import type {
   LogLevel,
   PageCaptureMode,
   ReporterType,
+  PrepareConsentPreference,
 } from "../types/index.js";
 
 declare const __VERSION__: string | undefined;
@@ -85,6 +86,8 @@ function updateProgress(
     spinner.text = `Checking ${event.ruleId}${page}`;
   } else if (event.type === "interaction-completed") {
     spinner.text = `Interactions${page}: ${event.completed}/${event.attempted} completed`;
+  } else if (event.type === "overlay-dismissed") {
+    spinner.text = `Dismissed ${event.provider} consent banner (${event.action})${page}`;
   } else if (event.type === "phase-started") {
     spinner.text =
       event.phase === "interactions"
@@ -149,6 +152,21 @@ program
     "enable experimental bounded activation and focus checks",
     false,
   )
+  .option(
+    "--keep-overlays",
+    "skip automatic cookie/consent banner dismissal before auditing",
+    false,
+  )
+  .option(
+    "--dismiss <selector>",
+    "extra CSS selector to click before auditing (repeatable)",
+    (value: string, previous: string[]) => [...previous, value],
+    [] as string[],
+  )
+  .option(
+    "--consent <preference>",
+    "preferred consent action: reject, accept, or close",
+  )
   .option("-q, --quiet", "suppress non-essential output", false)
   .option("-v, --verbose", "enable verbose/debug output", false)
   .action(async (url: string | undefined, options) => {
@@ -198,6 +216,21 @@ program
         (reporters.includes("html") ? "full" : "none");
       const captureElements =
         options.screenshots || (fileConfig.capture?.elements ?? false);
+
+      const CONSENT_PREFERENCES: PrepareConsentPreference[] = [
+        "reject",
+        "accept",
+        "close",
+      ];
+      if (
+        options.consent &&
+        !CONSENT_PREFERENCES.includes(options.consent as PrepareConsentPreference)
+      ) {
+        throw new ConfigError(
+          `Invalid --consent "${options.consent}". Expected one of: ${CONSENT_PREFERENCES.join(", ")}.`,
+        );
+      }
+
       const config: KeylensConfig = normalizeConfig({
         ...fileConfig,
         ...(options.profile ? { profile: options.profile } : {}),
@@ -236,6 +269,20 @@ program
         },
         timeouts: {
           ...fileConfig.timeouts,
+        },
+        prepare: {
+          ...fileConfig.prepare,
+          ...(options.keepOverlays ? { dismissOverlays: false } : {}),
+          ...(options.consent
+            ? {
+                consentPreference:
+                  options.consent as PrepareConsentPreference,
+              }
+            : {}),
+          dismissSelectors: [
+            ...(fileConfig.prepare?.dismissSelectors ?? []),
+            ...((options.dismiss as string[] | undefined) ?? []),
+          ],
         },
         ...(options.timeout
           ? { navigationTimeout: Number(options.timeout) }

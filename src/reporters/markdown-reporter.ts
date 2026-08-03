@@ -75,6 +75,17 @@ function renderCrawl(report: AuditReport): string {
     `| ${c.totalFocusableElements} | ${c.totalInteractiveElements} | ${c.unreachedElements} | ${c.cycleCompleted ? "Yes" : "No"} | ${fmtDuration(c.duration)} |`,
   );
   lines.push("");
+  if (c.prepare?.dismissals.length) {
+    const dismissed = c.prepare.dismissals
+      .map((d) => `${d.provider} (${d.action}${d.verified ? "" : ", unverified"})`)
+      .join(", ");
+    lines.push(`**Overlays dismissed:** ${dismissed}`);
+    lines.push("");
+  }
+  if (c.prepare?.warnings.length) {
+    lines.push(`**Prepare warnings:** ${c.prepare.warnings.join("; ")}`);
+    lines.push("");
+  }
   return lines.join("\n");
 }
 

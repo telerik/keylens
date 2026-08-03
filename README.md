@@ -31,6 +31,11 @@ It can audit multiple pages with browser reuse and bounded concurrency, emit CLI
 HTML, or Markdown reports, and run as a library with cancellation, progress events,
 phase deadlines, typed errors, and explicit rendering.
 
+Before the crawl starts, a bounded prepare phase auto-dismisses cookie/consent banners
+(built-in presets for major CMPs, plus a generic fallback), so audits of real sites
+aren't dominated by banner noise. Disable with `--keep-overlays`; see
+[Configuration](./docs/guide/configuration.md#prepare).
+
 > [!IMPORTANT]
 > The deterministic CLI, reports, and programmatic core are the stable surface.
 > AI enrichment and MCP are experimental and may change independently.

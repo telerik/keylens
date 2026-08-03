@@ -128,6 +128,59 @@ describe("normalizeConfig", () => {
     };
     expect(normalizeConfig({ ai: { transport } }).ai.transport).toBe(transport);
   });
+
+  describe("prepare", () => {
+    it("defaults to auto-dismissing overlays with a reject-first preference", () => {
+      const config = normalizeConfig({});
+      expect(config.prepare).toMatchObject({
+        dismissOverlays: true,
+        consentPreference: "reject",
+        timeout: 5_000,
+      });
+      expect(config.prepare.dismissSelectors).toBeUndefined();
+      expect(config.prepare.steps).toBeUndefined();
+    });
+
+    it("supports disabling overlay dismissal via --keep-overlays semantics", () => {
+      const config = normalizeConfig({ prepare: { dismissOverlays: false } });
+      expect(config.prepare.dismissOverlays).toBe(false);
+      expect(config.prepare.consentPreference).toBe("reject");
+    });
+
+    it("merges custom selectors, cookies, and steps without dropping defaults", () => {
+      const config = normalizeConfig({
+        prepare: {
+          consentPreference: "accept",
+          dismissSelectors: ["#banner .close"],
+          cookies: [{ name: "consent", value: "1" }],
+          steps: [{ type: "press", key: "Escape" }],
+        },
+      });
+      expect(config.prepare).toMatchObject({
+        dismissOverlays: true,
+        consentPreference: "accept",
+        dismissSelectors: ["#banner .close"],
+      });
+      expect(config.prepare.cookies).toEqual([{ name: "consent", value: "1" }]);
+      expect(config.prepare.steps).toEqual([{ type: "press", key: "Escape" }]);
+    });
+
+    it("rejects an invalid consent preference", () => {
+      expect(() =>
+        normalizeConfig({
+          prepare: { consentPreference: "necessary" as never },
+        }),
+      ).toThrow("prepare.consentPreference");
+    });
+
+    it("rejects a malformed prepare step", () => {
+      expect(() =>
+        normalizeConfig({
+          prepare: { steps: [{ type: "click" } as never] },
+        }),
+      ).toThrow(/prepare\.steps/);
+    });
+  });
 });
 
 describe("loadConfig", () => {

@@ -60,8 +60,17 @@ The two audit tools accept:
 | `screenshots`     | boolean                                    |
 | `interactions`    | boolean                                    |
 | `ai`              | boolean                                    |
+| `keepOverlays`    | boolean — disable auto-dismissing cookie/consent banners |
+| `dismissSelectors`| array of strings — extra selectors to click before the crawl |
 | `reporters`       | array of `cli`, `json`, `html`, `markdown` |
 | `outputDir`       | string                                     |
+
+By default, the prepare phase auto-dismisses known cookie/consent banners (built-in
+CMP presets + a generic heuristic fallback) before the crawl, preferring the reject
+action. Set `keepOverlays: true` to disable this, or `dismissSelectors` to also click
+custom selectors. `consentPreference` and generic `steps`/`cookies` are not yet exposed
+over MCP — use the CLI or library config for those. See
+[Configuration](./configuration#prepare).
 
 MCP does not currently expose the complete stable config surface, including capture
 limits, phase timeouts, interaction policy, page capture mode, or multi-page

@@ -41,6 +41,8 @@ export interface AuditOptions {
   ai?: boolean;
   reporters?: ReporterType[];
   outputDir?: string;
+  keepOverlays?: boolean;
+  dismissSelectors?: string[];
 }
 
 export interface McpToolResponse {
@@ -84,6 +86,15 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
       input.capture = { elements: true };
     }
     if (options.interactions) input.interactions = { enabled: true };
+    if (options.keepOverlays) {
+      input.prepare = { ...input.prepare, dismissOverlays: false };
+    }
+    if (options.dismissSelectors?.length) {
+      input.prepare = {
+        ...input.prepare,
+        dismissSelectors: options.dismissSelectors,
+      };
+    }
     if (options.ai) input.ai = { enabled: true };
     if (options.reporters) input.reporters = options.reporters;
     if (options.outputDir) input.outputDir = options.outputDir;

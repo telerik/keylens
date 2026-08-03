@@ -46,6 +46,18 @@ export function reportCLI(report: AuditReport): void {
     crawl.cycleCompleted ? chalk.green("Yes") : chalk.yellow("No"),
   );
   console.log(chalk.bold("Duration:"), chalk.gray(`${crawl.duration}ms`));
+  if (crawl.prepare?.dismissals.length) {
+    const dismissed = crawl.prepare.dismissals
+      .map((d) => `${d.provider} (${d.action}${d.verified ? "" : ", unverified"})`)
+      .join(", ");
+    console.log(chalk.bold("Overlays dismissed:"), dismissed);
+  }
+  if (crawl.prepare?.warnings.length) {
+    console.log(
+      chalk.bold("Prepare warnings:"),
+      chalk.yellow(crawl.prepare.warnings.join("; ")),
+    );
+  }
   if (report.config.capture.elements) {
     const focusSequence = report.focusSequence ?? [];
     const pairs = focusSequence.filter(

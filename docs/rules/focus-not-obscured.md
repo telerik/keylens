@@ -57,3 +57,12 @@ relationship is not flagged.
 - Ensure cookie banners and overlays don't cover focusable content
 - Use `scroll-margin` on focusable elements to provide clearance from sticky elements
 - Consider dismissing non-essential overlays when the user starts keyboard navigation
+
+## Cookie/consent banners
+
+Keylens auto-dismisses known cookie/consent banners before the crawl (see
+[Configuration: prepare phase](../guide/configuration#prepare)), so this rule normally
+evaluates the page in its post-consent state rather than flagging the banner itself. To
+audit a banner deliberately — e.g. to verify it doesn't obscure focus while open — run
+with `--keep-overlays` (`prepare.dismissOverlays: false`).
+

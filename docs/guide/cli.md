@@ -18,6 +18,9 @@ configured URLs are audited.
 | `--headed`                 | `false`            | Show the browser                               |
 | `--wait-for <selector>`    | —                  | Wait for a CSS selector before the fixed delay |
 | `--wait <ms>`              | profile value      | Fixed delay after load                         |
+| `--keep-overlays`          | `false`            | Skip auto-dismissing cookie/consent banners    |
+| `--dismiss <selector>`     | —                  | Extra selector to click before the crawl (repeatable) |
+| `--consent <preference>`   | `reject`           | `reject`, `accept`, or `close` — preferred consent action |
 | `--max-tabs <n>`           | profile value      | Maximum Tab attempts                           |
 | `--tab-delay <ms>`         | profile value      | Delay after each Tab; minimum 10 ms            |
 | `--viewport <WxH>`         | `1280x720`         | Browser viewport                               |
@@ -58,6 +61,29 @@ pixel-diff result. The rule can still apply its much narrower inline-style heuri
 npx keylens audit https://example.com \
   --screenshots --page-screenshot viewport --output cli,json
 ```
+
+### Cookie/consent banners
+
+Before the tab crawl starts, Keylens runs a bounded **prepare phase** that dismisses
+cookie/consent banners so they don't dominate the recorded focus sequence. Built-in
+presets cover the major CMPs (OneTrust, Cookiebot, Usercentrics, Didomi, TrustArc,
+Quantcast, Osano, CookieYes, Termly, Klaro, Complianz, Iubenda, HubSpot, Sourcepoint,
+Axeptio); a generic heuristic handles the rest. This is **on by default** — no flags
+required for `npx keylens audit https://example.com` to work cleanly against a
+banner-heavy site.
+
+- `--consent reject|accept|close` picks which action is preferred when a banner offers
+  more than one (default `reject`, so audits never silently opt into tracking).
+- `--dismiss <selector>` adds a custom selector to click (repeatable) — useful for
+  in-house banners, newsletter modals, or app tours not covered by a preset.
+- `--keep-overlays` disables auto-dismissal entirely, e.g. to audit the banner itself.
+- `prepare.cookies` and `prepare.steps` (config file only) set cookies before
+  navigation or run generic `click`/`press`/`wait`/`waitFor` steps — see
+  [Configuration](./configuration#prepare).
+
+Every dismissal (or failure to dismiss) is reported, never silent: check `crawl.prepare`
+in the JSON report, or the "Overlays dismissed" / "Prepare warnings" lines in the CLI,
+HTML, and Markdown reports.
 
 ### Experimental interactions
 

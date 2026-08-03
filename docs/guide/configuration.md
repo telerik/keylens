@@ -53,6 +53,19 @@ or timeout limits.
   "browser": "chromium",
   "navigationTimeout": 30000,
   "headed": false,
+  "prepare": {
+    "dismissOverlays": true,
+    "consentPreference": "reject",
+    "dismissSelectors": ["#my-banner .close"],
+    "timeout": 5000,
+    "cookies": [{ "name": "consent", "value": "1" }],
+    "steps": [
+      { "type": "click", "selector": "#tour-close", "optional": true },
+      { "type": "press", "key": "Escape" },
+      { "type": "wait", "ms": 300 },
+      { "type": "waitFor", "selector": "[data-app-ready]" }
+    ]
+  },
   "capture": {
     "page": "none",
     "elements": false,
@@ -114,6 +127,29 @@ or timeout limits.
 
 All timeout values and capture byte limits are milliseconds and bytes respectively.
 Omit optional `include`, `exclude`, and timeout budgets when they are not needed.
+
+## Cookie/consent prepare phase {#prepare}
+
+`prepare` runs after navigation and before the tab crawl, so cookie/consent banners
+don't pollute the recorded focus sequence:
+
+| Option               | Default    | Description                                                                 |
+| --------------------- | ---------- | ---------------------------------------------------------------------------- |
+| `dismissOverlays`     | `true`     | Auto-dismiss known CMP banners (built-in presets) or a generic heuristic fallback |
+| `consentPreference`   | `"reject"` | Preferred action when a banner offers more than one: `"reject"`, `"accept"`, or `"close"` |
+| `dismissSelectors`    | —          | Extra selectors to click once, for custom banners/modals not covered by a preset |
+| `timeout`             | `5000`     | Whole-phase wall-time budget in ms; a slow or stuck banner degrades to a warning, never fails the audit |
+| `cookies`             | —          | Cookies applied to the browser context before navigation (`name`, `value`, optional `domain`/`path`) |
+| `steps`               | —          | Generic scripted steps run after dismissal: `click` (optional selector click), `press` (key), `wait` (fixed delay), `waitFor` (selector) |
+
+Setting `dismissOverlays: false` (or `--keep-overlays`) restores pre-prepare-phase
+behavior — useful when you specifically want to audit the banner itself.
+Custom selectors and steps still run when `dismissOverlays` is `false`.
+
+Every dismissal attempt is reported: `crawl.prepare.dismissals` (provider, action,
+selector, whether the container was verified hidden) and `crawl.prepare.warnings` for
+anything that didn't succeed. See [CLI reference](./cli#cookieconsent-banners) for the
+matching `--keep-overlays` / `--dismiss` / `--consent` flags.
 
 ## Exhaustive audit within budgets
 
