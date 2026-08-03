@@ -41,6 +41,34 @@ represented by an iframe or shadow host rather than the internal focused control
 Audit iframe documents as separate URLs when possible and test shadow-root internals
 with component-specific automation.
 
+## Cookie/consent auto-dismissal
+
+The prepare phase dismisses cookie/consent banners before the crawl using built-in CMP
+presets and a generic heuristic fallback. This is best-effort, not exhaustive:
+
+- Unrecognized or heavily customized CMPs may not match any preset or the heuristic's
+  text/z-index pattern, leaving the banner in place.
+- The heuristic's consent-button matching is English-only. Sites that serve a
+  localized/non-English banner (including consent screens served in a different
+  language based on the visitor's geolocation, independent of browser locale) may not
+  be dismissed unless a dedicated preset is added for that CMP.
+- The heuristic can occasionally click the wrong control, or none, on non-CMP overlays
+  that happen to mention "cookie"/"consent"/"privacy" text.
+- A dismissal is only marked `verified` if the container becomes hidden/detached within
+  its timeout; some CMPs animate closed slower than that window, so a real dismissal can
+  still be reported as unverified.
+- The whole phase has a bounded budget (`prepare.timeout`, default 5s); a stuck or
+  slow-loading banner degrades to a warning rather than blocking the audit, and the
+  banner may still appear in the focus sequence.
+- Presets target the CMP's default markup; heavily customized/white-labeled
+  installations of a supported CMP can still fall through to the heuristic or go
+  undetected.
+
+Always check `crawl.prepare.dismissals`/`crawl.prepare.warnings` (or the CLI/HTML/
+Markdown "Overlays dismissed"/"Prepare warnings" lines) rather than assuming a banner
+was handled. Use `--dismiss <selector>` for a known banner the built-ins miss, or
+`--keep-overlays` to audit the banner deliberately.
+
 ## Focus screenshots
 
 `--screenshots` captures a clipped PNG for an element while focused and another after

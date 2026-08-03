@@ -38,6 +38,18 @@ const auditOptionsSchema = z
     waitAfterLoad: z.number().nonnegative().optional(),
     screenshots: z.boolean().optional(),
     interactions: z.boolean().optional(),
+    keepOverlays: z
+      .boolean()
+      .optional()
+      .describe(
+        "Skip automatic cookie/consent banner dismissal before auditing (default: false, banners are dismissed).",
+      ),
+    dismissSelectors: z
+      .array(z.string().min(1))
+      .optional()
+      .describe(
+        "Extra CSS selectors to click before auditing, for banners not covered by built-in presets.",
+      ),
     ai: z.boolean().optional(),
     reporters: z
       .array(z.enum(["cli", "json", "html", "markdown"]))

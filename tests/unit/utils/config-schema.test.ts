@@ -31,6 +31,21 @@ describe("config schema parity", () => {
     { ai: { model: "gpt-4o", baseURL: "https://example.com/v1" } },
     { ai: { limits: { batchSize: 3, maxWidgets: 4, maxElements: 5 } } },
     { rules: { keyboardTrap: false } },
+    {
+      prepare: {
+        dismissOverlays: false,
+        consentPreference: "accept",
+        dismissSelectors: ["#my-banner .close"],
+        timeout: 3000,
+        cookies: [{ name: "consent", value: "1", domain: "example.com" }],
+        steps: [
+          { type: "click", selector: "#tour-close", optional: true },
+          { type: "press", key: "Escape" },
+          { type: "wait", ms: 300 },
+          { type: "waitFor", selector: "[data-app-ready]", timeout: 4000 },
+        ],
+      },
+    },
   ])("accepts the same valid file input: %j", (value) => {
     expect(
       validateJsonSchema(value),
@@ -49,6 +64,11 @@ describe("config schema parity", () => {
     { ai: { baseURL: "not a URL" } },
     { ai: { limits: { batchSize: 1.5 } } },
     { ai: { transport: "not allowed in JSON" } },
+    { prepare: { consentPreference: "necessary" } },
+    { prepare: { dismissSelectors: [""] } },
+    { prepare: { steps: [{ type: "click" }] } },
+    { prepare: { steps: [{ type: "typo", selector: "#x" }] } },
+    { prepare: { cookies: [{ value: "1" }] } },
   ])("rejects the same invalid file input: %j", (value) => {
     expect(validateJsonSchema(value)).toBe(false);
     expect(runtimeAccepts(value)).toBe(false);

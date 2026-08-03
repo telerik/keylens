@@ -176,6 +176,7 @@ function buildBaseReport(
       cycleCompleted: crawlResult.cycleCompleted,
       duration: crawlResult.crawlDuration,
       interactions: crawlResult.interactionSummary,
+      prepare: crawlResult.prepare,
       capture: crawlResult.capture,
     },
     rules: ruleResults,

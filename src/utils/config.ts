@@ -73,6 +73,11 @@ export const DEFAULT_CONFIG: KeylensConfig = {
     },
   },
   timeouts: {},
+  prepare: {
+    dismissOverlays: true,
+    consentPreference: "reject",
+    timeout: 5_000,
+  },
 };
 
 export const EXECUTION_PROFILES: Readonly<
@@ -183,6 +188,59 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
         interactions: positiveNumber.optional(),
         ai: positiveNumber.optional(),
         reporters: positiveNumber.optional(),
+      })
+      .strict()
+      .optional(),
+    prepare: z
+      .object({
+        dismissOverlays: z.boolean().optional(),
+        consentPreference: z.enum(["reject", "accept", "close"]).optional(),
+        dismissSelectors: z.array(z.string().min(1)).optional(),
+        timeout: positiveNumber.optional(),
+        cookies: z
+          .array(
+            z
+              .object({
+                name: z.string().min(1),
+                value: z.string(),
+                domain: z.string().min(1).optional(),
+                path: z.string().min(1).optional(),
+              })
+              .strict(),
+          )
+          .optional(),
+        steps: z
+          .array(
+            z.discriminatedUnion("type", [
+              z
+                .object({
+                  type: z.literal("click"),
+                  selector: z.string().min(1),
+                  optional: z.boolean().optional(),
+                })
+                .strict(),
+              z
+                .object({
+                  type: z.literal("press"),
+                  key: z.string().min(1),
+                })
+                .strict(),
+              z
+                .object({
+                  type: z.literal("wait"),
+                  ms: nonNegativeNumber,
+                })
+                .strict(),
+              z
+                .object({
+                  type: z.literal("waitFor"),
+                  selector: z.string().min(1),
+                  timeout: positiveNumber.optional(),
+                })
+                .strict(),
+            ]),
+          )
+          .optional(),
       })
       .strict()
       .optional(),
@@ -362,6 +420,17 @@ export function normalizeConfig(
     timeouts: {
       ...DEFAULT_CONFIG.timeouts,
       ...input.timeouts,
+    },
+    prepare: {
+      ...DEFAULT_CONFIG.prepare,
+      ...input.prepare,
+      dismissSelectors: input.prepare?.dismissSelectors
+        ? [...input.prepare.dismissSelectors]
+        : undefined,
+      cookies: input.prepare?.cookies
+        ? [...input.prepare.cookies]
+        : undefined,
+      steps: input.prepare?.steps ? [...input.prepare.steps] : undefined,
     },
   };
 }

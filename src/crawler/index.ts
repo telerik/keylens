@@ -25,6 +25,7 @@ import {
   SKIP_LINK_PATTERNS,
   MAIN_CONTENT_SELECTORS,
 } from "../utils/constants.js";
+import { applyPrepareCookies, preparePage } from "./prepare.js";
 
 /** Shape returned by GET_FOCUSED_ELEMENT_INFO_SCRIPT inside the browser. */
 interface FocusedElementInfo {
@@ -187,6 +188,10 @@ export async function crawlPage(
     page = await context.newPage();
     throwIfAborted(signal, "crawl", url);
 
+    // Apply configured cookies before navigation, so cookie-based consent
+    // gates never render in the first place.
+    await applyPrepareCookies(context, config, url);
+
     // Dismiss any dialogs (alert/confirm/prompt) that appear during crawling
     page.on("dialog", async (dialog) => {
       logger.warn(`Browser dialog dismissed: "${dialog.message()}"`);
@@ -233,6 +238,26 @@ export async function crawlPage(
     // Wait for page to settle
     await page.waitForTimeout(config.waitAfterLoad);
     throwIfAborted(signal, "crawl", url);
+
+    // Dismiss cookie/consent banners and run any configured prepare steps
+    // before the page is screenshotted or crawled.
+    logger.info("Preparing page...");
+    const prepareResult = await preparePage(
+      page,
+      config,
+      signal,
+      url,
+      onEvent,
+      eventStartedAt,
+    );
+    if (prepareResult.dismissals.length > 0) {
+      logger.info(
+        `Dismissed ${prepareResult.dismissals.length} overlay(s): ${prepareResult.dismissals.map((d) => d.provider).join(", ")}`,
+      );
+    }
+    for (const warning of prepareResult.warnings) {
+      logger.warn(`Prepare: ${warning}`);
+    }
 
     // Capture page dimensions
     const pageDimensions = (await page.evaluate(`(() => {
@@ -379,6 +404,7 @@ export async function crawlPage(
       skipLinkResult,
       interactionResults,
       interactionSummary,
+      prepare: prepareResult,
       capture: captureBudget.summary,
     };
   } catch (error) {
@@ -1061,6 +1087,7 @@ async function resetInteractionPage(
   page: Page,
   config: KeylensConfig,
   url: string,
+  signal?: AbortSignal,
 ): Promise<void> {
   await page.goto(url, {
     waitUntil: "domcontentloaded",
@@ -1074,6 +1101,11 @@ async function resetInteractionPage(
   if (config.waitAfterLoad > 0) {
     await page.waitForTimeout(config.waitAfterLoad);
   }
+  // Reloading brings the consent banner back — dismiss it again so
+  // interaction cases run against the same clean page as the tab crawl.
+  // No onEvent here: this is a background repeat within the interactions
+  // phase, not a top-level prepare phase worth reporting again.
+  await preparePage(page, config, signal, url);
 }
 
 function summarizeInteractions(
@@ -1172,7 +1204,7 @@ async function crawlInteractions(
 
       try {
         if (interactions.isolation === "reload") {
-          await resetInteractionPage(page, config, targetUrl);
+          await resetInteractionPage(page, config, targetUrl, signal);
         }
         const locator = await resolveInteractionLocator(page, element);
         if ((await locator.count()) === 0) {

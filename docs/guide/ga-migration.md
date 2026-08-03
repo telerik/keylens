@@ -81,6 +81,19 @@ disabled by default, and produce explicit passed, failed, skipped, or error outc
 Review [Configuration](./configuration) and [Known limitations](./limitations) before
 enabling them in CI.
 
+## Cookie/consent auto-dismissal (behavior change)
+
+Audits now run a **prepare phase** before the tab crawl that auto-dismisses cookie/
+consent banners by default (`prepare.dismissOverlays: true`). Reports for banner-heavy
+sites will differ from earlier runs: banner controls no longer appear in the focus
+sequence, and `focus-not-obscured`/`unreachable-elements` findings caused solely by the
+banner disappear.
+
+To keep the earlier behavior, set `dismissOverlays: false` or pass `--keep-overlays`
+(`keepOverlays: true` over MCP). See [Configuration](./configuration#prepare) and
+[CLI reference](./cli#cookieconsent-banners) for the full `prepare` surface
+(`consentPreference`, `dismissSelectors`, `cookies`, `steps`).
+
 ## Package subpaths
 
 - `@telerik/keylens`: Node CLI/library surface.

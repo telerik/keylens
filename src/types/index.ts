@@ -64,6 +64,9 @@ export interface KeylensConfig {
 
   /** Planned GA wall-time budgets. Phase-specific enforcement is introduced separately. */
   timeouts: PhaseTimeoutConfig;
+
+  /** Overlay/consent-banner dismissal run before capture and crawl */
+  prepare: PrepareConfig;
 }
 
 export type ExecutionProfile = "fast" | "balanced" | "thorough";
@@ -128,6 +131,63 @@ export interface MultiPageConfig {
   concurrency: number;
 }
 
+// ─── Prepare Phase (overlay/consent-banner dismissal) ────────────
+
+/** Which consent action to prefer when a banner offers multiple choices. */
+export type PrepareConsentPreference = "reject" | "accept" | "close";
+
+/** A cookie set on the browser context before navigation. */
+export interface PrepareCookie {
+  name: string;
+  value: string;
+  domain?: string;
+  path?: string;
+}
+
+export type PrepareStep =
+  | { type: "click"; selector: string; optional?: boolean }
+  | { type: "press"; key: string }
+  | { type: "wait"; ms: number }
+  | { type: "waitFor"; selector: string; timeout?: number };
+
+export interface PrepareConfig {
+  /** Auto-detect and dismiss known consent/cookie banners before the crawl (default: true) */
+  dismissOverlays: boolean;
+  /** Which button to click when a banner offers multiple choices (default: "reject") */
+  consentPreference: PrepareConsentPreference;
+  /** Extra CSS selectors to click, for banners not covered by built-in presets */
+  dismissSelectors?: string[];
+  /** Whole-phase wall-time budget in ms (default: 5000) */
+  timeout: number;
+  /** Cookies applied to the browser context before navigation */
+  cookies?: PrepareCookie[];
+  /** Generic scripted steps run after overlay dismissal (click/press/wait/waitFor) */
+  steps?: PrepareStep[];
+}
+
+/** A single overlay/banner dismissal attempt and its outcome. */
+export interface OverlayDismissal {
+  /** Preset provider name, "heuristic", or "custom" (dismissSelectors) */
+  provider: string;
+  /** Which action was taken */
+  action: PrepareConsentPreference | "custom";
+  /** Selector that was clicked */
+  selector: string;
+  /** Whether the container was confirmed hidden/detached afterwards */
+  verified: boolean;
+}
+
+export interface PrepareResult {
+  /** Whether the prepare phase ran at all (false when dismissOverlays is disabled and no steps configured) */
+  attempted: boolean;
+  /** Overlay dismissals performed, in order */
+  dismissals: OverlayDismissal[];
+  /** Non-fatal issues encountered during prepare (never fail the audit) */
+  warnings: string[];
+  /** Time taken for the prepare phase in ms */
+  duration: number;
+}
+
 export interface PhaseTimeoutConfig {
   /** Entire audit wall-time budget */
   total?: number;
@@ -157,6 +217,7 @@ export interface KeylensConfigInput extends Omit<
   | "interactions"
   | "multiPage"
   | "timeouts"
+  | "prepare"
 > {
   viewport?: Partial<KeylensConfig["viewport"]>;
   rules?: Partial<RuleConfig>;
@@ -167,6 +228,7 @@ export interface KeylensConfigInput extends Omit<
   interactions?: Partial<InteractionConfig>;
   multiPage?: Partial<MultiPageConfig>;
   timeouts?: Partial<PhaseTimeoutConfig>;
+  prepare?: Partial<PrepareConfig>;
 }
 
 export interface AuditOptions extends KeylensConfigInput {
@@ -282,6 +344,7 @@ export type AuditReportSchemaVersion = typeof AUDIT_REPORT_SCHEMA_VERSION;
 export type AuditPhase =
   | "setup"
   | "navigation"
+  | "prepare"
   | "capture"
   | "crawl"
   | "rules"
@@ -326,6 +389,13 @@ export type AuditEvent =
       type: "interaction-completed";
       attempted: number;
       completed: number;
+    })
+  | (AuditEventBase & {
+      type: "overlay-dismissed";
+      provider: string;
+      action: PrepareConsentPreference | "custom";
+      selector: string;
+      verified: boolean;
     })
   | (AuditEventBase & {
       type: "warning";
@@ -523,6 +593,9 @@ export interface CrawlResult {
 
   /** Aggregate interaction case outcomes */
   interactionSummary?: InteractionSummary;
+
+  /** Overlay/consent-banner dismissal result (always present, even if no-op) */
+  prepare?: PrepareResult;
 
   /** Capture resource usage and skipped/failed attempts */
   capture: CaptureSummary;
@@ -735,6 +808,8 @@ export interface AuditReport {
     duration: number;
     /** Interaction case outcomes when interaction testing is enabled */
     interactions?: InteractionSummary;
+    /** Overlay/consent-banner dismissal result */
+    prepare?: PrepareResult;
     /** Capture resource usage and skipped/failed attempts */
     capture: CaptureSummary;
   };

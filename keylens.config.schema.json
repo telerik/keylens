@@ -237,6 +237,95 @@
     "headed": {
       "type": "boolean",
       "default": false
+    },
+    "prepare": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Overlay/consent-banner dismissal run after navigation, before capture and crawl.",
+      "properties": {
+        "dismissOverlays": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-detect and dismiss known cookie/consent banners (OneTrust, Cookiebot, etc.), falling back to a generic heuristic."
+        },
+        "consentPreference": {
+          "enum": ["reject", "accept", "close"],
+          "default": "reject",
+          "description": "Which action to prefer when a banner offers multiple choices."
+        },
+        "dismissSelectors": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Extra CSS selectors to click before auditing, for banners not covered by built-in presets."
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 5000,
+          "description": "Whole-phase wall-time budget in ms."
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "value"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "value": { "type": "string" },
+              "domain": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 }
+            }
+          },
+          "description": "Cookies applied to the browser context before navigation."
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "selector"],
+                "properties": {
+                  "type": { "const": "click" },
+                  "selector": { "type": "string", "minLength": 1 },
+                  "optional": { "type": "boolean" }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "key"],
+                "properties": {
+                  "type": { "const": "press" },
+                  "key": { "type": "string", "minLength": 1 }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "ms"],
+                "properties": {
+                  "type": { "const": "wait" },
+                  "ms": { "type": "number", "minimum": 0 }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "selector"],
+                "properties": {
+                  "type": { "const": "waitFor" },
+                  "selector": { "type": "string", "minLength": 1 },
+                  "timeout": { "type": "number", "exclusiveMinimum": 0 }
+                }
+              }
+            ]
+          },
+          "description": "Generic scripted steps run after overlay dismissal (click/press/wait/waitFor)."
+        }
+      }
     }
   }
 }
