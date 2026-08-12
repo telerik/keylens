@@ -76,7 +76,7 @@
     "benchmark:ci": "KEYLENS_BENCHMARK_ENFORCE=1 KEYLENS_BENCHMARK_OUTPUT=benchmark-results.json tsx benchmarks/run.ts",
     "benchmark:typecheck": "tsc --noEmit -p benchmarks/tsconfig.json",
     "package:verify": "npm run build && node scripts/verify-package.mjs",
-    "validate": "npm run lint && npm run typecheck && npm run benchmark:typecheck && npm run build && npm test",
+    "validate": "npm run format:check && npm run lint && npm run typecheck && npm run benchmark:typecheck && npm run build && npm run docs:build && npm run test:coverage",
     "keylens": "tsx src/cli/index.ts",
     "prepublishOnly": "npm run build",
     "prepare": "git config core.hooksPath .husky",
