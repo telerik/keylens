@@ -77,7 +77,9 @@ function renderCrawl(report: AuditReport): string {
   lines.push("");
   if (c.prepare?.dismissals.length) {
     const dismissed = c.prepare.dismissals
-      .map((d) => `${d.provider} (${d.action}${d.verified ? "" : ", unverified"})`)
+      .map(
+        (d) => `${d.provider} (${d.action}${d.verified ? "" : ", unverified"})`,
+      )
       .join(", ");
     lines.push(`**Overlays dismissed:** ${dismissed}`);
     lines.push("");

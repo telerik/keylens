@@ -429,9 +429,7 @@ export function normalizeConfig(
       dismissSelectors: input.prepare?.dismissSelectors
         ? [...input.prepare.dismissSelectors]
         : undefined,
-      cookies: input.prepare?.cookies
-        ? [...input.prepare.cookies]
-        : undefined,
+      cookies: input.prepare?.cookies ? [...input.prepare.cookies] : undefined,
       steps: input.prepare?.steps ? [...input.prepare.steps] : undefined,
     },
   };

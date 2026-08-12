@@ -48,22 +48,22 @@ Do not place API keys directly in a checked-in MCP configuration.
 
 The two audit tools accept:
 
-| Option            | Type                                       |
-| ----------------- | ------------------------------------------ |
-| `profile`         | `fast`, `balanced`, or `thorough`          |
-| `browser`         | `chromium`, `firefox`, or `webkit`         |
-| `viewport`        | partial `{ width, height }`                |
-| `maxTabs`         | positive integer                           |
-| `tabDelay`        | number, minimum 10                         |
-| `waitForSelector` | nonempty string                            |
-| `waitAfterLoad`   | nonnegative number                         |
-| `screenshots`     | boolean                                    |
-| `interactions`    | boolean                                    |
-| `ai`              | boolean                                    |
-| `keepOverlays`    | boolean — disable auto-dismissing cookie/consent banners |
-| `dismissSelectors`| array of strings — extra selectors to click before the crawl |
-| `reporters`       | array of `cli`, `json`, `html`, `markdown` |
-| `outputDir`       | string                                     |
+| Option             | Type                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| `profile`          | `fast`, `balanced`, or `thorough`                            |
+| `browser`          | `chromium`, `firefox`, or `webkit`                           |
+| `viewport`         | partial `{ width, height }`                                  |
+| `maxTabs`          | positive integer                                             |
+| `tabDelay`         | number, minimum 10                                           |
+| `waitForSelector`  | nonempty string                                              |
+| `waitAfterLoad`    | nonnegative number                                           |
+| `screenshots`      | boolean                                                      |
+| `interactions`     | boolean                                                      |
+| `ai`               | boolean                                                      |
+| `keepOverlays`     | boolean — disable auto-dismissing cookie/consent banners     |
+| `dismissSelectors` | array of strings — extra selectors to click before the crawl |
+| `reporters`        | array of `cli`, `json`, `html`, `markdown`                   |
+| `outputDir`        | string                                                       |
 
 By default, the prepare phase auto-dismisses known cookie/consent banners (built-in
 CMP presets + a generic heuristic fallback) before the crawl, preferring the reject

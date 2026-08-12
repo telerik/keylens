@@ -8,33 +8,33 @@ Alias: `keylens scan [url]`. An HTTP(S) URL can also be passed directly as short
 The URL argument overrides `urls` from the config file. Without an argument, all
 configured URLs are audited.
 
-| Option                     | Default            | Description                                    |
-| -------------------------- | ------------------ | ---------------------------------------------- |
-| `-c, --config <path>`      | —                  | JSON config path                               |
-| `--profile <profile>`      | `balanced`         | `fast`, `balanced`, or `thorough`              |
-| `-o, --output <reporters>` | `cli`              | Comma-separated `cli,json,html,markdown`       |
-| `-d, --output-dir <dir>`   | `./keylens-report` | File reporter destination                      |
-| `-b, --browser <browser>`  | `chromium`         | `chromium`, `firefox`, or `webkit`             |
-| `--headed`                 | `false`            | Show the browser                               |
-| `--wait-for <selector>`    | —                  | Wait for a CSS selector before the fixed delay |
-| `--wait <ms>`              | profile value      | Fixed delay after load                         |
-| `--keep-overlays`          | `false`            | Skip auto-dismissing cookie/consent banners    |
-| `--no-expand-scroll-containers` | `false` (expansion on) | Skip neutralizing full-page "faux scroll" containers |
-| `--dismiss <selector>`     | —                  | Extra selector to click before the crawl (repeatable) |
-| `--consent <preference>`   | `reject`           | `reject`, `accept`, or `close` — preferred consent action |
-| `--max-tabs <n>`           | profile value      | Maximum Tab attempts                           |
-| `--tab-delay <ms>`         | profile value      | Delay after each Tab; minimum 10 ms            |
-| `--viewport <WxH>`         | `1280x720`         | Browser viewport                               |
-| `--timeout <ms>`           | `30000`            | Navigation timeout                             |
-| `--page-screenshot <mode>` | capability-based   | `none`, `viewport`, or `full`                  |
-| `--screenshots`            | `false`            | Capture bounded focus-state pairs              |
-| `--interactions`           | `false`            | Enable experimental bounded activations        |
-| `--ai`                     | `false`            | Enable experimental AI                         |
-| `--ai-model <model>`       | provider default   | Override the AI model                          |
-| `--ai-provider <provider>` | `anthropic`        | `anthropic` or `openai`                        |
-| `--ai-base-url <url>`      | —                  | OpenAI-compatible or Azure endpoint            |
-| `-q, --quiet`              | `false`            | Suppress nonessential output                   |
-| `-v, --verbose`            | `false`            | Enable debug diagnostics                       |
+| Option                          | Default                | Description                                               |
+| ------------------------------- | ---------------------- | --------------------------------------------------------- |
+| `-c, --config <path>`           | —                      | JSON config path                                          |
+| `--profile <profile>`           | `balanced`             | `fast`, `balanced`, or `thorough`                         |
+| `-o, --output <reporters>`      | `cli`                  | Comma-separated `cli,json,html,markdown`                  |
+| `-d, --output-dir <dir>`        | `./keylens-report`     | File reporter destination                                 |
+| `-b, --browser <browser>`       | `chromium`             | `chromium`, `firefox`, or `webkit`                        |
+| `--headed`                      | `false`                | Show the browser                                          |
+| `--wait-for <selector>`         | —                      | Wait for a CSS selector before the fixed delay            |
+| `--wait <ms>`                   | profile value          | Fixed delay after load                                    |
+| `--keep-overlays`               | `false`                | Skip auto-dismissing cookie/consent banners               |
+| `--no-expand-scroll-containers` | `false` (expansion on) | Skip neutralizing full-page "faux scroll" containers      |
+| `--dismiss <selector>`          | —                      | Extra selector to click before the crawl (repeatable)     |
+| `--consent <preference>`        | `reject`               | `reject`, `accept`, or `close` — preferred consent action |
+| `--max-tabs <n>`                | profile value          | Maximum Tab attempts                                      |
+| `--tab-delay <ms>`              | profile value          | Delay after each Tab; minimum 10 ms                       |
+| `--viewport <WxH>`              | `1280x720`             | Browser viewport                                          |
+| `--timeout <ms>`                | `30000`                | Navigation timeout                                        |
+| `--page-screenshot <mode>`      | capability-based       | `none`, `viewport`, or `full`                             |
+| `--screenshots`                 | `false`                | Capture bounded focus-state pairs                         |
+| `--interactions`                | `false`                | Enable experimental bounded activations                   |
+| `--ai`                          | `false`                | Enable experimental AI                                    |
+| `--ai-model <model>`            | provider default       | Override the AI model                                     |
+| `--ai-provider <provider>`      | `anthropic`            | `anthropic` or `openai`                                   |
+| `--ai-base-url <url>`           | —                      | OpenAI-compatible or Azure endpoint                       |
+| `-q, --quiet`                   | `false`                | Suppress nonessential output                              |
+| `-v, --verbose`                 | `false`                | Enable debug diagnostics                                  |
 
 CLI values override config values. `--headed`, `--screenshots`, `--interactions`, and
 `--ai` enable their features; they do not provide `--no-*` forms.

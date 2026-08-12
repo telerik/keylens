@@ -1,72 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Consent banner fixture</title>
-<style>
-  body { font-family: sans-serif; margin: 0; padding: 0; }
-  #onetrust-banner-sdk {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 2147483647;
-    background: #fff;
-    border-top: 1px solid #ccc;
-    padding: 1rem;
-  }
-  .generic-cookie-banner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 9999;
-    background: #222;
-    color: #fff;
-    padding: 1rem;
-  }
-  main { padding: 2rem; }
-</style>
-</head>
-<body>
-  <div id="onetrust-banner-sdk">
-    <p>We use cookies to improve your experience.</p>
-    <button id="onetrust-reject-all-handler">Reject All</button>
-    <button id="onetrust-accept-btn-handler">Accept All</button>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Consent banner fixture</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      #onetrust-banner-sdk {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 2147483647;
+        background: #fff;
+        border-top: 1px solid #ccc;
+        padding: 1rem;
+      }
+      .generic-cookie-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: #222;
+        color: #fff;
+        padding: 1rem;
+      }
+      main {
+        padding: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="onetrust-banner-sdk">
+      <p>We use cookies to improve your experience.</p>
+      <button id="onetrust-reject-all-handler">Reject All</button>
+      <button id="onetrust-accept-btn-handler">Accept All</button>
+    </div>
 
-  <div class="generic-cookie-banner" id="generic-banner" hidden>
-    <p>This site uses cookies for consent and privacy purposes.</p>
-    <button id="generic-reject">Decline</button>
-    <button id="generic-accept">Accept</button>
-  </div>
+    <div class="generic-cookie-banner" id="generic-banner" hidden>
+      <p>This site uses cookies for consent and privacy purposes.</p>
+      <button id="generic-reject">Decline</button>
+      <button id="generic-accept">Accept</button>
+    </div>
 
-  <main>
-    <h1>Page content</h1>
-    <a href="#main" id="link-1">First link</a>
-    <button id="button-1">A button</button>
-    <input id="input-1" type="text" placeholder="Type here" />
-  </main>
+    <main>
+      <h1>Page content</h1>
+      <a href="#main" id="link-1">First link</a>
+      <button id="button-1">A button</button>
+      <input id="input-1" type="text" placeholder="Type here" />
+    </main>
 
-  <script>
-    document.getElementById('onetrust-reject-all-handler').addEventListener('click', () => {
-      document.getElementById('onetrust-banner-sdk').style.display = 'none';
-    });
-    document.getElementById('onetrust-accept-btn-handler').addEventListener('click', () => {
-      document.getElementById('onetrust-banner-sdk').style.display = 'none';
-    });
-    document.getElementById('generic-reject').addEventListener('click', () => {
-      document.getElementById('generic-banner').style.display = 'none';
-    });
-    document.getElementById('generic-accept').addEventListener('click', () => {
-      document.getElementById('generic-banner').style.display = 'none';
-    });
+    <script>
+      document
+        .getElementById("onetrust-reject-all-handler")
+        .addEventListener("click", () => {
+          document.getElementById("onetrust-banner-sdk").style.display = "none";
+        });
+      document
+        .getElementById("onetrust-accept-btn-handler")
+        .addEventListener("click", () => {
+          document.getElementById("onetrust-banner-sdk").style.display = "none";
+        });
+      document
+        .getElementById("generic-reject")
+        .addEventListener("click", () => {
+          document.getElementById("generic-banner").style.display = "none";
+        });
+      document
+        .getElementById("generic-accept")
+        .addEventListener("click", () => {
+          document.getElementById("generic-banner").style.display = "none";
+        });
 
-    // Toggle to the generic banner for heuristic-fallback tests by removing the OneTrust one.
-    if (location.search.includes('heuristic')) {
-      document.getElementById('onetrust-banner-sdk').remove();
-      document.getElementById('generic-banner').hidden = false;
-    }
-  </script>
-</body>
+      // Toggle to the generic banner for heuristic-fallback tests by removing the OneTrust one.
+      if (location.search.includes("heuristic")) {
+        document.getElementById("onetrust-banner-sdk").remove();
+        document.getElementById("generic-banner").hidden = false;
+      }
+    </script>
+  </body>
 </html>

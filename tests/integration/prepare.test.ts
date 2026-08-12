@@ -26,7 +26,9 @@ function serveFixture(): Promise<{ server: Server; url: string }> {
   });
 }
 
-function withPrepare(overrides: Partial<KeylensConfig["prepare"]>): KeylensConfig {
+function withPrepare(
+  overrides: Partial<KeylensConfig["prepare"]>,
+): KeylensConfig {
   return normalizeConfig({ prepare: overrides });
 }
 

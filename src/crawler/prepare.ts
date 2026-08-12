@@ -201,9 +201,14 @@ async function dismissHeuristicOverlay(
   for (const action of actionOrder(preference)) {
     let match: HeuristicMatch | undefined;
     try {
-      match = await findHeuristicOverlay(page, HEURISTIC_BUTTON_PATTERNS[action]);
+      match = await findHeuristicOverlay(
+        page,
+        HEURISTIC_BUTTON_PATTERNS[action],
+      );
     } catch (error) {
-      warnings.push(`Heuristic overlay scan failed: ${(error as Error).message}`);
+      warnings.push(
+        `Heuristic overlay scan failed: ${(error as Error).message}`,
+      );
       return undefined;
     }
     if (!match) continue;
@@ -331,10 +336,10 @@ async function expandFauxScrollContainer(
       typeof result !== "object" ||
       typeof (result as ScrollContainerExpansionScriptResult).selector !==
         "string" ||
-      typeof (result as ScrollContainerExpansionScriptResult)
-        .originalHeight !== "number" ||
-      typeof (result as ScrollContainerExpansionScriptResult)
-        .expandedHeight !== "number" ||
+      typeof (result as ScrollContainerExpansionScriptResult).originalHeight !==
+        "number" ||
+      typeof (result as ScrollContainerExpansionScriptResult).expandedHeight !==
+        "number" ||
       typeof (result as ScrollContainerExpansionScriptResult).reverted !==
         "boolean"
     ) {
@@ -394,7 +399,9 @@ async function runPrepareStep(
       const found = await findVisible(page, [step.selector]);
       if (!found) {
         if (!step.optional) {
-          warnings.push(`Prepare step: click selector not found: ${step.selector}`);
+          warnings.push(
+            `Prepare step: click selector not found: ${step.selector}`,
+          );
         }
         return;
       }
@@ -550,11 +557,7 @@ export async function preparePage(
 
     if (prepareConfig.dismissSelectors?.length) {
       const customDismissals = await raceWithSignal(
-        dismissCustomSelectors(
-          page,
-          prepareConfig.dismissSelectors,
-          warnings,
-        ),
+        dismissCustomSelectors(page, prepareConfig.dismissSelectors, warnings),
         scope.signal,
         "prepare",
         url,
@@ -605,5 +608,11 @@ export async function preparePage(
     elapsedMs: Date.now() - eventStartedAt,
   });
 
-  return { attempted: true, dismissals, warnings, duration, scrollContainerExpanded };
+  return {
+    attempted: true,
+    dismissals,
+    warnings,
+    duration,
+    scrollContainerExpanded,
+  };
 }
