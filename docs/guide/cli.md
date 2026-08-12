@@ -19,6 +19,7 @@ configured URLs are audited.
 | `--wait-for <selector>`    | —                  | Wait for a CSS selector before the fixed delay |
 | `--wait <ms>`              | profile value      | Fixed delay after load                         |
 | `--keep-overlays`          | `false`            | Skip auto-dismissing cookie/consent banners    |
+| `--no-expand-scroll-containers` | `false` (expansion on) | Skip neutralizing full-page "faux scroll" containers |
 | `--dismiss <selector>`     | —                  | Extra selector to click before the crawl (repeatable) |
 | `--consent <preference>`   | `reject`           | `reject`, `accept`, or `close` — preferred consent action |
 | `--max-tabs <n>`           | profile value      | Maximum Tab attempts                           |
@@ -61,6 +62,22 @@ pixel-diff result. The rule can still apply its much narrower inline-style heuri
 npx keylens audit https://example.com \
   --screenshots --page-screenshot viewport --output cli,json
 ```
+
+### Full-page "faux scroll" containers
+
+Some sites (parallax/smooth-scroll landing pages) never scroll `<html>`/`<body>` at
+all — instead, a single inner `overflow: auto` wrapper does all the scrolling, so
+`document.scrollHeight` (and Playwright's own `fullPage` screenshot) stays stuck at one
+viewport tall even though the real page is much longer. Keylens detects this pattern
+during the prepare phase and neutralizes the container's `overflow`/`height` so the
+document expands to its true length — fixing both `--page-screenshot full` captures and
+the HTML focus-map overlay's marker positions.
+
+This is **on by default**; disable it with `--no-expand-scroll-containers` (or
+`prepare.expandScrollContainers: false` in a config file) if the heuristic ever
+misidentifies a legitimate scrollable region (e.g. a code sample viewer) as the page
+container. A detected container is reported via `crawl.prepare.scrollContainerExpanded`
+in the JSON report, and as "Scroll container expanded" in the CLI/Markdown/HTML reports.
 
 ### Cookie/consent banners
 

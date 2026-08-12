@@ -77,6 +77,7 @@ export const DEFAULT_CONFIG: KeylensConfig = {
     dismissOverlays: true,
     consentPreference: "reject",
     timeout: 5_000,
+    expandScrollContainers: true,
   },
 };
 
@@ -197,6 +198,7 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
         consentPreference: z.enum(["reject", "accept", "close"]).optional(),
         dismissSelectors: z.array(z.string().min(1)).optional(),
         timeout: positiveNumber.optional(),
+        expandScrollContainers: z.boolean().optional(),
         cookies: z
           .array(
             z

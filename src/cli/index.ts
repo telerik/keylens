@@ -158,6 +158,10 @@ program
     false,
   )
   .option(
+    "--no-expand-scroll-containers",
+    "skip neutralizing full-page 'faux scroll' containers (parallax/smooth-scroll designs) before auditing",
+  )
+  .option(
     "--dismiss <selector>",
     "extra CSS selector to click before auditing (repeatable)",
     (value: string, previous: string[]) => [...previous, value],
@@ -273,6 +277,9 @@ program
         prepare: {
           ...fileConfig.prepare,
           ...(options.keepOverlays ? { dismissOverlays: false } : {}),
+          ...(options.expandScrollContainers === false
+            ? { expandScrollContainers: false }
+            : {}),
           ...(options.consent
             ? {
                 consentPreference:

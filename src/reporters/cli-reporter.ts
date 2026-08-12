@@ -52,6 +52,14 @@ export function reportCLI(report: AuditReport): void {
       .join(", ");
     console.log(chalk.bold("Overlays dismissed:"), dismissed);
   }
+  if (crawl.prepare?.scrollContainerExpanded) {
+    const { selector, originalHeight, expandedHeight } =
+      crawl.prepare.scrollContainerExpanded;
+    console.log(
+      chalk.bold("Scroll container expanded:"),
+      `${selector} (${originalHeight}px -> ${expandedHeight}px)`,
+    );
+  }
   if (crawl.prepare?.warnings.length) {
     console.log(
       chalk.bold("Prepare warnings:"),

@@ -68,6 +68,37 @@ describe("HTML Reporter", () => {
     expect(html).toContain("https://my-site.com/page");
   });
 
+  it("should render scroll container expansion details when present", async () => {
+    const reportHTML = await getReportHTML();
+    await reportHTML(
+      makeAuditReport({
+        crawl: {
+          totalFocusableElements: 0,
+          totalInteractiveElements: 0,
+          unreachedElements: 0,
+          cycleCompleted: true,
+          duration: 1000,
+          prepare: {
+            attempted: true,
+            dismissals: [],
+            warnings: [],
+            duration: 50,
+            scrollContainerExpanded: {
+              selector: "div.parallax",
+              originalHeight: 900,
+              expandedHeight: 5198,
+            },
+          },
+        },
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain("Scroll container expanded:");
+    expect(html).toContain("div.parallax (900px &rarr; 5198px)");
+  });
+
   it("should include the version", async () => {
     const reportHTML = await getReportHTML();
     await reportHTML(makeAuditReport({ version: "1.2.3" }), "./out");

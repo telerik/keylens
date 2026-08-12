@@ -324,6 +324,11 @@
             ]
           },
           "description": "Generic scripted steps run after overlay dismissal (click/press/wait/waitFor)."
+        },
+        "expandScrollContainers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Detect and neutralize full-page 'faux scroll' containers (overflow:auto wrappers used by parallax/smooth-scroll designs instead of the document itself) so page height, full-page screenshots, and the HTML focus map reflect the true page length."
         }
       }
     }

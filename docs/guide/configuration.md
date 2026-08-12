@@ -64,7 +64,8 @@ or timeout limits.
       { "type": "press", "key": "Escape" },
       { "type": "wait", "ms": 300 },
       { "type": "waitFor", "selector": "[data-app-ready]" }
-    ]
+    ],
+    "expandScrollContainers": true
   },
   "capture": {
     "page": "none",
@@ -141,15 +142,22 @@ don't pollute the recorded focus sequence:
 | `timeout`             | `5000`     | Whole-phase wall-time budget in ms; a slow or stuck banner degrades to a warning, never fails the audit |
 | `cookies`             | —          | Cookies applied to the browser context before navigation (`name`, `value`, optional `domain`/`path`) |
 | `steps`               | —          | Generic scripted steps run after dismissal: `click` (optional selector click), `press` (key), `wait` (fixed delay), `waitFor` (selector) |
+| `expandScrollContainers` | `true` | Detect and neutralize full-page "faux scroll" containers — `overflow: auto/scroll` wrappers used by parallax/smooth-scroll designs instead of the document itself — so page height, full-page screenshots, and the HTML focus map reflect the true page length |
 
 Setting `dismissOverlays: false` (or `--keep-overlays`) restores pre-prepare-phase
 behavior — useful when you specifically want to audit the banner itself.
 Custom selectors and steps still run when `dismissOverlays` is `false`.
 
+Setting `expandScrollContainers: false` (or `--no-expand-scroll-containers`) skips the
+faux-scroll-container check entirely — useful if the heuristic misidentifies a
+legitimate `overflow: auto` region (e.g. a code sample viewer) as the page container.
+
 Every dismissal attempt is reported: `crawl.prepare.dismissals` (provider, action,
 selector, whether the container was verified hidden) and `crawl.prepare.warnings` for
-anything that didn't succeed. See [CLI reference](./cli#cookieconsent-banners) for the
-matching `--keep-overlays` / `--dismiss` / `--consent` flags.
+anything that didn't succeed. A detected faux-scroll container is reported via
+`crawl.prepare.scrollContainerExpanded` (selector, original and expanded height). See
+[CLI reference](./cli#cookieconsent-banners) for the matching `--keep-overlays` /
+`--dismiss` / `--consent` / `--no-expand-scroll-containers` flags.
 
 ## Exhaustive audit within budgets
 

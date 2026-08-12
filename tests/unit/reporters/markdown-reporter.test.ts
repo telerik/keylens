@@ -105,6 +105,37 @@ describe("reportMarkdown", () => {
     expect(md).toContain("| 15 | 20 | 5 | Yes |");
   });
 
+  it("should render scroll container expansion details when present", async () => {
+    const reportMarkdown = await getReportMarkdown();
+    const report = makeAuditReport({
+      crawl: {
+        totalFocusableElements: 15,
+        totalInteractiveElements: 20,
+        unreachedElements: 5,
+        cycleCompleted: true,
+        duration: 2500,
+        prepare: {
+          attempted: true,
+          dismissals: [],
+          warnings: [],
+          duration: 50,
+          scrollContainerExpanded: {
+            selector: "div.parallax",
+            originalHeight: 900,
+            expandedHeight: 5198,
+          },
+        },
+      },
+    });
+
+    await reportMarkdown(report, "./test-output");
+    const md = getWrittenMarkdown();
+
+    expect(md).toContain(
+      "**Scroll container expanded:** div.parallax (900px -> 5198px)",
+    );
+  });
+
   it("should render focus sequence table", async () => {
     const reportMarkdown = await getReportMarkdown();
     const report = makeAuditReport({

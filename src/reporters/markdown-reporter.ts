@@ -82,6 +82,14 @@ function renderCrawl(report: AuditReport): string {
     lines.push(`**Overlays dismissed:** ${dismissed}`);
     lines.push("");
   }
+  if (c.prepare?.scrollContainerExpanded) {
+    const { selector, originalHeight, expandedHeight } =
+      c.prepare.scrollContainerExpanded;
+    lines.push(
+      `**Scroll container expanded:** ${selector} (${originalHeight}px -> ${expandedHeight}px)`,
+    );
+    lines.push("");
+  }
   if (c.prepare?.warnings.length) {
     lines.push(`**Prepare warnings:** ${c.prepare.warnings.join("; ")}`);
     lines.push("");

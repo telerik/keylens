@@ -94,6 +94,15 @@ capture represents only the initial viewport, while focus coordinates can span t
 document. Full-page capture can be skipped when dimensions, pixels, or bytes exceed the
 configured budget.
 
+Sites that implement scrolling with a nested `overflow: auto` container instead of the
+document itself (parallax/smooth-scroll designs) are heuristically detected and
+neutralized during the prepare phase (`prepare.expandScrollContainers`, on by default)
+so page dimensions and full-page screenshots reflect the true page length. The
+heuristic can misfire on unusual layouts — disable it with
+`--no-expand-scroll-containers` if a legitimate scrollable region gets expanded
+unexpectedly, and check `crawl.prepare.scrollContainerExpanded` in the JSON report to
+see what was detected.
+
 ## Experimental interaction safety
 
 Interactions are opt-in because activation can mutate data or application state.
