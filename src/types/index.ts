@@ -163,6 +163,14 @@ export interface PrepareConfig {
   cookies?: PrepareCookie[];
   /** Generic scripted steps run after overlay dismissal (click/press/wait/waitFor) */
   steps?: PrepareStep[];
+  /**
+   * Detect and neutralize full-page "faux scroll" containers — `overflow: auto/scroll`
+   * wrappers that intercept scrolling instead of the document itself, common in
+   * parallax/smooth-scroll page designs. When detected, the container is expanded
+   * (overflow/height reset) so `document.scrollHeight`, full-page screenshots, and the
+   * HTML focus-map overlay reflect the true page length (default: true).
+   */
+  expandScrollContainers: boolean;
 }
 
 /** A single overlay/banner dismissal attempt and its outcome. */
@@ -177,6 +185,16 @@ export interface OverlayDismissal {
   verified: boolean;
 }
 
+/** A faux full-page scroll container that was detected and neutralized. */
+export interface ScrollContainerExpansion {
+  /** Best-effort CSS selector identifying the expanded container */
+  selector: string;
+  /** The container's `scrollHeight` before expansion */
+  originalHeight: number;
+  /** `document.documentElement.scrollHeight` after expansion */
+  expandedHeight: number;
+}
+
 export interface PrepareResult {
   /** Whether the prepare phase ran at all (false when dismissOverlays is disabled and no steps configured) */
   attempted: boolean;
@@ -186,6 +204,8 @@ export interface PrepareResult {
   warnings: string[];
   /** Time taken for the prepare phase in ms */
   duration: number;
+  /** Details of a faux-scroll container that was detected and expanded, if any */
+  scrollContainerExpanded?: ScrollContainerExpansion;
 }
 
 export interface PhaseTimeoutConfig {

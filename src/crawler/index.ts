@@ -255,6 +255,11 @@ export async function crawlPage(
         `Dismissed ${prepareResult.dismissals.length} overlay(s): ${prepareResult.dismissals.map((d) => d.provider).join(", ")}`,
       );
     }
+    if (prepareResult.scrollContainerExpanded) {
+      logger.info(
+        `Expanded faux-scroll container ${prepareResult.scrollContainerExpanded.selector} (${prepareResult.scrollContainerExpanded.originalHeight}px -> ${prepareResult.scrollContainerExpanded.expandedHeight}px)`,
+      );
+    }
     for (const warning of prepareResult.warnings) {
       logger.warn(`Prepare: ${warning}`);
     }

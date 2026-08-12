@@ -427,6 +427,43 @@ describe("CLI Reporter", () => {
     expect(allOutput).toContain("Button contains only an icon with no text.");
   });
 
+  it("should show scroll container expansion details when present", () => {
+    const report = makeAuditReport({
+      crawl: {
+        totalFocusableElements: 0,
+        totalInteractiveElements: 0,
+        unreachedElements: 0,
+        cycleCompleted: true,
+        duration: 1000,
+        capture: {
+          attempted: 0,
+          captured: 0,
+          skipped: 0,
+          failed: 0,
+          byteLength: 0,
+          decodedPixels: 0,
+        },
+        prepare: {
+          attempted: true,
+          dismissals: [],
+          warnings: [],
+          duration: 50,
+          scrollContainerExpanded: {
+            selector: "div.parallax",
+            originalHeight: 900,
+            expandedHeight: 5198,
+          },
+        },
+      },
+    });
+
+    reportCLI(report);
+
+    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(allOutput).toContain("Scroll container expanded:");
+    expect(allOutput).toContain("div.parallax (900px -> 5198px)");
+  });
+
   it("should render focus indicator quality scores", () => {
     const report = makeAuditReport({
       focusIndicatorScores: [

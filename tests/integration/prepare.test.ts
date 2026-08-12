@@ -99,7 +99,11 @@ describe("Integration: prepare phase (consent banner dismissal)", () => {
     const crawlResult = await crawlPage(url, {
       ...DEFAULT_CONFIG,
       maxTabs: 15,
-      prepare: { ...DEFAULT_CONFIG.prepare, dismissOverlays: false },
+      prepare: {
+        ...DEFAULT_CONFIG.prepare,
+        dismissOverlays: false,
+        expandScrollContainers: false,
+      },
     });
 
     const selectors = crawlResult.focusSequence.map((el) => el.selector);
@@ -186,7 +190,10 @@ describe("Integration: prepare phase (consent banner dismissal)", () => {
     page = await browser.newPage();
     await page.goto(url);
 
-    const config = withPrepare({ dismissOverlays: false });
+    const config = withPrepare({
+      dismissOverlays: false,
+      expandScrollContainers: false,
+    });
     const result = await preparePage(page, config, undefined, url);
 
     expect(result.attempted).toBe(false);

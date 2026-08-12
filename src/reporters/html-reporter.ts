@@ -693,7 +693,12 @@ function buildMetaCards(
 
 function buildPrepareNote(crawl: AuditReport["crawl"]): string {
   const prepare = crawl.prepare;
-  if (!prepare?.dismissals.length && !prepare?.warnings.length) return "";
+  if (
+    !prepare?.dismissals.length &&
+    !prepare?.warnings.length &&
+    !prepare?.scrollContainerExpanded
+  )
+    return "";
   const dismissals = (prepare.dismissals ?? [])
     .map(
       (d) =>
@@ -701,10 +706,14 @@ function buildPrepareNote(crawl: AuditReport["crawl"]): string {
     )
     .join(", ");
   const warnings = (prepare.warnings ?? []).map(escapeHTML).join("; ");
+  const expansion = prepare.scrollContainerExpanded
+    ? `${escapeHTML(prepare.scrollContainerExpanded.selector)} (${prepare.scrollContainerExpanded.originalHeight}px &rarr; ${prepare.scrollContainerExpanded.expandedHeight}px)`
+    : "";
   return `
     <div style="margin: 1rem 0; padding: 0.75rem 1rem; background: #1e293b; border-radius: 0.5rem; font-size: 0.85rem; color: #94a3b8;">
       ${dismissals ? `<div><strong style="color: #e2e8f0;">Overlays dismissed:</strong> ${dismissals}</div>` : ""}
-      ${warnings ? `<div style="color: #f59e0b; margin-top: ${dismissals ? "0.25rem" : "0"};"><strong>Prepare warnings:</strong> ${warnings}</div>` : ""}
+      ${expansion ? `<div style="margin-top: ${dismissals ? "0.25rem" : "0"};"><strong style="color: #e2e8f0;">Scroll container expanded:</strong> ${expansion}</div>` : ""}
+      ${warnings ? `<div style="color: #f59e0b; margin-top: ${dismissals || expansion ? "0.25rem" : "0"};"><strong>Prepare warnings:</strong> ${warnings}</div>` : ""}
     </div>`;
 }
 

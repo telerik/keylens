@@ -7,6 +7,7 @@ import type {
   PrepareConsentPreference,
   PrepareResult,
   PrepareStep,
+  ScrollContainerExpansion,
 } from "../types/index.js";
 import { OVERLAY_PRESETS } from "../utils/overlay-presets.js";
 import { logger } from "../utils/logger.js";
@@ -143,6 +144,15 @@ interface HeuristicMatch {
   buttonSelector: string;
 }
 
+/** Raw shape returned by EXPAND_SCROLL_CONTAINER_SCRIPT, before validation. */
+interface ScrollContainerExpansionScriptResult {
+  selector: string;
+  originalHeight: number;
+  expandedHeight: number;
+  /** True when the expansion had no effect and styles were reverted */
+  reverted: boolean;
+}
+
 /**
  * Generic fallback for banners not covered by a preset: look for a visible
  * fixed/sticky, high-z-index container whose text mentions cookies/consent, and
@@ -222,6 +232,131 @@ async function dismissHeuristicOverlay(
   return undefined;
 }
 
+/**
+ * Detect a full-page "faux scroll" container — an `overflow: auto/scroll` wrapper
+ * that intercepts scrolling instead of the document itself (common in
+ * parallax/smooth-scroll page designs, e.g. Locomotive Scroll-style layouts). When
+ * the document itself reports no scrollable height, this heuristically picks the
+ * largest element that looks like the "real" page (near-full viewport width, near
+ * the top, taller than half the viewport) and neutralizes its overflow/height (and
+ * any clipping ancestors) so the document expands to the true content length.
+ *
+ * Verifies the expansion actually grew the document afterwards, and reverts the
+ * style changes if it didn't — this can silently fail when the container's content
+ * is positioned out of normal flow (`position: absolute`/`fixed` plus a CSS
+ * transform), which doesn't contribute to an ancestor's auto height. That pattern
+ * shows up in 3D/canvas-like "virtual scroll" scenes (e.g. GSAP ScrollTrigger),
+ * where there is no linear stack of content to reveal in the first place.
+ */
+const EXPAND_SCROLL_CONTAINER_SCRIPT = `(() => {
+  ${UNIQUE_SELECTOR_FN}
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const docEl = document.documentElement;
+
+  // Only intervene when the document itself isn't naturally scrollable — a strong
+  // signal that a nested container is doing the "real" scrolling instead.
+  if (docEl.scrollHeight > viewportH + 100) return null;
+
+  let best = null;
+  const candidates = document.querySelectorAll('body *');
+  for (const el of candidates) {
+    const style = getComputedStyle(el);
+    if (style.overflowY !== 'auto' && style.overflowY !== 'scroll') continue;
+    if (el.scrollHeight <= el.clientHeight + 100) continue;
+    const rect = el.getBoundingClientRect();
+    if (rect.width < viewportW * 0.8) continue;
+    if (rect.top > 150 || rect.top < -50) continue;
+    if (el.clientHeight < viewportH * 0.5) continue;
+    if (!best || el.scrollHeight > best.scrollHeight) best = el;
+  }
+  if (!best) return null;
+
+  const originalHeight = best.scrollHeight;
+  const selector = keylensUniqueSelector(best);
+
+  // Ancestors up to body sometimes clip via a fixed height + overflow: hidden
+  // (a "viewport lock" wrapper for the scroll effect) — neutralize those too.
+  const targets = [best];
+  let ancestor = best.parentElement;
+  while (ancestor && ancestor !== document.body) {
+    const ancestorStyle = getComputedStyle(ancestor);
+    if (ancestorStyle.overflow === 'hidden' || ancestorStyle.overflowY === 'hidden') {
+      targets.push(ancestor);
+    }
+    ancestor = ancestor.parentElement;
+  }
+
+  const restore = targets.map((el) => ({
+    el,
+    overflow: [el.style.getPropertyValue('overflow'), el.style.getPropertyPriority('overflow')],
+    overflowY: [el.style.getPropertyValue('overflow-y'), el.style.getPropertyPriority('overflow-y')],
+    height: [el.style.getPropertyValue('height'), el.style.getPropertyPriority('height')],
+    maxHeight: [el.style.getPropertyValue('max-height'), el.style.getPropertyPriority('max-height')],
+  }));
+
+  for (const el of targets) {
+    el.style.setProperty('overflow', 'visible', 'important');
+    el.style.setProperty('overflow-y', 'visible', 'important');
+    el.style.setProperty('height', 'auto', 'important');
+    el.style.setProperty('max-height', 'none', 'important');
+  }
+
+  const expandedHeight = document.documentElement.scrollHeight;
+
+  // Verify the expansion actually took effect. It can silently do nothing when
+  // the container's content is out of normal flow (absolutely positioned and/or
+  // transformed), in which case revert so the page isn't left half-modified.
+  if (expandedHeight <= viewportH + 100) {
+    for (const r of restore) {
+      r.overflow[0] ? r.el.style.setProperty('overflow', r.overflow[0], r.overflow[1]) : r.el.style.removeProperty('overflow');
+      r.overflowY[0] ? r.el.style.setProperty('overflow-y', r.overflowY[0], r.overflowY[1]) : r.el.style.removeProperty('overflow-y');
+      r.height[0] ? r.el.style.setProperty('height', r.height[0], r.height[1]) : r.el.style.removeProperty('height');
+      r.maxHeight[0] ? r.el.style.setProperty('max-height', r.maxHeight[0], r.maxHeight[1]) : r.el.style.removeProperty('max-height');
+    }
+    return { selector, originalHeight, expandedHeight, reverted: true };
+  }
+
+  return { selector, originalHeight, expandedHeight, reverted: false };
+})()`;
+
+async function expandFauxScrollContainer(
+  page: Page,
+  warnings: string[],
+): Promise<ScrollContainerExpansion | undefined> {
+  try {
+    const result = await page.evaluate(EXPAND_SCROLL_CONTAINER_SCRIPT);
+    if (
+      !result ||
+      typeof result !== "object" ||
+      typeof (result as ScrollContainerExpansionScriptResult).selector !==
+        "string" ||
+      typeof (result as ScrollContainerExpansionScriptResult)
+        .originalHeight !== "number" ||
+      typeof (result as ScrollContainerExpansionScriptResult)
+        .expandedHeight !== "number" ||
+      typeof (result as ScrollContainerExpansionScriptResult).reverted !==
+        "boolean"
+    ) {
+      return undefined;
+    }
+    const { selector, originalHeight, expandedHeight, reverted } =
+      result as ScrollContainerExpansionScriptResult;
+    if (reverted) {
+      warnings.push(
+        `Detected a full-page scroll container (${selector}) but could not expand it — its content is likely positioned out of normal document flow (e.g. transform-driven). Page screenshots and the focus map will only reflect the initial viewport.`,
+      );
+      return undefined;
+    }
+    return { selector, originalHeight, expandedHeight };
+  } catch (error) {
+    warnings.push(
+      `Scroll container expansion failed: ${(error as Error).message}`,
+    );
+    return undefined;
+  }
+}
+
 /** Click each user-supplied selector once, if present on the page. */
 async function dismissCustomSelectors(
   page: Page,
@@ -297,6 +432,7 @@ async function runPrepareStep(
 function hasPrepareWork(config: PrepareConfig): boolean {
   return (
     config.dismissOverlays ||
+    config.expandScrollContainers ||
     (config.dismissSelectors?.length ?? 0) > 0 ||
     (config.steps?.length ?? 0) > 0
   );
@@ -362,6 +498,7 @@ export async function preparePage(
   const prepareConfig = config.prepare;
   const dismissals: OverlayDismissal[] = [];
   const warnings: string[] = [];
+  let scrollContainerExpanded: ScrollContainerExpansion | undefined;
 
   if (!hasPrepareWork(prepareConfig)) {
     return { attempted: false, dismissals, warnings, duration: 0 };
@@ -428,6 +565,20 @@ export async function preparePage(
       }
     }
 
+    if (prepareConfig.expandScrollContainers) {
+      scrollContainerExpanded = await raceWithSignal(
+        expandFauxScrollContainer(page, warnings),
+        scope.signal,
+        "prepare",
+        url,
+      );
+      if (scrollContainerExpanded) {
+        logger.debug(
+          `Expanded faux-scroll container ${scrollContainerExpanded.selector} to reveal full page height (${scrollContainerExpanded.originalHeight}px -> ${scrollContainerExpanded.expandedHeight}px)`,
+        );
+      }
+    }
+
     for (const step of prepareConfig.steps ?? []) {
       await raceWithSignal(
         runPrepareStep(page, step, warnings),
@@ -454,5 +605,5 @@ export async function preparePage(
     elapsedMs: Date.now() - eventStartedAt,
   });
 
-  return { attempted: true, dismissals, warnings, duration };
+  return { attempted: true, dismissals, warnings, duration, scrollContainerExpanded };
 }
