@@ -134,15 +134,15 @@ Omit optional `include`, `exclude`, and timeout budgets when they are not needed
 `prepare` runs after navigation and before the tab crawl, so cookie/consent banners
 don't pollute the recorded focus sequence:
 
-| Option               | Default    | Description                                                                 |
-| --------------------- | ---------- | ---------------------------------------------------------------------------- |
-| `dismissOverlays`     | `true`     | Auto-dismiss known CMP banners (built-in presets) or a generic heuristic fallback |
-| `consentPreference`   | `"reject"` | Preferred action when a banner offers more than one: `"reject"`, `"accept"`, or `"close"` |
-| `dismissSelectors`    | —          | Extra selectors to click once, for custom banners/modals not covered by a preset |
-| `timeout`             | `5000`     | Whole-phase wall-time budget in ms; a slow or stuck banner degrades to a warning, never fails the audit |
-| `cookies`             | —          | Cookies applied to the browser context before navigation (`name`, `value`, optional `domain`/`path`) |
-| `steps`               | —          | Generic scripted steps run after dismissal: `click` (optional selector click), `press` (key), `wait` (fixed delay), `waitFor` (selector) |
-| `expandScrollContainers` | `true` | Detect and neutralize full-page "faux scroll" containers — `overflow: auto/scroll` wrappers used by parallax/smooth-scroll designs instead of the document itself — so page height, full-page screenshots, and the HTML focus map reflect the true page length |
+| Option                   | Default    | Description                                                                                                                                                                                                                                                    |
+| ------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dismissOverlays`        | `true`     | Auto-dismiss known CMP banners (built-in presets) or a generic heuristic fallback                                                                                                                                                                              |
+| `consentPreference`      | `"reject"` | Preferred action when a banner offers more than one: `"reject"`, `"accept"`, or `"close"`                                                                                                                                                                      |
+| `dismissSelectors`       | —          | Extra selectors to click once, for custom banners/modals not covered by a preset                                                                                                                                                                               |
+| `timeout`                | `5000`     | Whole-phase wall-time budget in ms; a slow or stuck banner degrades to a warning, never fails the audit                                                                                                                                                        |
+| `cookies`                | —          | Cookies applied to the browser context before navigation (`name`, `value`, optional `domain`/`path`)                                                                                                                                                           |
+| `steps`                  | —          | Generic scripted steps run after dismissal: `click` (optional selector click), `press` (key), `wait` (fixed delay), `waitFor` (selector)                                                                                                                       |
+| `expandScrollContainers` | `true`     | Detect and neutralize full-page "faux scroll" containers — `overflow: auto/scroll` wrappers used by parallax/smooth-scroll designs instead of the document itself — so page height, full-page screenshots, and the HTML focus map reflect the true page length |
 
 Setting `dismissOverlays: false` (or `--keep-overlays`) restores pre-prepare-phase
 behavior — useful when you specifically want to audit the banner itself.

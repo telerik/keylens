@@ -65,4 +65,3 @@ Keylens auto-dismisses known cookie/consent banners before the crawl (see
 evaluates the page in its post-consent state rather than flagging the banner itself. To
 audit a banner deliberately — e.g. to verify it doesn't obscure focus while open — run
 with `--keep-overlays` (`prepare.dismissOverlays: false`).
-

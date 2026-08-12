@@ -20,27 +20,38 @@ function createLocator(
     waitForHidden?: boolean;
   } = {},
 ): FakeLocator {
-  const { count = 1, visible = true, clickError, waitForHidden = true } =
-    overrides;
+  const {
+    count = 1,
+    visible = true,
+    clickError,
+    waitForHidden = true,
+  } = overrides;
   const locator: FakeLocator = {
     first: vi.fn(() => locator),
     count: vi.fn().mockResolvedValue(count),
     isVisible: vi.fn().mockResolvedValue(visible),
-    click: vi.fn().mockImplementation(() =>
-      clickError ? Promise.reject(clickError) : Promise.resolve(undefined),
-    ),
-    waitFor: vi.fn().mockImplementation(() =>
-      waitForHidden
-        ? Promise.resolve(undefined)
-        : Promise.reject(new Error("timeout waiting for hidden state")),
-    ),
+    click: vi
+      .fn()
+      .mockImplementation(() =>
+        clickError ? Promise.reject(clickError) : Promise.resolve(undefined),
+      ),
+    waitFor: vi
+      .fn()
+      .mockImplementation(() =>
+        waitForHidden
+          ? Promise.resolve(undefined)
+          : Promise.reject(new Error("timeout waiting for hidden state")),
+      ),
   };
   return locator;
 }
 
 function createFrame(selectorMap: Record<string, FakeLocator> = {}) {
   return {
-    locator: vi.fn((selector: string) => selectorMap[selector] ?? createLocator({ count: 0 })),
+    locator: vi.fn(
+      (selector: string) =>
+        selectorMap[selector] ?? createLocator({ count: 0 }),
+    ),
   };
 }
 
@@ -54,7 +65,9 @@ function createPage(
   const { frames = [createFrame()], evaluateImpl, locatorMap = {} } = options;
   return {
     frames: vi.fn(() => frames),
-    locator: vi.fn((selector: string) => locatorMap[selector] ?? createLocator({ count: 0 })),
+    locator: vi.fn(
+      (selector: string) => locatorMap[selector] ?? createLocator({ count: 0 }),
+    ),
     evaluate: vi.fn(evaluateImpl ?? (() => Promise.resolve(undefined))),
     keyboard: { press: vi.fn().mockResolvedValue(undefined) },
     waitForTimeout: vi.fn().mockResolvedValue(undefined),
@@ -62,7 +75,9 @@ function createPage(
   } as unknown as Page;
 }
 
-function withPrepare(overrides: Partial<KeylensConfig["prepare"]>): KeylensConfig {
+function withPrepare(
+  overrides: Partial<KeylensConfig["prepare"]>,
+): KeylensConfig {
   return normalizeConfig({ prepare: overrides });
 }
 
@@ -96,7 +111,12 @@ describe("preparePage", () => {
       const page = createPage({ frames: [frame] });
       const config = withPrepare({});
 
-      const result = await preparePage(page, config, undefined, "https://example.com");
+      const result = await preparePage(
+        page,
+        config,
+        undefined,
+        "https://example.com",
+      );
 
       expect(result.attempted).toBe(true);
       expect(result.warnings).toHaveLength(0);
@@ -393,8 +413,18 @@ describe("preparePage", () => {
       const result = await preparePage(page, config);
 
       expect(result.dismissals).toEqual([
-        { provider: "custom", action: "custom", selector: "#a", verified: true },
-        { provider: "custom", action: "custom", selector: "#b", verified: true },
+        {
+          provider: "custom",
+          action: "custom",
+          selector: "#a",
+          verified: true,
+        },
+        {
+          provider: "custom",
+          action: "custom",
+          selector: "#b",
+          verified: true,
+        },
       ]);
     });
 
@@ -590,7 +620,12 @@ describe("preparePage", () => {
       });
       const config = withPrepare({});
 
-      const result = await preparePage(page, config, undefined, "https://example.com");
+      const result = await preparePage(
+        page,
+        config,
+        undefined,
+        "https://example.com",
+      );
 
       expect(result.attempted).toBe(true);
       expect(result.warnings).toEqual([

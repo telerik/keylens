@@ -31,7 +31,10 @@ export const OVERLAY_PRESETS: readonly OverlayPreset[] = [
     container: ["#onetrust-banner-sdk", "#onetrust-consent-sdk"],
     reject: ["#onetrust-reject-all-handler", ".ot-pc-refuse-all-handler"],
     accept: ["#onetrust-accept-btn-handler"],
-    close: ["#onetrust-close-btn-container button", ".onetrust-close-btn-handler"],
+    close: [
+      "#onetrust-close-btn-container button",
+      ".onetrust-close-btn-handler",
+    ],
   },
   {
     provider: "Cookiebot",
@@ -46,10 +49,7 @@ export const OVERLAY_PRESETS: readonly OverlayPreset[] = [
   {
     provider: "Usercentrics",
     container: ["#usercentrics-root", "#uc-central-modal"],
-    reject: [
-      "[data-testid='uc-deny-all-button']",
-      "button[aria-label='Deny']",
-    ],
+    reject: ["[data-testid='uc-deny-all-button']", "button[aria-label='Deny']"],
     accept: [
       "[data-testid='uc-accept-all-button']",
       "button[aria-label='Accept All']",
@@ -76,7 +76,10 @@ export const OVERLAY_PRESETS: readonly OverlayPreset[] = [
   {
     provider: "Quantcast",
     container: ["#qc-cmp2-container"],
-    reject: ["button[mode='secondary']", ".qc-cmp2-summary-buttons button:first-child"],
+    reject: [
+      "button[mode='secondary']",
+      ".qc-cmp2-summary-buttons button:first-child",
+    ],
     accept: ["button[mode='primary']"],
     close: [],
   },

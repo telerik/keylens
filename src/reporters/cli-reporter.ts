@@ -48,7 +48,9 @@ export function reportCLI(report: AuditReport): void {
   console.log(chalk.bold("Duration:"), chalk.gray(`${crawl.duration}ms`));
   if (crawl.prepare?.dismissals.length) {
     const dismissed = crawl.prepare.dismissals
-      .map((d) => `${d.provider} (${d.action}${d.verified ? "" : ", unverified"})`)
+      .map(
+        (d) => `${d.provider} (${d.action}${d.verified ? "" : ", unverified"})`,
+      )
       .join(", ");
     console.log(chalk.bold("Overlays dismissed:"), dismissed);
   }

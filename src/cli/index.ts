@@ -228,7 +228,9 @@ program
       ];
       if (
         options.consent &&
-        !CONSENT_PREFERENCES.includes(options.consent as PrepareConsentPreference)
+        !CONSENT_PREFERENCES.includes(
+          options.consent as PrepareConsentPreference,
+        )
       ) {
         throw new ConfigError(
           `Invalid --consent "${options.consent}". Expected one of: ${CONSENT_PREFERENCES.join(", ")}.`,
@@ -282,8 +284,7 @@ program
             : {}),
           ...(options.consent
             ? {
-                consentPreference:
-                  options.consent as PrepareConsentPreference,
+                consentPreference: options.consent as PrepareConsentPreference,
               }
             : {}),
           dismissSelectors: [
