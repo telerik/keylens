@@ -1,0 +1,2424 @@
+{
+  "version": "0.1.0",
+  "timestamp": "2026-08-12T18:49:26.845Z",
+  "url": "https://www.nngroup.com",
+  "config": {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "browser": "chromium",
+    "rules": {
+      "keyboardTrap": true,
+      "unreachableElements": true,
+      "focusOrderMismatch": true,
+      "tabindexAbuse": true,
+      "missingFocusIndicator": true,
+      "skipLink": true,
+      "focusNotObscured": true,
+      "focusAfterInteraction": true
+    }
+  },
+  "crawl": {
+    "totalFocusableElements": 64,
+    "totalInteractiveElements": 64,
+    "unreachedElements": 0,
+    "cycleCompleted": true,
+    "duration": 141485
+  },
+  "rules": [
+    {
+      "ruleId": "keyboard-trap",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Keyboard Trap",
+      "ruleDescription": "Detects elements that trap keyboard focus, preventing users from navigating away.",
+      "wcag": ["2.1.2"]
+    },
+    {
+      "ruleId": "unreachable-elements",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Unreachable Interactive Elements",
+      "ruleDescription": "Detects interactive elements that cannot be reached via keyboard navigation.",
+      "wcag": ["2.1.1"]
+    },
+    {
+      "ruleId": "focus-order-mismatch",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "focus-order-mismatch",
+          "ruleName": "Focus Order Mismatch",
+          "severity": "warning",
+          "message": "37 element(s) have a focus order that significantly differs from their visual position.",
+          "elements": [
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > div.home-courses-header:nth-of-type(1) > p.paragraph-m-400 > a.link-m-400",
+              "outerHTML": "<a href=\"/ux-certification/\" class=\"link-m-400\">UX Certification</a>",
+              "tabPosition": 13,
+              "accessibleName": "UX Certification"
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > div.home-courses-action:nth-of-type(2) > a.ds-button-medium.ds-button-red",
+              "outerHTML": "<a class=\"ds-button-medium ds-button-red label-m-500\" href=\"/courses/\">All Live Online Courses</a>",
+              "tabPosition": 14,
+              "accessibleName": "All Live Online Courses"
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > ul.ds-course-cards.ds-live-online-cards > li:nth-of-type(1) > article.ds-course-card.live-online > div.content > div.content-description > a.no-decoration",
+              "outerHTML": "<a class=\"no-decoration\" href=\"/courses/ai-for-design/\">\n                <strong id=\"lo-course-ai-for-design\" class=\"title label-xl-500\">AI for Design Workflows</strong>\n            </a>",
+              "tabPosition": 15,
+              "accessibleName": "AI for Design Workflows"
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > div.home-courses-action:nth-of-type(2) > a.ds-button-medium.ds-button-red",
+              "outerHTML": "<a class=\"ds-button-medium ds-button-red label-m-500\" href=\"/contents/self-paced-courses/\">All Self-Paced Courses</a>",
+              "tabPosition": 17,
+              "accessibleName": "All Self-Paced Courses"
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > ul.ds-course-cards.ds-selfpaced-cards > li:nth-of-type(1) > article.ds-course-card.selfpaced > div.content > a.no-decoration",
+              "outerHTML": "<a class=\"no-decoration\" href=\"http://nngroup.com/contents/self-paced-courses/demonstrating-ux-value/\">\n            <strong id=\"sp-course-T-SP-CDE-DUXV-01\" class=\"title label-xl-500\">Demonstrating UX Value</strong>\n        </a>",
+              "tabPosition": 18,
+              "accessibleName": "Demonstrating UX Value"
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > ul.ds-course-cards.ds-selfpaced-cards > li:nth-of-type(2) > article.ds-course-card.selfpaced > div.content > a.no-decoration",
+              "outerHTML": "<a class=\"no-decoration\" href=\"http://nngroup.com/contents/self-paced-courses/successful-ux-job-searching/\">\n            <strong id=\"sp-course-T-SP-OSL-UXJS-01\" class=\"title label-xl-500\">Successful UX Job Searching</strong>\n        </a>",
+              "tabPosition": 19,
+              "accessibleName": "Successful UX Job Searching"
+            },
+            {
+              "selector": "#main > section.earn-ux-certification.ds-wrapper:nth-of-type(1) > div.ux-certification-banner > div.ux-banner__copy:nth-of-type(1) > a.ds-button-medium.ds-button-secondary",
+              "outerHTML": "<a class=\"ds-button-medium ds-button-secondary ds-button-white\" href=\"/ux-certification/\">UX Certification Benefits</a>",
+              "tabPosition": 20,
+              "accessibleName": "UX Certification Benefits"
+            },
+            {
+              "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > div.articles-videos > div.content-card.clickable-card:nth-of-type(1) > div.content-card__content > h3.content-card__title.subhead-s-500 > a",
+              "outerHTML": "<a href=\"/articles/prove-framework/\">How to Decide When an AI Tool Is Worth Keeping</a>",
+              "tabPosition": 21,
+              "accessibleName": "How to Decide When an AI Tool Is Worth Keeping"
+            },
+            {
+              "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > div.articles-videos > div.content-card.clickable-card:nth-of-type(2) > div.content-card__content > h3.content-card__title.subhead-s-500 > a",
+              "outerHTML": "<a href=\"/articles/dogfooding/\">Dogfooding vs. QA vs. User Research</a>",
+              "tabPosition": 22,
+              "accessibleName": "Dogfooding vs. QA vs. User Research"
+            },
+            {
+              "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > div.articles-videos > div.content-card.clickable-card:nth-of-type(3) > div.content-card__content:nth-of-type(2) > h3.content-card__title.subhead-s-500 > a",
+              "outerHTML": "<a href=\"/videos/how-to-avoid-doing-ux-theatre/\">How to Avoid Doing UX Theatre</a>",
+              "tabPosition": 23,
+              "accessibleName": "How to Avoid Doing UX Theatre"
+            },
+            {
+              "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > a.button-fill.more-articles",
+              "outerHTML": "<a class=\"button-fill more-articles button-red-white label-m-500\" href=\"/articles/\">More Articles &amp; Videos</a>",
+              "tabPosition": 25,
+              "accessibleName": "More Articles & Videos"
+            },
+            {
+              "selector": "#main > section.ds-services-cards.ds-wrapper:nth-of-type(3) > div.service.team-training:nth-of-type(1) > div.content > a.ds-button-medium.ds-button-maroon",
+              "outerHTML": "<a href=\"https://www.nngroup.com/contents/train-your-team/\" data-location=\"body\" class=\"ds-button-medium ds-button-maroon\">\n            Train Your Team\n        </a>",
+              "tabPosition": 26,
+              "accessibleName": "Train Your Team"
+            },
+            {
+              "selector": "#main > section.ds-services-cards.ds-wrapper:nth-of-type(3) > div.service.team-training:nth-of-type(2) > div.content > a.ds-button-medium.ds-button-maroon",
+              "outerHTML": "<a href=\"https://www.nngroup.com/consulting/\" data-location=\"body\" class=\"ds-button-medium ds-button-maroon\">\n            Explore Consulting Offerings\n        </a>",
+              "tabPosition": 27,
+              "accessibleName": "Explore Consulting Offerings"
+            },
+            {
+              "selector": "#main > section.ds-brand-value-banner.ds-wrapper:nth-of-type(4) > ul.ds-brand-value-cards > li.ds-brand-value-card:nth-of-type(1) > p.card-text.paragraph-m-400 > a",
+              "outerHTML": "<a href=\"https://www.nngroup.com/consulting/\">Meet our team →</a>",
+              "tabPosition": 28,
+              "accessibleName": "Meet our team →"
+            },
+            {
+              "selector": "#main > section.ds-brand-value-banner.ds-wrapper:nth-of-type(4) > ul.ds-brand-value-cards > li.ds-brand-value-card:nth-of-type(2) > p.card-text.paragraph-m-400 > a",
+              "outerHTML": "<a href=\"https://www.nngroup.com/articles/\">Explore our articles and videos →</a>",
+              "tabPosition": 29,
+              "accessibleName": "Explore our articles and videos →"
+            },
+            {
+              "selector": "#newsletter-email",
+              "outerHTML": "<input name=\"email\" type=\"email\" class=\"newsletter-email paragraph-s-400\" autocomplete=\"email\" id=\"newsletter-email\" required=\"\" style=\"\">",
+              "tabPosition": 31
+            },
+            {
+              "selector": "footer.footer > section.top-footer.ds-wrapper:nth-of-type(1) > div.newsletter > form.form-field.form-validated > div.subscribe-wrap:nth-of-type(1) > button.subscribe-btn.label-s-600",
+              "outerHTML": "<button type=\"submit\" name=\"subscribe\" class=\"subscribe-btn label-s-600 disabled\" aria-disabled=\"true\">Subscribe</button>",
+              "tabPosition": 32,
+              "accessibleName": "Subscribe"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(1) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/contents/self-paced-courses/\">Self-Paced Courses</a>",
+              "tabPosition": 36,
+              "accessibleName": "Self-Paced Courses"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/consulting/expert-review/\">Expert Review</a>",
+              "tabPosition": 39,
+              "accessibleName": "Expert Review"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/consulting/keynote-speaking/\">Keynote Speaking</a>",
+              "tabPosition": 40,
+              "accessibleName": "Keynote Speaking"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"/consulting/user-testing/\">User Testing</a>",
+              "tabPosition": 41,
+              "accessibleName": "User Testing"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(6) > a",
+              "outerHTML": "<a href=\"/consulting/ux-maturity-assessment/\">UX Maturity Assessment</a>",
+              "tabPosition": 42,
+              "accessibleName": "UX Maturity Assessment"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/privacy-policy/\">Privacy Policy</a>",
+              "tabPosition": 44,
+              "accessibleName": "Privacy Policy"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/virtual-help\">Live Course Tech Support</a>",
+              "tabPosition": 45,
+              "accessibleName": "Live Course Tech Support"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/faqs/\">FAQs</a>",
+              "tabPosition": 46,
+              "accessibleName": "FAQs"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/about/\">About NNGroup</a>",
+              "tabPosition": 47,
+              "accessibleName": "About NNGroup"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/news/\">News &amp; Careers</a>",
+              "tabPosition": 49,
+              "accessibleName": "News & Careers"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/about/contact/\">Contact Us</a>",
+              "tabPosition": 50,
+              "accessibleName": "Contact Us"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"https://www.youtube.com/channel/UC2oCugzU6W8-h95W7eBTUEg\">Youtube</a>",
+              "tabPosition": 53,
+              "accessibleName": "Youtube"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"https://www.linkedin.com/company/nielsen-norman-group\">LinkedIn</a>",
+              "tabPosition": 54,
+              "accessibleName": "LinkedIn"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"https://www.instagram.com/nngux\">Instagram</a>",
+              "tabPosition": 55,
+              "accessibleName": "Instagram"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"https://www.threads.com/@nngux\">Threads</a>",
+              "tabPosition": 56,
+              "accessibleName": "Threads"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"https://bsky.app/profile/nngroupux.bsky.social\">Bluesky</a>",
+              "tabPosition": 57,
+              "accessibleName": "Bluesky"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(6) > a",
+              "outerHTML": "<a href=\"https://x.com/nngroup\">X</a>",
+              "tabPosition": 58,
+              "accessibleName": "X"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(7) > a",
+              "outerHTML": "<a href=\"https://www.facebook.com/nngux\">Facebook</a>",
+              "tabPosition": 59,
+              "accessibleName": "Facebook"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(8) > a",
+              "outerHTML": "<a href=\"https://podcasters.spotify.com/pod/show/nngroup\">Spotify</a>",
+              "tabPosition": 60,
+              "accessibleName": "Spotify"
+            },
+            {
+              "selector": "div.skip:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"#main\">Skip to content</a>",
+              "tabPosition": 64,
+              "accessibleName": "Skip to content"
+            }
+          ],
+          "wcag": ["2.4.3"],
+          "impact": "Keyboard users may be confused when focus jumps to unexpected locations that don't match the visual layout."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Focus Order Mismatch",
+      "ruleDescription": "Detects when keyboard focus order doesn't match the visual layout order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "tabindex-abuse",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Tabindex Abuse",
+      "ruleDescription": "Detects elements with positive tabindex values that disrupt natural focus order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "missing-focus-indicator",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "missing-focus-indicator",
+          "ruleName": "Missing Focus Indicator",
+          "severity": "error",
+          "message": "5 element(s) show no visible change between focused and unfocused states (screenshot comparison).",
+          "elements": [
+            {
+              "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.nav-menu:nth-of-type(1) > a.rebrand-logo",
+              "outerHTML": "<a href=\"/\" class=\"rebrand-logo\" aria-label=\"Nielsen Norman Group - Home\">\n  <svg class=\"logo-full\" xmlns=\"http://www.w3.org/2000/svg\" width=\"150\" height=\"32\" viewBox=\"0 0 150 32\" fill=\"none\">\n    <title>Nielsen Norman Group</title>\n    <use href=\"#rebrand-25-logo-black\"></use>\n  </svg>\n  <svg class",
+              "tabPosition": 3,
+              "accessibleName": "Nielsen Norman Group - Home"
+            },
+            {
+              "selector": "#search",
+              "outerHTML": "<input aria-describedby=\"search__assistiveHint\" aria-expanded=\"false\" aria-controls=\"search__listbox\" aria-autocomplete=\"list\" autocomplete=\"off\" class=\"autocomplete__input autocomplete__input--default autocomplete__input--focused\" id=\"search\" name=\"q\" placeholder=\"\" type=\"text\" role=\"combobox\" styl",
+              "tabPosition": 9
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > ul.ds-course-cards.ds-live-online-cards > li:nth-of-type(1) > article.ds-course-card.live-online > div.content > div.content-description > a.no-decoration",
+              "outerHTML": "<a class=\"no-decoration\" href=\"/courses/ai-for-design/\">\n                <strong id=\"lo-course-ai-for-design\" class=\"title label-xl-500\">AI for Design Workflows</strong>\n            </a>",
+              "tabPosition": 15,
+              "accessibleName": "AI for Design Workflows"
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > div.home-courses-action:nth-of-type(2) > a.ds-button-medium.ds-button-red",
+              "outerHTML": "<a class=\"ds-button-medium ds-button-red label-m-500\" href=\"/contents/self-paced-courses/\">All Self-Paced Courses</a>",
+              "tabPosition": 17,
+              "accessibleName": "All Self-Paced Courses"
+            },
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > ul.ds-course-cards.ds-selfpaced-cards > li:nth-of-type(1) > article.ds-course-card.selfpaced > div.content > a.no-decoration",
+              "outerHTML": "<a class=\"no-decoration\" href=\"http://nngroup.com/contents/self-paced-courses/demonstrating-ux-value/\">\n            <strong id=\"sp-course-T-SP-CDE-DUXV-01\" class=\"title label-xl-500\">Demonstrating UX Value</strong>\n        </a>",
+              "tabPosition": 18,
+              "accessibleName": "Demonstrating UX Value"
+            }
+          ],
+          "wcag": ["2.4.7"],
+          "impact": "Screenshot comparison confirms no visible focus indicator. Keyboard users cannot see which element has focus."
+        }
+      ],
+      "duration": 23,
+      "ruleName": "Missing Focus Indicator",
+      "ruleDescription": "Detects interactive elements that lack a visible focus indicator.",
+      "wcag": ["2.4.7"]
+    },
+    {
+      "ruleId": "skip-link",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "skip-link",
+          "ruleName": "Skip Link",
+          "severity": "warning",
+          "message": "No skip navigation link found among the first focusable elements. Keyboard users must tab through all navigation items to reach main content.",
+          "elements": [],
+          "wcag": ["2.4.1"],
+          "impact": "Without a skip link, keyboard users must navigate through all header and navigation elements on every page load."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Skip Link",
+      "ruleDescription": "Validates that a skip navigation link is present and functions correctly.",
+      "wcag": ["2.4.1"]
+    },
+    {
+      "ruleId": "focus-not-obscured",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "focus-not-obscured",
+          "ruleName": "Focus Not Obscured",
+          "severity": "error",
+          "message": "13 focused element(s) are obscured by overlapping content when they receive focus. This violates WCAG 2.4.11 (Focus Not Obscured).",
+          "elements": [
+            {
+              "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > ul.ds-course-cards.ds-live-online-cards > li:nth-of-type(1) > article.ds-course-card.live-online > div.content > div.content-description > a.no-decoration",
+              "outerHTML": "<a class=\"no-decoration\" href=\"/courses/ai-for-design/\">\n                <strong id=\"lo-course-ai-for-design\" class=\"title label-xl-500\">AI for Design Workflows</strong>\n            </a>",
+              "tabPosition": 15,
+              "accessibleName": "AI for Design Workflows"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(1) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/contents/train-your-team/private-team-training-ux-certification/\">Private Team Training</a>",
+              "tabPosition": 35,
+              "accessibleName": "Private Team Training"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(1) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/contents/self-paced-courses/\">Self-Paced Courses</a>",
+              "tabPosition": 36,
+              "accessibleName": "Self-Paced Courses"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/consulting/expert-review/\">Expert Review</a>",
+              "tabPosition": 39,
+              "accessibleName": "Expert Review"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/consulting/keynote-speaking/\">Keynote Speaking</a>",
+              "tabPosition": 40,
+              "accessibleName": "Keynote Speaking"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"/consulting/user-testing/\">User Testing</a>",
+              "tabPosition": 41,
+              "accessibleName": "User Testing"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(6) > a",
+              "outerHTML": "<a href=\"/consulting/ux-maturity-assessment/\">UX Maturity Assessment</a>",
+              "tabPosition": 42,
+              "accessibleName": "UX Maturity Assessment"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/virtual-help\">Live Course Tech Support</a>",
+              "tabPosition": 45,
+              "accessibleName": "Live Course Tech Support"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/faqs/\">FAQs</a>",
+              "tabPosition": 46,
+              "accessibleName": "FAQs"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/news/\">News &amp; Careers</a>",
+              "tabPosition": 49,
+              "accessibleName": "News & Careers"
+            },
+            {
+              "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/about/contact/\">Contact Us</a>",
+              "tabPosition": 50,
+              "accessibleName": "Contact Us"
+            },
+            {
+              "selector": "#cookie-preferences",
+              "outerHTML": "<button id=\"cookie-preferences\" class=\"cookie-button cky-banner-element paragraph-s-400\">Cookie Preferences</button>",
+              "tabPosition": 51,
+              "accessibleName": "Cookie Preferences"
+            },
+            {
+              "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.copyright-rebrand:nth-of-type(1) > ul.legal-links.paragraph-s-400 > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/cookie-declaration/\">Cookie Declaration</a>",
+              "tabPosition": 52,
+              "accessibleName": "Cookie Declaration"
+            }
+          ],
+          "wcag": ["2.4.11"],
+          "impact": "Keyboard users cannot see which element has focus, making the page unusable for keyboard navigation."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Focus Not Obscured",
+      "ruleDescription": "Ensures focused elements are not entirely hidden by sticky/fixed content.",
+      "wcag": ["2.4.11"]
+    },
+    {
+      "ruleId": "focus-after-interaction",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "focus-after-interaction",
+          "ruleName": "Focus After Interaction",
+          "severity": "error",
+          "message": "Focus lost after clicking div.banner-sales.paragraph-xs-400:nth-of-type(5) > button — activeElement reverted to body",
+          "elements": [
+            {
+              "selector": "div.banner-sales.paragraph-xs-400:nth-of-type(5) > button",
+              "outerHTML": "<button role=\"button\">Close promotion banner</button>",
+              "accessibleName": "Close promotion banner"
+            }
+          ],
+          "wcag": ["2.4.3", "2.4.7"],
+          "impact": "Keyboard users lose their position on the page after interacting with this element, forcing them to Tab from the beginning."
+        },
+        {
+          "ruleId": "focus-after-interaction",
+          "ruleName": "Focus After Interaction",
+          "severity": "error",
+          "message": "Focus lost after clicking header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.search-and-profile:nth-of-type(2) > form.search-rebrand > div.search-rebrand__field > button.search-rebrand__submit:nth-of-type(2) — activeElement reverted to body",
+          "elements": [
+            {
+              "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.search-and-profile:nth-of-type(2) > form.search-rebrand > div.search-rebrand__field > button.search-rebrand__submit:nth-of-type(2)",
+              "outerHTML": "<button role=\"button\">Search</button>",
+              "accessibleName": "Search"
+            }
+          ],
+          "wcag": ["2.4.3", "2.4.7"],
+          "impact": "Keyboard users lose their position on the page after interacting with this element, forcing them to Tab from the beginning."
+        }
+      ],
+      "duration": 1,
+      "ruleName": "Focus After Interaction",
+      "ruleDescription": "Ensures focus is not lost after clicking interactive elements.",
+      "wcag": ["2.4.3", "2.4.7"]
+    }
+  ],
+  "summary": {
+    "totalErrors": 4,
+    "totalWarnings": 2,
+    "totalInfo": 0,
+    "passed": 3,
+    "failed": 5,
+    "score": 85
+  },
+  "focusSequence": [
+    {
+      "tabIndex": 1,
+      "selector": "div.banner-sales.paragraph-xs-400:nth-of-type(5) > div.banner-sales__content > a.banner-sales__action",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Enroll Today",
+      "boundingRect": {
+        "x": 764,
+        "y": 13.203125,
+        "width": 84.0625,
+        "height": 19.59375
+      },
+      "pageRect": {
+        "x": 764,
+        "y": 13.203125,
+        "width": 84.0625,
+        "height": 19.59375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a class=\"banner-sales__action\" href=\"https://www.nngroup.com/training/september/?utm_campaign=live-online-courses&amp;utm_source=website&amp;utm_medium=banner&amp;utm_content=b2g1\">\n                    Enroll Today\n                </a>"
+    },
+    {
+      "tabIndex": 2,
+      "selector": "div.banner-sales.paragraph-xs-400:nth-of-type(5) > button",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Close promotion banner",
+      "boundingRect": {
+        "x": 1152,
+        "y": 12,
+        "width": 28,
+        "height": 22
+      },
+      "pageRect": {
+        "x": 1152,
+        "y": 12,
+        "width": 28,
+        "height": 22
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<button aria-label=\"Close promotion banner\">\n            <svg class=\"open-nav\" aria-hidden=\"true\" width=\"22\" viewBox=\"0 0 14 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <use href=\"#icon-close\"></use>\n            </svg>\n        </button>",
+      "ariaAttributes": {
+        "aria-label": "Close promotion banner"
+      }
+    },
+    {
+      "tabIndex": 3,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.nav-menu:nth-of-type(1) > a.rebrand-logo",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Nielsen Norman Group - Home",
+      "boundingRect": {
+        "x": 40,
+        "y": 73,
+        "width": 79,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 73,
+        "width": 79,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": false,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/\" class=\"rebrand-logo\" aria-label=\"Nielsen Norman Group - Home\">\n  <svg class=\"logo-full\" xmlns=\"http://www.w3.org/2000/svg\" width=\"150\" height=\"32\" viewBox=\"0 0 150 32\" fill=\"none\">\n    <title>Nielsen Norman Group</title>\n    <use href=\"#rebrand-25-logo-black\"></use>\n  </svg>\n  <svg class",
+      "ariaAttributes": {
+        "aria-label": "Nielsen Norman Group - Home"
+      },
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 4,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.nav-menu:nth-of-type(1) > ul > li.has-subnav:nth-of-type(1) > button.label-m-500",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "UX Training & Courses",
+      "boundingRect": {
+        "x": 135,
+        "y": 62,
+        "width": 216.640625,
+        "height": 46
+      },
+      "pageRect": {
+        "x": 135,
+        "y": 62,
+        "width": 216.640625,
+        "height": 46
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 0, 0)"
+      },
+      "outerHTML": "<button class=\"label-m-500\" aria-controls=\"nav-live-courses\" aria-expanded=\"false\">\n          UX Training &amp; Courses\n          <svg class=\"open-nav\" aria-hidden=\"true\" width=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n            <use href=\"#icon-open-nav\"></use>\n    ",
+      "ariaAttributes": {
+        "aria-controls": "nav-live-courses",
+        "aria-expanded": "false"
+      },
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 5,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.nav-menu:nth-of-type(1) > ul > li.has-subnav:nth-of-type(2) > button.label-m-500",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Articles & Resources",
+      "boundingRect": {
+        "x": 355.640625,
+        "y": 62,
+        "width": 202.78125,
+        "height": 46
+      },
+      "pageRect": {
+        "x": 355.640625,
+        "y": 62,
+        "width": 202.78125,
+        "height": 46
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 0, 0)"
+      },
+      "outerHTML": "<button class=\"label-m-500\" aria-controls=\"nav-\" aria-expanded=\"false\">\n          Articles &amp; Resources\n          <svg class=\"open-nav\" aria-hidden=\"true\" width=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n            <use href=\"#icon-open-nav\"></use>\n          </svg>\n",
+      "ariaAttributes": {
+        "aria-controls": "nav-",
+        "aria-expanded": "false"
+      },
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 6,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.nav-menu:nth-of-type(1) > ul > li.has-subnav:nth-of-type(3) > button.label-m-500",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Consulting",
+      "boundingRect": {
+        "x": 562.421875,
+        "y": 62,
+        "width": 127.90625,
+        "height": 46
+      },
+      "pageRect": {
+        "x": 562.421875,
+        "y": 62,
+        "width": 127.90625,
+        "height": 46
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 0, 0)"
+      },
+      "outerHTML": "<button class=\"label-m-500\" aria-controls=\"nav-\" aria-expanded=\"false\">\n          Consulting\n          <svg class=\"open-nav\" aria-hidden=\"true\" width=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n            <use href=\"#icon-open-nav\"></use>\n          </svg>\n        </butt",
+      "ariaAttributes": {
+        "aria-controls": "nav-",
+        "aria-expanded": "false"
+      },
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 7,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.nav-menu:nth-of-type(1) > ul > li.has-subnav:nth-of-type(4) > button.label-m-500",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "About Us",
+      "boundingRect": {
+        "x": 694.328125,
+        "y": 62,
+        "width": 116.1875,
+        "height": 46
+      },
+      "pageRect": {
+        "x": 694.328125,
+        "y": 62,
+        "width": 116.1875,
+        "height": 46
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 0, 0)"
+      },
+      "outerHTML": "<button class=\"label-m-500\" aria-controls=\"nav-\" aria-expanded=\"false\">\n          About Us\n          <svg class=\"open-nav\" aria-hidden=\"true\" width=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n            <use href=\"#icon-open-nav\"></use>\n          </svg>\n        </button",
+      "ariaAttributes": {
+        "aria-controls": "nav-",
+        "aria-expanded": "false"
+      },
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 8,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.search-and-profile:nth-of-type(2) > button.search-toggle-button",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Search",
+      "boundingRect": {
+        "x": 810.515625,
+        "y": 71,
+        "width": 24,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 810.515625,
+        "y": 71,
+        "width": 24,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<button type=\"button\" class=\"search-toggle-button\" aria-expanded=\"false\" aria-label=\"Search\">\n  <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 17 18\" fill=\"none\">\n    <use href=\"#icon-search-rebrand\"></use>\n  </svg>\n</button>",
+      "ariaAttributes": {
+        "aria-expanded": "false",
+        "aria-label": "Search"
+      },
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 9,
+      "selector": "#search",
+      "tagName": "input",
+      "role": "combobox",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 867.515625,
+        "y": 75.5,
+        "width": 208,
+        "height": 20
+      },
+      "pageRect": {
+        "x": 867.515625,
+        "y": 75.5,
+        "width": 208,
+        "height": 20
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": false,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<input aria-describedby=\"search__assistiveHint\" aria-expanded=\"false\" aria-controls=\"search__listbox\" aria-autocomplete=\"list\" autocomplete=\"off\" class=\"autocomplete__input autocomplete__input--default autocomplete__input--focused\" id=\"search\" name=\"q\" placeholder=\"\" type=\"text\" role=\"combobox\" styl",
+      "ariaAttributes": {
+        "aria-describedby": "search__assistiveHint",
+        "aria-expanded": "false",
+        "aria-controls": "search__listbox",
+        "aria-autocomplete": "list"
+      },
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 10,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.search-and-profile:nth-of-type(2) > form.search-rebrand > div.search-rebrand__field > button.search-rebrand__submit:nth-of-type(2)",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Search",
+      "boundingRect": {
+        "x": 1076.5,
+        "y": 69,
+        "width": 34,
+        "height": 32
+      },
+      "pageRect": {
+        "x": 1076.5,
+        "y": 69,
+        "width": 34,
+        "height": 32
+      },
+      "tabindexAttr": 0,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgba(0, 0, 0, 0)"
+      },
+      "outerHTML": "<button type=\"submit\" class=\"search-rebrand__submit\" aria-label=\"Search\" tabindex=\"0\">\n      <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 17 18\" fill=\"none\">\n        <use href=\"#icon-search-rebrand\"></use>\n      </svg>\n    </button>",
+      "ariaAttributes": {
+        "aria-label": "Search"
+      },
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 11,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.search-and-profile:nth-of-type(2) > div.cart-and-profile > div.cart.empty:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Cart (empty)",
+      "boundingRect": {
+        "x": 1129.5,
+        "y": 70,
+        "width": 30,
+        "height": 30
+      },
+      "pageRect": {
+        "x": 1129.5,
+        "y": 70,
+        "width": 30,
+        "height": 30
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/products/basket/\" aria-label=\"Cart (empty)\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\">\n      <use href=\"#icon-cart-rebrand-25\"></use>\n    </svg>\n    <span class=\"label-s-600\">0</span>\n  </a>",
+      "ariaAttributes": {
+        "aria-label": "Cart (empty)"
+      },
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 12,
+      "selector": "header.banner-image.header > nav.nav-main.desktop > div.ds-wrapper.header-content > div.search-and-profile:nth-of-type(2) > div.cart-and-profile > div.login:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Log In",
+      "boundingRect": {
+        "x": 1167.5,
+        "y": 62.5,
+        "width": 72.5,
+        "height": 46
+      },
+      "pageRect": {
+        "x": 1167.5,
+        "y": 62.5,
+        "width": 72.5,
+        "height": 46
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/login/?next=%2F\">Log In</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 13,
+      "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > div.home-courses-header:nth-of-type(1) > p.paragraph-m-400 > a.link-m-400",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "UX Certification",
+      "boundingRect": {
+        "x": 403.765625,
+        "y": 477.6875,
+        "width": 132.5,
+        "height": 21
+      },
+      "pageRect": {
+        "x": 403.765625,
+        "y": 477.6875,
+        "width": 132.5,
+        "height": 21
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/ux-certification/\" class=\"link-m-400\">UX Certification</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 14,
+      "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > div.home-courses-action:nth-of-type(2) > a.ds-button-medium.ds-button-red",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "All Live Online Courses",
+      "boundingRect": {
+        "x": 40,
+        "y": 533.78125,
+        "width": 214.90625,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 533.78125,
+        "width": 214.90625,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a class=\"ds-button-medium ds-button-red label-m-500\" href=\"/courses/\">All Live Online Courses</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 15,
+      "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > ul.ds-course-cards.ds-live-online-cards > li:nth-of-type(1) > article.ds-course-card.live-online > div.content > div.content-description > a.no-decoration",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "AI for Design Workflows",
+      "boundingRect": {
+        "x": 347,
+        "y": 664.375,
+        "width": 256,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 347,
+        "y": 664.375,
+        "width": 256,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": false,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a class=\"no-decoration\" href=\"/courses/ai-for-design/\">\n                <strong id=\"lo-course-ai-for-design\" class=\"title label-xl-500\">AI for Design Workflows</strong>\n            </a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 16,
+      "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(1) > ul.ds-course-cards.ds-live-online-cards > li:nth-of-type(2) > article.ds-course-card.live-online > div.content > div.content-description > a.no-decoration",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Usability Testing",
+      "boundingRect": {
+        "x": 347,
+        "y": 346.15625,
+        "width": 256,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 347,
+        "y": 947.15625,
+        "width": 256,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a class=\"no-decoration\" href=\"/courses/usability-testing/\">\n                <strong id=\"lo-course-usability-testing\" class=\"title label-xl-500\">Usability Testing</strong>\n            </a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 17,
+      "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > div.home-courses-action:nth-of-type(2) > a.ds-button-medium.ds-button-red",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "All Self-Paced Courses",
+      "boundingRect": {
+        "x": 652,
+        "y": 341.78125,
+        "width": 214.953125,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 652,
+        "y": 533.78125,
+        "width": 214.953125,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": false,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a class=\"ds-button-medium ds-button-red label-m-500\" href=\"/contents/self-paced-courses/\">All Self-Paced Courses</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 18,
+      "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > ul.ds-course-cards.ds-selfpaced-cards > li:nth-of-type(1) > article.ds-course-card.selfpaced > div.content > a.no-decoration",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Demonstrating UX Value",
+      "boundingRect": {
+        "x": 959,
+        "y": 472.375,
+        "width": 256,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 959,
+        "y": 664.375,
+        "width": 256,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": false,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a class=\"no-decoration\" href=\"http://nngroup.com/contents/self-paced-courses/demonstrating-ux-value/\">\n            <strong id=\"sp-course-T-SP-CDE-DUXV-01\" class=\"title label-xl-500\">Demonstrating UX Value</strong>\n        </a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 19,
+      "selector": "#main > div.home-courses-container.ds-wrapper > section.home-courses:nth-of-type(2) > ul.ds-course-cards.ds-selfpaced-cards > li:nth-of-type(2) > article.ds-course-card.selfpaced > div.content > a.no-decoration",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Successful UX Job Searching",
+      "boundingRect": {
+        "x": 959,
+        "y": 332.15625,
+        "width": 256,
+        "height": 56
+      },
+      "pageRect": {
+        "x": 959,
+        "y": 947.15625,
+        "width": 256,
+        "height": 56
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a class=\"no-decoration\" href=\"http://nngroup.com/contents/self-paced-courses/successful-ux-job-searching/\">\n            <strong id=\"sp-course-T-SP-OSL-UXJS-01\" class=\"title label-xl-500\">Successful UX Job Searching</strong>\n        </a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 20,
+      "selector": "#main > section.earn-ux-certification.ds-wrapper:nth-of-type(1) > div.ux-certification-banner > div.ux-banner__copy:nth-of-type(1) > a.ds-button-medium.ds-button-secondary",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "UX Certification Benefits",
+      "boundingRect": {
+        "x": 72,
+        "y": 340.9375,
+        "width": 229.5,
+        "height": 38
+      },
+      "pageRect": {
+        "x": 72,
+        "y": 1460.9375,
+        "width": 229.5,
+        "height": 38
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a class=\"ds-button-medium ds-button-secondary ds-button-white\" href=\"/ux-certification/\">UX Certification Benefits</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 21,
+      "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > div.articles-videos > div.content-card.clickable-card:nth-of-type(1) > div.content-card__content > h3.content-card__title.subhead-s-500 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "How to Decide When an AI Tool Is Worth Keeping",
+      "boundingRect": {
+        "x": 223,
+        "y": 535.53125,
+        "width": 370.1875,
+        "height": 62.59375
+      },
+      "pageRect": {
+        "x": 223,
+        "y": 1655.53125,
+        "width": 370.1875,
+        "height": 62.59375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/articles/prove-framework/\">How to Decide When an AI Tool Is Worth Keeping</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 22,
+      "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > div.articles-videos > div.content-card.clickable-card:nth-of-type(2) > div.content-card__content > h3.content-card__title.subhead-s-500 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Dogfooding vs. QA vs. User Research",
+      "boundingRect": {
+        "x": 223,
+        "y": 328.6875,
+        "width": 301.3125,
+        "height": 62.59375
+      },
+      "pageRect": {
+        "x": 223,
+        "y": 1904.6875,
+        "width": 301.3125,
+        "height": 62.59375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/articles/dogfooding/\">Dogfooding vs. QA vs. User Research</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 23,
+      "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > div.articles-videos > div.content-card.clickable-card:nth-of-type(3) > div.content-card__content:nth-of-type(2) > h3.content-card__title.subhead-s-500 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "How to Avoid Doing UX Theatre",
+      "boundingRect": {
+        "x": 835,
+        "y": 79.53125,
+        "width": 347.296875,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 835,
+        "y": 1655.53125,
+        "width": 347.296875,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/videos/how-to-avoid-doing-ux-theatre/\">How to Avoid Doing UX Theatre</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 24,
+      "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > div.articles-videos > div.content-card.clickable-card:nth-of-type(4) > div.content-card__content:nth-of-type(2) > h3.content-card__title.subhead-s-500 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "The 3-Step CTAs Formula for Conversion",
+      "boundingRect": {
+        "x": 835,
+        "y": 328.6875,
+        "width": 322.25,
+        "height": 62.59375
+      },
+      "pageRect": {
+        "x": 835,
+        "y": 1904.6875,
+        "width": 322.25,
+        "height": 62.59375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/videos/3-step-ctas-formula-for-conversion/\">The 3-Step CTAs Formula for Conversion</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 25,
+      "selector": "#main > section.homepage-rebranding.recent:nth-of-type(2) > a.button-fill.more-articles",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "More Articles & Videos",
+      "boundingRect": {
+        "x": 40,
+        "y": 553.25,
+        "width": 212.828125,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 2129.25,
+        "width": 212.828125,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a class=\"button-fill more-articles button-red-white label-m-500\" href=\"/articles/\">More Articles &amp; Videos</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 26,
+      "selector": "#main > section.ds-services-cards.ds-wrapper:nth-of-type(3) > div.service.team-training:nth-of-type(1) > div.content > a.ds-button-medium.ds-button-maroon",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Train Your Team",
+      "boundingRect": {
+        "x": 73,
+        "y": 342.21875,
+        "width": 163,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 73,
+        "y": 2472.21875,
+        "width": 163,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://www.nngroup.com/contents/train-your-team/\" data-location=\"body\" class=\"ds-button-medium ds-button-maroon\">\n            Train Your Team\n        </a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 27,
+      "selector": "#main > section.ds-services-cards.ds-wrapper:nth-of-type(3) > div.service.team-training:nth-of-type(2) > div.content > a.ds-button-medium.ds-button-maroon",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Explore Consulting Offerings",
+      "boundingRect": {
+        "x": 685,
+        "y": 342.21875,
+        "width": 257.90625,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 685,
+        "y": 2472.21875,
+        "width": 257.90625,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://www.nngroup.com/consulting/\" data-location=\"body\" class=\"ds-button-medium ds-button-maroon\">\n            Explore Consulting Offerings\n        </a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 28,
+      "selector": "#main > section.ds-brand-value-banner.ds-wrapper:nth-of-type(4) > ul.ds-brand-value-cards > li.ds-brand-value-card:nth-of-type(1) > p.card-text.paragraph-m-400 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Meet our team →",
+      "boundingRect": {
+        "x": 192.875,
+        "y": 347.1875,
+        "width": 144.609375,
+        "height": 26.09375
+      },
+      "pageRect": {
+        "x": 192.875,
+        "y": 3291.1875,
+        "width": 144.609375,
+        "height": 26.09375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.nngroup.com/consulting/\">Meet our team →</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 29,
+      "selector": "#main > section.ds-brand-value-banner.ds-wrapper:nth-of-type(4) > ul.ds-brand-value-cards > li.ds-brand-value-card:nth-of-type(2) > p.card-text.paragraph-m-400 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Explore our articles and videos →",
+      "boundingRect": {
+        "x": 477.34375,
+        "y": 347.1875,
+        "width": 280.03125,
+        "height": 26.09375
+      },
+      "pageRect": {
+        "x": 477.34375,
+        "y": 3291.1875,
+        "width": 280.03125,
+        "height": 26.09375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.nngroup.com/articles/\">Explore our articles and videos →</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 30,
+      "selector": "#main > section.ds-brand-value-banner.ds-wrapper:nth-of-type(4) > ul.ds-brand-value-cards > li.ds-brand-value-card:nth-of-type(3) > p.card-text.paragraph-m-400 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "See our clients →",
+      "boundingRect": {
+        "x": 1045.703125,
+        "y": 347.1875,
+        "width": 146.703125,
+        "height": 26.09375
+      },
+      "pageRect": {
+        "x": 1045.703125,
+        "y": 3291.1875,
+        "width": 146.703125,
+        "height": 26.09375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.nngroup.com/about/about-client-list/\">See our clients →</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 31,
+      "selector": "#newsletter-email",
+      "tagName": "input",
+      "role": "input",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 533.0625,
+        "y": 349.765625,
+        "width": 290.34375,
+        "height": 21
+      },
+      "pageRect": {
+        "x": 533.0625,
+        "y": 3827.765625,
+        "width": 290.34375,
+        "height": 21
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<input name=\"email\" type=\"email\" class=\"newsletter-email paragraph-s-400\" autocomplete=\"email\" id=\"newsletter-email\" required=\"\" style=\"\">",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 32,
+      "selector": "footer.footer > section.top-footer.ds-wrapper:nth-of-type(1) > div.newsletter > form.form-field.form-validated > div.subscribe-wrap:nth-of-type(1) > button.subscribe-btn.label-s-600",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Subscribe",
+      "boundingRect": {
+        "x": 831.40625,
+        "y": 345.859375,
+        "width": 96.59375,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 831.40625,
+        "y": 3823.859375,
+        "width": 96.59375,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(69, 19, 22) none 0px",
+        "boxShadow": "rgb(69, 19, 22) 0px 0px 0px 2px inset",
+        "border": "2px solid rgb(241, 206, 208)"
+      },
+      "outerHTML": "<button type=\"submit\" name=\"subscribe\" class=\"subscribe-btn label-s-600 disabled\" aria-disabled=\"true\">Subscribe</button>",
+      "ariaAttributes": {
+        "aria-disabled": "true"
+      },
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 33,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(1) > ul > li.paragraph-s-400:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Live Online Training Events",
+      "boundingRect": {
+        "x": 40,
+        "y": 533.265625,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 4011.265625,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/courses/\">Live Online Training Events</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 34,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(1) > ul > li.paragraph-s-400:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Group-Discount Pricing",
+      "boundingRect": {
+        "x": 40,
+        "y": 566.0625,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 4044.0625,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/contents/train-your-team/group-discount-pricing/\">Group-Discount Pricing</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 35,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(1) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Private Team Training",
+      "boundingRect": {
+        "x": 40,
+        "y": 598.859375,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 4076.859375,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/contents/train-your-team/private-team-training-ux-certification/\">Private Team Training</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 36,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(1) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Self-Paced Courses",
+      "boundingRect": {
+        "x": 40,
+        "y": 631.65625,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 4109.65625,
+        "width": 202.1875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/contents/self-paced-courses/\">Self-Paced Courses</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 37,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Intensive Applied Workshops",
+      "boundingRect": {
+        "x": 282.1875,
+        "y": 533.265625,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 282.1875,
+        "y": 4011.265625,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/consulting/applied-workshops/\">Intensive Applied Workshops</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 38,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Customized Research",
+      "boundingRect": {
+        "x": 282.1875,
+        "y": 566.0625,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 282.1875,
+        "y": 4044.0625,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/consulting/user-research/\">Customized Research</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 39,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Expert Review",
+      "boundingRect": {
+        "x": 282.1875,
+        "y": 598.859375,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 282.1875,
+        "y": 4076.859375,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/consulting/expert-review/\">Expert Review</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 40,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Keynote Speaking",
+      "boundingRect": {
+        "x": 282.1875,
+        "y": 631.65625,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 282.1875,
+        "y": 4109.65625,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/consulting/keynote-speaking/\">Keynote Speaking</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 41,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "User Testing",
+      "boundingRect": {
+        "x": 282.1875,
+        "y": 664.453125,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 282.1875,
+        "y": 4142.453125,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/consulting/user-testing/\">User Testing</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 42,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(2) > ul > li.paragraph-s-400:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "UX Maturity Assessment",
+      "boundingRect": {
+        "x": 282.1875,
+        "y": 691.25,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 282.1875,
+        "y": 4175.25,
+        "width": 217.6875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/consulting/ux-maturity-assessment/\">UX Maturity Assessment</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 43,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Terms & Conditions",
+      "boundingRect": {
+        "x": 539.875,
+        "y": 527.265625,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 539.875,
+        "y": 4011.265625,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/terms-and-conditions/\">Terms &amp; Conditions</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 44,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Privacy Policy",
+      "boundingRect": {
+        "x": 539.875,
+        "y": 560.0625,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 539.875,
+        "y": 4044.0625,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/privacy-policy/\">Privacy Policy</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 45,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Live Course Tech Support",
+      "boundingRect": {
+        "x": 539.875,
+        "y": 592.859375,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 539.875,
+        "y": 4076.859375,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/virtual-help\">Live Course Tech Support</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 46,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(3) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "FAQs",
+      "boundingRect": {
+        "x": 539.875,
+        "y": 625.65625,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 539.875,
+        "y": 4109.65625,
+        "width": 194.59375,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/faqs/\">FAQs</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 47,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "About NNGroup",
+      "boundingRect": {
+        "x": 774.46875,
+        "y": 527.265625,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 774.46875,
+        "y": 4011.265625,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/about/\">About NNGroup</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 48,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "People",
+      "boundingRect": {
+        "x": 774.46875,
+        "y": 560.0625,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 774.46875,
+        "y": 4044.0625,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/people/\">People</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 49,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "News & Careers",
+      "boundingRect": {
+        "x": 774.46875,
+        "y": 592.859375,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 774.46875,
+        "y": 4076.859375,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/news/\">News &amp; Careers</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 50,
+      "selector": "footer.footer > section.navigation.ds-wrapper:nth-of-type(2) > div.links-list > ul > li:nth-of-type(4) > ul > li.paragraph-s-400:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Contact Us",
+      "boundingRect": {
+        "x": 774.46875,
+        "y": 625.65625,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 774.46875,
+        "y": 4109.65625,
+        "width": 120.421875,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/about/contact/\">Contact Us</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 51,
+      "selector": "#cookie-preferences",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Cookie Preferences",
+      "boundingRect": {
+        "x": 40,
+        "y": 643.234375,
+        "width": 155.53125,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 4387.234375,
+        "width": 155.53125,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<button id=\"cookie-preferences\" class=\"cookie-button cky-banner-element paragraph-s-400\">Cookie Preferences</button>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 52,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.copyright-rebrand:nth-of-type(1) > ul.legal-links.paragraph-s-400 > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Cookie Declaration",
+      "boundingRect": {
+        "x": 216.796875,
+        "y": 643.234375,
+        "width": 150.109375,
+        "height": 28.796875
+      },
+      "pageRect": {
+        "x": 216.796875,
+        "y": 4387.234375,
+        "width": 150.109375,
+        "height": 28.796875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": true,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/cookie-declaration/\">Cookie Declaration</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 53,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Youtube",
+      "boundingRect": {
+        "x": 40,
+        "y": 557.640625,
+        "width": 69.96875,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 40,
+        "y": 4301.640625,
+        "width": 69.96875,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://www.youtube.com/channel/UC2oCugzU6W8-h95W7eBTUEg\">Youtube</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 54,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "LinkedIn",
+      "boundingRect": {
+        "x": 129.015625,
+        "y": 557.640625,
+        "width": 71.09375,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 129.015625,
+        "y": 4301.640625,
+        "width": 71.09375,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://www.linkedin.com/company/nielsen-norman-group\">LinkedIn</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 55,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Instagram",
+      "boundingRect": {
+        "x": 219.15625,
+        "y": 557.640625,
+        "width": 82.671875,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 219.15625,
+        "y": 4301.640625,
+        "width": 82.671875,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://www.instagram.com/nngux\">Instagram</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 56,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Threads",
+      "boundingRect": {
+        "x": 320.875,
+        "y": 557.640625,
+        "width": 69.6875,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 320.875,
+        "y": 4301.640625,
+        "width": 69.6875,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://www.threads.com/@nngux\">Threads</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 57,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Bluesky",
+      "boundingRect": {
+        "x": 409.609375,
+        "y": 557.640625,
+        "width": 66.84375,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 409.609375,
+        "y": 4301.640625,
+        "width": 66.84375,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://bsky.app/profile/nngroupux.bsky.social\">Bluesky</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 58,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "X",
+      "boundingRect": {
+        "x": 495.5,
+        "y": 557.640625,
+        "width": 18.859375,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 495.5,
+        "y": 4301.640625,
+        "width": 18.859375,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://x.com/nngroup\">X</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 59,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(7) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Facebook",
+      "boundingRect": {
+        "x": 533.40625,
+        "y": 557.640625,
+        "width": 81.65625,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 533.40625,
+        "y": 4301.640625,
+        "width": 81.65625,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://www.facebook.com/nngux\">Facebook</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 60,
+      "selector": "footer.footer > div.bottom-footer.ds-wrapper > div.follow-us:nth-of-type(2) > ul.social > li.paragraph-s-400:nth-of-type(8) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Spotify",
+      "boundingRect": {
+        "x": 634.109375,
+        "y": 557.640625,
+        "width": 61.171875,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 634.109375,
+        "y": 4301.640625,
+        "width": 61.171875,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://podcasters.spotify.com/pod/show/nngroup\">Spotify</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 61,
+      "selector": "div.cky-consent-container.cky-banner-bottom:nth-of-type(2) > div.cky-consent-bar > div.cky-notice > div.cky-notice-group > div.cky-notice-btn-wrapper:nth-of-type(2) > button.cky-btn.cky-btn-customize:nth-of-type(1)",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Customize Cookies",
+      "boundingRect": {
+        "x": 844.796875,
+        "y": 658.5,
+        "width": 168.09375,
+        "height": 44
+      },
+      "pageRect": {
+        "x": 844.796875,
+        "y": 4402.5,
+        "width": 168.09375,
+        "height": 44
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(24, 99, 220) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(24, 99, 220)"
+      },
+      "outerHTML": "<button class=\"cky-btn cky-btn-customize\" aria-label=\"Customize Cookies\" aria-haspopup=\"dialog\" aria-controls=\"ckyPreferenceCenter\" data-cky-tag=\"settings-button\" style=\"color: #1863dc; border-color: #1863dc; background-color: transparent;\">Customize Cookies</button>",
+      "ariaAttributes": {
+        "aria-label": "Customize Cookies",
+        "aria-haspopup": "dialog",
+        "aria-controls": "ckyPreferenceCenter"
+      },
+      "parentContext": "region"
+    },
+    {
+      "tabIndex": 62,
+      "selector": "div.cky-consent-container.cky-banner-bottom:nth-of-type(2) > div.cky-consent-bar > div.cky-notice > div.cky-notice-group > div.cky-notice-btn-wrapper:nth-of-type(2) > button.cky-btn.cky-btn-reject:nth-of-type(2)",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Reject All",
+      "boundingRect": {
+        "x": 1020.890625,
+        "y": 658.5,
+        "width": 111.640625,
+        "height": 44
+      },
+      "pageRect": {
+        "x": 1020.890625,
+        "y": 4402.5,
+        "width": 111.640625,
+        "height": 44
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(24, 99, 220) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(24, 99, 220)"
+      },
+      "outerHTML": "<button class=\"cky-btn cky-btn-reject\" aria-label=\"Reject All\" data-cky-tag=\"reject-button\" style=\"color: #FFFFFF; border-color: #1863dc; background-color: #1863dc;\">Reject All</button>",
+      "ariaAttributes": {
+        "aria-label": "Reject All"
+      },
+      "parentContext": "region"
+    },
+    {
+      "tabIndex": 63,
+      "selector": "div.cky-consent-container.cky-banner-bottom:nth-of-type(2) > div.cky-consent-bar > div.cky-notice > div.cky-notice-group > div.cky-notice-btn-wrapper:nth-of-type(2) > button.cky-btn.cky-btn-accept:nth-of-type(3)",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Accept All",
+      "boundingRect": {
+        "x": 1140.53125,
+        "y": 658.5,
+        "width": 114.46875,
+        "height": 44
+      },
+      "pageRect": {
+        "x": 1140.53125,
+        "y": 4402.5,
+        "width": 114.46875,
+        "height": 44
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(24, 99, 220) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(24, 99, 220)"
+      },
+      "outerHTML": "<button class=\"cky-btn cky-btn-accept\" aria-label=\"Accept All\" data-cky-tag=\"accept-button\" style=\"color: #FFFFFF; border-color: #1863dc; background-color: #1863dc;\">Accept All</button>",
+      "ariaAttributes": {
+        "aria-label": "Accept All"
+      },
+      "parentContext": "region"
+    },
+    {
+      "tabIndex": 64,
+      "selector": "div.skip:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Skip to content",
+      "boundingRect": {
+        "x": 3,
+        "y": 3,
+        "width": 117.703125,
+        "height": 27
+      },
+      "pageRect": {
+        "x": 3,
+        "y": 3,
+        "width": 117.703125,
+        "height": 27
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#main\">Skip to content</a>"
+    }
+  ],
+  "pageDimensions": {
+    "width": 1280,
+    "height": 4464
+  }
+}

@@ -1,0 +1,2313 @@
+{
+  "version": "0.1.0",
+  "timestamp": "2026-08-12T18:47:30.246Z",
+  "url": "https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/dialog/",
+  "config": {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "browser": "chromium",
+    "rules": {
+      "keyboardTrap": true,
+      "unreachableElements": true,
+      "focusOrderMismatch": true,
+      "tabindexAbuse": true,
+      "missingFocusIndicator": true,
+      "skipLink": true,
+      "focusNotObscured": true,
+      "focusAfterInteraction": true
+    }
+  },
+  "crawl": {
+    "totalFocusableElements": 61,
+    "totalInteractiveElements": 52,
+    "unreachedElements": 0,
+    "cycleCompleted": true,
+    "duration": 46099
+  },
+  "rules": [
+    {
+      "ruleId": "keyboard-trap",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "keyboard-trap",
+          "ruleName": "Keyboard Trap",
+          "severity": "error",
+          "message": "Focus appears trapped at element. The same element received focus consecutively at positions 25 and 26.",
+          "elements": [
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 26
+            }
+          ],
+          "wcag": ["2.1.2"],
+          "impact": "Users cannot navigate past this element using the keyboard, making all subsequent content inaccessible."
+        },
+        {
+          "ruleId": "keyboard-trap",
+          "ruleName": "Keyboard Trap",
+          "severity": "error",
+          "message": "Focus appears trapped at element. The same element received focus consecutively at positions 26 and 27.",
+          "elements": [
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 27
+            }
+          ],
+          "wcag": ["2.1.2"],
+          "impact": "Users cannot navigate past this element using the keyboard, making all subsequent content inaccessible."
+        },
+        {
+          "ruleId": "keyboard-trap",
+          "ruleName": "Keyboard Trap",
+          "severity": "error",
+          "message": "Focus appears trapped at element. The same element received focus consecutively at positions 27 and 28.",
+          "elements": [
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 28
+            }
+          ],
+          "wcag": ["2.1.2"],
+          "impact": "Users cannot navigate past this element using the keyboard, making all subsequent content inaccessible."
+        },
+        {
+          "ruleId": "keyboard-trap",
+          "ruleName": "Keyboard Trap",
+          "severity": "error",
+          "message": "Focus appears trapped at element. The same element received focus consecutively at positions 28 and 29.",
+          "elements": [
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 29
+            }
+          ],
+          "wcag": ["2.1.2"],
+          "impact": "Users cannot navigate past this element using the keyboard, making all subsequent content inaccessible."
+        },
+        {
+          "ruleId": "keyboard-trap",
+          "ruleName": "Keyboard Trap",
+          "severity": "error",
+          "message": "Focus appears trapped at element. The same element received focus consecutively at positions 29 and 30.",
+          "elements": [
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 30
+            }
+          ],
+          "wcag": ["2.1.2"],
+          "impact": "Users cannot navigate past this element using the keyboard, making all subsequent content inaccessible."
+        },
+        {
+          "ruleId": "keyboard-trap",
+          "ruleName": "Keyboard Trap",
+          "severity": "error",
+          "message": "Focus appears trapped at element. The same element received focus consecutively at positions 30 and 31.",
+          "elements": [
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 31
+            }
+          ],
+          "wcag": ["2.1.2"],
+          "impact": "Users cannot navigate past this element using the keyboard, making all subsequent content inaccessible."
+        },
+        {
+          "ruleId": "keyboard-trap",
+          "ruleName": "Keyboard Trap",
+          "severity": "error",
+          "message": "Focus appears trapped at element. The same element received focus consecutively at positions 31 and 32.",
+          "elements": [
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 32
+            }
+          ],
+          "wcag": ["2.1.2"],
+          "impact": "Users cannot navigate past this element using the keyboard, making all subsequent content inaccessible."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Keyboard Trap",
+      "ruleDescription": "Detects elements that trap keyboard focus, preventing users from navigating away.",
+      "wcag": ["2.1.2"]
+    },
+    {
+      "ruleId": "unreachable-elements",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Unreachable Interactive Elements",
+      "ruleDescription": "Detects interactive elements that cannot be reached via keyboard navigation.",
+      "wcag": ["2.1.1"]
+    },
+    {
+      "ruleId": "focus-order-mismatch",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "focus-order-mismatch",
+          "ruleName": "Focus Order Mismatch",
+          "severity": "warning",
+          "message": "49 element(s) have a focus order that significantly differs from their visual position.",
+          "elements": [
+            {
+              "selector": "#site-header > div.minimal-header-info:nth-of-type(1) > div.minimal-header-title > a",
+              "outerHTML": "<a href=\"/WAI/ARIA/apg/\">\n        ARIA Authoring Practices Guide (APG)\n      </a>",
+              "tabPosition": 1,
+              "accessibleName": "ARIA Authoring Practices Guide (APG)"
+            },
+            {
+              "selector": "#site-header > div.minimal-header-logo:nth-of-type(2) > div.logos > a.home.w3c:nth-of-type(1)",
+              "outerHTML": "<a lang=\"en\" class=\"home w3c\" href=\"https://www.w3.org/\">\n      <svg role=\"img\" width=\"46\" height=\"46\" version=\"1.1\" viewBox=\"0 0 360 360\" xmlns=\"http://www.w3.org/2000/svg\" aria-labelledby=\"w3c-homepage-title\"><title id=\"w3c-homepage-title\">W3C homepage</title><g><path d=\"M306.80028,149.60422c-6.57",
+              "tabPosition": 2,
+              "accessibleName": "W3C homepage"
+            },
+            {
+              "selector": "#site-header > div.minimal-header-logo:nth-of-type(2) > div.logos > a.home.wai:nth-of-type(2)",
+              "outerHTML": "<a lang=\"en\" class=\"home wai\" href=\"https://www.w3.org/WAI/\">\n      <svg role=\"img\" width=\"162.5\" height=\"45.9\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 162.5 45.9\" aria-labelledby=\"wai-homepage-title\"><title id=\"wai-homepage-title\">Web Accessibility Initiative (WAI) homepage</title><g><path ",
+              "tabPosition": 3,
+              "accessibleName": "Web Accessibility Initiative (WAI) homepage"
+            },
+            {
+              "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/WAI/ARIA/apg/\">APG Home</a>",
+              "tabPosition": 4,
+              "accessibleName": "APG Home"
+            },
+            {
+              "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(2) > a.active",
+              "outerHTML": "<a href=\"/WAI/ARIA/apg/patterns/\" class=\"active\">Patterns</a>",
+              "tabPosition": 5,
+              "accessibleName": "Patterns"
+            },
+            {
+              "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/WAI/ARIA/apg/practices/\">Practices</a>",
+              "tabPosition": 6,
+              "accessibleName": "Practices"
+            },
+            {
+              "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/WAI/ARIA/apg/example-index/\">Index</a>",
+              "tabPosition": 7,
+              "accessibleName": "Index"
+            },
+            {
+              "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"/WAI/ARIA/apg/about/\">About</a>",
+              "tabPosition": 8,
+              "accessibleName": "About"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"#support-notice-header\">Read This First</a>",
+              "tabPosition": 9,
+              "accessibleName": "Read This First"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"#aboutthisexample\">About This Example</a>",
+              "tabPosition": 10,
+              "accessibleName": "About This Example"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"#ex_label\">Example</a>",
+              "tabPosition": 11,
+              "accessibleName": "Example"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"#accessibilityfeatures\">Accessibility Features</a>",
+              "tabPosition": 12,
+              "accessibleName": "Accessibility Features"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"#kbd_label\">Keyboard Support</a>",
+              "tabPosition": 13,
+              "accessibleName": "Keyboard Support"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(6) > a",
+              "outerHTML": "<a href=\"#rps_label\">Role, Property, State, and Tabindex Attributes</a>",
+              "tabPosition": 14,
+              "accessibleName": "Role, Property, State, and Tabindex Attributes"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(7) > a",
+              "outerHTML": "<a href=\"#assistivetechnologysupport\">Assistive Technology Support</a>",
+              "tabPosition": 15,
+              "accessibleName": "Assistive Technology Support"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(8) > a",
+              "outerHTML": "<a href=\"#javascriptandcsssourcecode\">JavaScript and CSS Source Code</a>",
+              "tabPosition": 16,
+              "accessibleName": "JavaScript and CSS Source Code"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(9) > a",
+              "outerHTML": "<a href=\"#sc1_label\">HTML Source Code</a>",
+              "tabPosition": 17,
+              "accessibleName": "HTML Source Code"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > p:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"../../\">Dialog (Modal) Pattern</a>",
+              "tabPosition": 19,
+              "accessibleName": "Dialog (Modal) Pattern"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"../../../alertdialog/examples/alertdialog/\">Alert Dialog Example</a>",
+              "tabPosition": 20,
+              "accessibleName": "Alert Dialog Example"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"../datepicker-dialog/\">Date Picker Dialog example</a>",
+              "tabPosition": 21,
+              "accessibleName": "Date Picker Dialog example"
+            },
+            {
+              "selector": "#ex_label-codepenbutton",
+              "outerHTML": "<button id=\"ex_label-codepenbutton\" style=\"\">Open In CodePen</button>",
+              "tabPosition": 22,
+              "accessibleName": "Open In CodePen"
+            },
+            {
+              "selector": "#ex1 > button",
+              "outerHTML": "<button type=\"button\" onclick=\"openDialog('dialog1', this)\">Add Delivery Address</button>",
+              "tabPosition": 23,
+              "accessibleName": "Add Delivery Address"
+            },
+            {
+              "selector": "#at-support > p > a",
+              "outerHTML": "<a href=\"../../../../about/at-support-tables/\">Learn how to interpret and use assistive technology support data</a>",
+              "tabPosition": 24,
+              "accessibleName": "Learn how to interpret and use assistive technology support data"
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 25
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 26
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 27
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 28
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 29
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 30
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 31
+            },
+            {
+              "selector": "#at-support > iframe.support-levels-modal-dialog",
+              "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+              "tabPosition": 32
+            },
+            {
+              "selector": "#css_js_files > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/dialog-modal/examples/css/dialog.css\" type=\"text/css\">dialog.css</a>",
+              "tabPosition": 33,
+              "accessibleName": "dialog.css"
+            },
+            {
+              "selector": "#css_js_files > li:nth-of-type(2) > a:nth-of-type(1)",
+              "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/dialog-modal/examples/js/dialog.js\" type=\"text/javascript\">dialog.js</a>",
+              "tabPosition": 34,
+              "accessibleName": "dialog.js"
+            },
+            {
+              "selector": "#css_js_files > li:nth-of-type(2) > a:nth-of-type(2)",
+              "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/shared/js/utils.js\">utils.js</a>",
+              "tabPosition": 35,
+              "accessibleName": "utils.js"
+            },
+            {
+              "selector": "#sc1_description-codepenbutton",
+              "outerHTML": "<button id=\"sc1_description-codepenbutton\" style=\"\">Open In CodePen</button>",
+              "tabPosition": 36,
+              "accessibleName": "Open In CodePen"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > p > a",
+              "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\">public-aria-practices@w3.org</a>",
+              "tabPosition": 37,
+              "accessibleName": "public-aria-practices@w3.org"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(1)",
+              "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\" class=\"button\"><span>E-mail</span></a>",
+              "tabPosition": 38,
+              "accessibleName": "E-mail"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(2)",
+              "outerHTML": "<a href=\"\nhttps://github.com/w3c/aria-practices/edit/main/content/patterns/dialog-modal/examples/dialog.html\n\" class=\"button\"><span>Fork &amp; Edit on GitHub</span></a>",
+              "tabPosition": 39,
+              "accessibleName": "Fork & Edit on GitHub"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(3)",
+              "outerHTML": "<a href=\"https://github.com/w3c/aria-practices/issues/new?template=content-issue.yml&amp;wai-url=https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/dialog/\" class=\"button\"><span>New GitHub Issue</span></a>",
+              "tabPosition": 40,
+              "accessibleName": "New GitHub Issue"
+            },
+            {
+              "selector": "a.button.button-backtotop:nth-of-type(2)",
+              "outerHTML": "<a class=\"button button-backtotop active\" href=\"#top\"><span><svg focusable=\"false\" aria-hidden=\"true\" class=\"icon-arrow-up \"><use xlink:href=\"/WAI/assets/images/icons.svg#icon-arrow-up\"></use></svg> Back to Top</span></a>",
+              "tabPosition": 41,
+              "accessibleName": "Back to Top"
+            },
+            {
+              "selector": "#wai-site-footer > div.inner > div.example-page-footer > p:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"https://github.com/orgs/w3c/projects/126\">View issues related to this example</a>",
+              "tabPosition": 42,
+              "accessibleName": "View issues related to this example"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__subsite:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"https://www.w3.org/WAI/\" lang=\"en\" dir=\"auto\" translate=\"no\">W3C Web Accessibility Initiative (WAI)</a>",
+              "tabPosition": 43,
+              "accessibleName": "W3C Web Accessibility Initiative (WAI)"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"https://www.linkedin.com/company/w3c-wai/\" translate=\"no\">LinkedIn</a>",
+              "tabPosition": 45,
+              "accessibleName": "LinkedIn"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"https://w3c.social/@wai\" translate=\"no\">Mastodon</a>",
+              "tabPosition": 46,
+              "accessibleName": "Mastodon"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"https://www.youtube.com/channel/UCU6ljj3m1fglIPjSjs2DpRA/playlists/\" translate=\"no\">YouTube</a>",
+              "tabPosition": 47,
+              "accessibleName": "YouTube"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/WAI/\">Home</a>",
+              "tabPosition": 48,
+              "accessibleName": "Home"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/WAI/about/contacting/\">Contact</a>",
+              "tabPosition": 49,
+              "accessibleName": "Contact"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(3)",
+              "outerHTML": "<a href=\"https://www.w3.org/policies/#trademarks\">trademark</a>",
+              "tabPosition": 58,
+              "accessibleName": "trademark"
+            },
+            {
+              "selector": "skip-to-content",
+              "outerHTML": "<skip-to-content version=\"5.9.2\" type=\"pagescript\" focus=\"button\"></skip-to-content>",
+              "tabPosition": 61
+            }
+          ],
+          "wcag": ["2.4.3"],
+          "impact": "Keyboard users may be confused when focus jumps to unexpected locations that don't match the visual layout."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Focus Order Mismatch",
+      "ruleDescription": "Detects when keyboard focus order doesn't match the visual layout order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "tabindex-abuse",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Tabindex Abuse",
+      "ruleDescription": "Detects elements with positive tabindex values that disrupt natural focus order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "missing-focus-indicator",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "missing-focus-indicator",
+          "ruleName": "Missing Focus Indicator",
+          "severity": "error",
+          "message": "1 element(s) show no visible change between focused and unfocused states (screenshot comparison).",
+          "elements": [
+            {
+              "selector": "#ex_label-codepenbutton",
+              "outerHTML": "<button id=\"ex_label-codepenbutton\" style=\"\">Open In CodePen</button>",
+              "tabPosition": 22,
+              "accessibleName": "Open In CodePen"
+            }
+          ],
+          "wcag": ["2.4.7"],
+          "impact": "Screenshot comparison confirms no visible focus indicator. Keyboard users cannot see which element has focus."
+        }
+      ],
+      "duration": 35,
+      "ruleName": "Missing Focus Indicator",
+      "ruleDescription": "Detects interactive elements that lack a visible focus indicator.",
+      "wcag": ["2.4.7"]
+    },
+    {
+      "ruleId": "skip-link",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "skip-link",
+          "ruleName": "Skip Link",
+          "severity": "warning",
+          "message": "No skip navigation link found among the first focusable elements. Keyboard users must tab through all navigation items to reach main content.",
+          "elements": [],
+          "wcag": ["2.4.1"],
+          "impact": "Without a skip link, keyboard users must navigate through all header and navigation elements on every page load."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Skip Link",
+      "ruleDescription": "Validates that a skip navigation link is present and functions correctly.",
+      "wcag": ["2.4.1"]
+    },
+    {
+      "ruleId": "focus-not-obscured",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Focus Not Obscured",
+      "ruleDescription": "Ensures focused elements are not entirely hidden by sticky/fixed content.",
+      "wcag": ["2.4.11"]
+    },
+    {
+      "ruleId": "focus-after-interaction",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Focus After Interaction",
+      "ruleDescription": "Ensures focus is not lost after clicking interactive elements.",
+      "wcag": ["2.4.3", "2.4.7"]
+    }
+  ],
+  "summary": {
+    "totalErrors": 8,
+    "totalWarnings": 2,
+    "totalInfo": 0,
+    "passed": 4,
+    "failed": 4,
+    "score": 81
+  },
+  "focusSequence": [
+    {
+      "tabIndex": 1,
+      "selector": "#site-header > div.minimal-header-info:nth-of-type(1) > div.minimal-header-title > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "ARIA Authoring Practices Guide (APG)",
+      "boundingRect": {
+        "x": 88,
+        "y": 21.796875,
+        "width": 386.140625,
+        "height": 39
+      },
+      "pageRect": {
+        "x": 88,
+        "y": 21.796875,
+        "width": 386.140625,
+        "height": 39
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/\">\n        ARIA Authoring Practices Guide (APG)\n      </a>",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 2,
+      "selector": "#site-header > div.minimal-header-logo:nth-of-type(2) > div.logos > a.home.w3c:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "W3C homepage",
+      "boundingRect": {
+        "x": 1012.5625,
+        "y": 16,
+        "width": 36,
+        "height": 52
+      },
+      "pageRect": {
+        "x": 1012.5625,
+        "y": 16,
+        "width": 36,
+        "height": 52
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a lang=\"en\" class=\"home w3c\" href=\"https://www.w3.org/\">\n      <svg role=\"img\" width=\"46\" height=\"46\" version=\"1.1\" viewBox=\"0 0 360 360\" xmlns=\"http://www.w3.org/2000/svg\" aria-labelledby=\"w3c-homepage-title\"><title id=\"w3c-homepage-title\">W3C homepage</title><g><path d=\"M306.80028,149.60422c-6.57",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 3,
+      "selector": "#site-header > div.minimal-header-logo:nth-of-type(2) > div.logos > a.home.wai:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Web Accessibility Initiative (WAI) homepage",
+      "boundingRect": {
+        "x": 1064.5625,
+        "y": 16,
+        "width": 127.4375,
+        "height": 52
+      },
+      "pageRect": {
+        "x": 1064.5625,
+        "y": 16,
+        "width": 127.4375,
+        "height": 52
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a lang=\"en\" class=\"home wai\" href=\"https://www.w3.org/WAI/\">\n      <svg role=\"img\" width=\"162.5\" height=\"45.9\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 162.5 45.9\" aria-labelledby=\"wai-homepage-title\"><title id=\"wai-homepage-title\">Web Accessibility Initiative (WAI) homepage</title><g><path ",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 4,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "APG Home",
+      "boundingRect": {
+        "x": 80,
+        "y": 84,
+        "width": 96.21875,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 84,
+        "width": 96.21875,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/\">APG Home</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 5,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(2) > a.active",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Patterns",
+      "boundingRect": {
+        "x": 176.21875,
+        "y": 84,
+        "width": 81.046875,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 176.21875,
+        "y": 84,
+        "width": 81.046875,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/patterns/\" class=\"active\">Patterns</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 6,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Practices",
+      "boundingRect": {
+        "x": 257.265625,
+        "y": 84,
+        "width": 84.03125,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 257.265625,
+        "y": 84,
+        "width": 84.03125,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/practices/\">Practices</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 7,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Index",
+      "boundingRect": {
+        "x": 341.296875,
+        "y": 84,
+        "width": 63.15625,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 341.296875,
+        "y": 84,
+        "width": 63.15625,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/example-index/\">Index</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 8,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "About",
+      "boundingRect": {
+        "x": 404.453125,
+        "y": 84,
+        "width": 65.78125,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 404.453125,
+        "y": 84,
+        "width": 65.78125,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/about/\">About</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 9,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Read This First",
+      "boundingRect": {
+        "x": 961,
+        "y": 222.8125,
+        "width": 92.734375,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 222.8125,
+        "width": 92.734375,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#support-notice-header\">Read This First</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 10,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "About This Example",
+      "boundingRect": {
+        "x": 961,
+        "y": 255.640625,
+        "width": 126.25,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 255.640625,
+        "width": 126.25,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#aboutthisexample\">About This Example</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 11,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Example",
+      "boundingRect": {
+        "x": 961,
+        "y": 286.390625,
+        "width": 54.625,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 286.390625,
+        "width": 54.625,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#ex_label\">Example</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 12,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Accessibility Features",
+      "boundingRect": {
+        "x": 961,
+        "y": 317.140625,
+        "width": 135.359375,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 317.140625,
+        "width": 135.359375,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#accessibilityfeatures\">Accessibility Features</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 13,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Keyboard Support",
+      "boundingRect": {
+        "x": 961,
+        "y": 347.890625,
+        "width": 115.53125,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 347.890625,
+        "width": 115.53125,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#kbd_label\">Keyboard Support</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 14,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Role, Property, State, and Tabindex Attributes",
+      "boundingRect": {
+        "x": 961,
+        "y": 378.640625,
+        "width": 221.90625,
+        "height": 40.3125
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 378.640625,
+        "width": 221.90625,
+        "height": 40.3125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#rps_label\">Role, Property, State, and Tabindex Attributes</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 15,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(7) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Assistive Technology Support",
+      "boundingRect": {
+        "x": 961,
+        "y": 425.703125,
+        "width": 185.96875,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 425.703125,
+        "width": 185.96875,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#assistivetechnologysupport\">Assistive Technology Support</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 16,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(8) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "JavaScript and CSS Source Code",
+      "boundingRect": {
+        "x": 961,
+        "y": 456.453125,
+        "width": 200.765625,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 456.453125,
+        "width": 200.765625,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#javascriptandcsssourcecode\">JavaScript and CSS Source Code</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 17,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(9) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "HTML Source Code",
+      "boundingRect": {
+        "x": 961,
+        "y": 487.203125,
+        "width": 120.640625,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 487.203125,
+        "width": 120.640625,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#sc1_label\">HTML Source Code</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 18,
+      "selector": "#support-notice > summary",
+      "tagName": "summary",
+      "role": "summary",
+      "accessibleName": "The code in this example is not intended for production environments.\n        Before using it for an",
+      "boundingRect": {
+        "x": 81,
+        "y": 290.8125,
+        "width": 830,
+        "height": 80
+      },
+      "pageRect": {
+        "x": 81,
+        "y": 290.8125,
+        "width": 830,
+        "height": 80
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(96, 71, 12) none 0px",
+        "boxShadow": "rgb(96, 71, 13) 0px 0px 5px 0px",
+        "border": "0px none rgb(96, 71, 12)"
+      },
+      "outerHTML": "<summary>\n        The code in this example is not intended for production environments.\n        Before using it for any purpose, read this to understand why.\n      </summary>",
+      "parentContext": "main"
+    },
+    {
+      "tabIndex": 19,
+      "selector": "#main > div > div > section:nth-of-type(1) > p:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Dialog (Modal) Pattern",
+      "boundingRect": {
+        "x": 529.78125,
+        "y": 443.703125,
+        "width": 169.140625,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 529.78125,
+        "y": 443.703125,
+        "width": 169.140625,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../\">Dialog (Modal) Pattern</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 20,
+      "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Alert Dialog Example",
+      "boundingRect": {
+        "x": 120,
+        "y": 589.703125,
+        "width": 156.734375,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 120,
+        "y": 589.703125,
+        "width": 156.734375,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../alertdialog/examples/alertdialog/\">Alert Dialog Example</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 21,
+      "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Date Picker Dialog example",
+      "boundingRect": {
+        "x": 120,
+        "y": 621.703125,
+        "width": 206.046875,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 120,
+        "y": 621.703125,
+        "width": 206.046875,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../datepicker-dialog/\">Date Picker Dialog example</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 22,
+      "selector": "#ex_label-codepenbutton",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Open In CodePen",
+      "boundingRect": {
+        "x": 80,
+        "y": 340.59375,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 723.59375,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": false,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<button id=\"ex_label-codepenbutton\" style=\"\">Open In CodePen</button>",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 23,
+      "selector": "#ex1 > button",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Add Delivery Address",
+      "boundingRect": {
+        "x": 80,
+        "y": 398.78125,
+        "width": 162.625,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 781.78125,
+        "width": 162.625,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<button type=\"button\" onclick=\"openDialog('dialog1', this)\">Add Delivery Address</button>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 24,
+      "selector": "#at-support > p > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Learn how to interpret and use assistive technology support data",
+      "boundingRect": {
+        "x": 80,
+        "y": 345.03125,
+        "width": 488.75,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3325.03125,
+        "width": 488.75,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../about/at-support-tables/\">Learn how to interpret and use assistive technology support data</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 25,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": 388.03125,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 26,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": 388.03125,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 27,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": 388.03125,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 28,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": 388.03125,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 29,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": -14.96875,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 30,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": -14.96875,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 31,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": -14.96875,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 32,
+      "selector": "#at-support > iframe.support-levels-modal-dialog",
+      "tagName": "iframe",
+      "role": "iframe",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 80,
+        "y": -14.96875,
+        "width": 832,
+        "height": 547
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 3368.03125,
+        "width": 832,
+        "height": 547
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<iframe class=\"support-levels-modal-dialog\" src=\"https://aria-at.w3.org/embed/reports/apg/modal-dialog\" height=\"100\" allow=\"clipboard-write\" style=\"border-style: none; width: 100%; height: 547px;\">\n        </iframe>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 33,
+      "selector": "#css_js_files > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "dialog.css",
+      "boundingRect": {
+        "x": 156.109375,
+        "y": 608.921875,
+        "width": 73.84375,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 156.109375,
+        "y": 3991.921875,
+        "width": 73.84375,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/dialog-modal/examples/css/dialog.css\" type=\"text/css\">dialog.css</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 34,
+      "selector": "#css_js_files > li:nth-of-type(2) > a:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "dialog.js",
+      "boundingRect": {
+        "x": 201.671875,
+        "y": 640.921875,
+        "width": 62.640625,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 201.671875,
+        "y": 4023.921875,
+        "width": 62.640625,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/dialog-modal/examples/js/dialog.js\" type=\"text/javascript\">dialog.js</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 35,
+      "selector": "#css_js_files > li:nth-of-type(2) > a:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "utils.js",
+      "boundingRect": {
+        "x": 272.75,
+        "y": 640.921875,
+        "width": 47.625,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 272.75,
+        "y": 4023.921875,
+        "width": 47.625,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/shared/js/utils.js\">utils.js</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 36,
+      "selector": "#sc1_description-codepenbutton",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Open In CodePen",
+      "boundingRect": {
+        "x": 80,
+        "y": 340.8125,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 4165.8125,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<button id=\"sc1_description-codepenbutton\" style=\"\">Open In CodePen</button>",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 37,
+      "selector": "#helpimprove > div.box-i > p > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "public-aria-practices@w3.org",
+      "boundingRect": {
+        "x": 766.921875,
+        "y": 345,
+        "width": 217.8125,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 766.921875,
+        "y": 10028,
+        "width": 217.8125,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\">public-aria-practices@w3.org</a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 38,
+      "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "E-mail",
+      "boundingRect": {
+        "x": 97,
+        "y": 396,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 97,
+        "y": 10079,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\" class=\"button\"><span>E-mail</span></a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 39,
+      "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Fork & Edit on GitHub",
+      "boundingRect": {
+        "x": 464.328125,
+        "y": 396,
+        "width": 351.34375,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 464.328125,
+        "y": 10079,
+        "width": 351.34375,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a href=\"\nhttps://github.com/w3c/aria-practices/edit/main/content/patterns/dialog-modal/examples/dialog.html\n\" class=\"button\"><span>Fork &amp; Edit on GitHub</span></a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 40,
+      "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(3)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "New GitHub Issue",
+      "boundingRect": {
+        "x": 831.671875,
+        "y": 396,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 831.671875,
+        "y": 10079,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a href=\"https://github.com/w3c/aria-practices/issues/new?template=content-issue.yml&amp;wai-url=https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/dialog/\" class=\"button\"><span>New GitHub Issue</span></a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 41,
+      "selector": "a.button.button-backtotop:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Back to Top",
+      "boundingRect": {
+        "x": 1145.921875,
+        "y": 665.8125,
+        "width": 118.078125,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 1145.921875,
+        "y": 10348.8125,
+        "width": 118.078125,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "rgba(0, 0, 0, 0.5) 0px 2px 4px 0px",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a class=\"button button-backtotop active\" href=\"#top\"><span><svg focusable=\"false\" aria-hidden=\"true\" class=\"icon-arrow-up \"><use xlink:href=\"/WAI/assets/images/icons.svg#icon-arrow-up\"></use></svg> Back to Top</span></a>"
+    },
+    {
+      "tabIndex": 42,
+      "selector": "#wai-site-footer > div.inner > div.example-page-footer > p:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "View issues related to this example",
+      "boundingRect": {
+        "x": 80,
+        "y": 511.1875,
+        "width": 229.046875,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 10194.1875,
+        "width": 229.046875,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://github.com/orgs/w3c/projects/126\">View issues related to this example</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 43,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__subsite:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "W3C Web Accessibility Initiative (WAI)",
+      "boundingRect": {
+        "x": 80,
+        "y": 616.1875,
+        "width": 376.265625,
+        "height": 35
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 10299.1875,
+        "width": 376.265625,
+        "height": 35
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/WAI/\" lang=\"en\" dir=\"auto\" translate=\"no\">W3C Web Accessibility Initiative (WAI)</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 44,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Get News in Email",
+      "boundingRect": {
+        "x": 110,
+        "y": 675.75,
+        "width": 118.1875,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 110,
+        "y": 10379.75,
+        "width": 118.1875,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/news/subscribe/\">Get News in Email</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 45,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "LinkedIn",
+      "boundingRect": {
+        "x": 280.1875,
+        "y": 675.75,
+        "width": 56.96875,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 280.1875,
+        "y": 10379.75,
+        "width": 56.96875,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.linkedin.com/company/w3c-wai/\" translate=\"no\">LinkedIn</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 46,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Mastodon",
+      "boundingRect": {
+        "x": 389.15625,
+        "y": 675.75,
+        "width": 66.5,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 389.15625,
+        "y": 10379.75,
+        "width": 66.5,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://w3c.social/@wai\" translate=\"no\">Mastodon</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 47,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "YouTube",
+      "boundingRect": {
+        "x": 507.65625,
+        "y": 675.75,
+        "width": 56.578125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 507.65625,
+        "y": 10379.75,
+        "width": 56.578125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.youtube.com/channel/UCU6ljj3m1fglIPjSjs2DpRA/playlists/\" translate=\"no\">YouTube</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 48,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Home",
+      "boundingRect": {
+        "x": 80,
+        "y": 594.734375,
+        "width": 39.828125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 10431.734375,
+        "width": 39.828125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/\">Home</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 49,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Contact",
+      "boundingRect": {
+        "x": 139.828125,
+        "y": 594.734375,
+        "width": 50.640625,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 139.828125,
+        "y": 10431.734375,
+        "width": 50.640625,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/contacting/\">Contact</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 50,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Site map",
+      "boundingRect": {
+        "x": 210.46875,
+        "y": 594.734375,
+        "width": 57.421875,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 210.46875,
+        "y": 10431.734375,
+        "width": 57.421875,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/sitemap/\">Site map</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 51,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Support WAI",
+      "boundingRect": {
+        "x": 287.890625,
+        "y": 594.734375,
+        "width": 82.625,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 287.890625,
+        "y": 10431.734375,
+        "width": 82.625,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/support/\">Support WAI</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 52,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "News",
+      "boundingRect": {
+        "x": 390.515625,
+        "y": 594.734375,
+        "width": 35.953125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 390.515625,
+        "y": 10431.734375,
+        "width": 35.953125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/news/\">News</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 53,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Accessibility statement",
+      "boundingRect": {
+        "x": 446.46875,
+        "y": 594.734375,
+        "width": 149.78125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 446.46875,
+        "y": 10431.734375,
+        "width": 149.78125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/accessibility-statement/\">Accessibility statement</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 54,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(7) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "All Translations",
+      "boundingRect": {
+        "x": 616.25,
+        "y": 594.734375,
+        "width": 99.515625,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 616.25,
+        "y": 10431.734375,
+        "width": 99.515625,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/translations/\">All Translations</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 55,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(8) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Resources for roles",
+      "boundingRect": {
+        "x": 735.765625,
+        "y": 594.734375,
+        "width": 125.734375,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 735.765625,
+        "y": 10431.734375,
+        "width": 125.734375,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/roles/\">Resources for roles</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 56,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "World Wide Web\tConsortium",
+      "boundingRect": {
+        "x": 199.046875,
+        "y": 649.71875,
+        "width": 189.78125,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 199.046875,
+        "y": 10486.71875,
+        "width": 189.78125,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/\">World Wide Web\tConsortium</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 57,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "liability",
+      "boundingRect": {
+        "x": 123.21875,
+        "y": 672.359375,
+        "width": 46.140625,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 123.21875,
+        "y": 10509.359375,
+        "width": 46.140625,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/policies/#disclaimers\">liability</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 58,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(3)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "trademark",
+      "boundingRect": {
+        "x": 176.75,
+        "y": 672.359375,
+        "width": 69.078125,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 176.75,
+        "y": 10509.359375,
+        "width": 69.078125,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/policies/#trademarks\">trademark</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 59,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(4)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "W3C Software License",
+      "boundingRect": {
+        "x": 278.203125,
+        "y": 672.359375,
+        "width": 119.703125,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 278.203125,
+        "y": 10509.359375,
+        "width": 119.703125,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a rel=\"license\" href=\"https://www.w3.org/copyright/software-license/\" title=\"W3C Software License\">permissive license</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 60,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(5)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Permission to Use WAI Material",
+      "boundingRect": {
+        "x": 664.9375,
+        "y": 672.359375,
+        "width": 206.34375,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 664.9375,
+        "y": 10509.359375,
+        "width": 206.34375,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/using-wai-material/\">Permission to Use WAI Material</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 61,
+      "selector": "skip-to-content",
+      "tagName": "skip-to-content",
+      "role": "skip-to-content",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 0,
+        "y": -9837,
+        "width": 0,
+        "height": 0
+      },
+      "pageRect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<skip-to-content version=\"5.9.2\" type=\"pagescript\" focus=\"button\"></skip-to-content>"
+    }
+  ],
+  "pageDimensions": {
+    "width": 1280,
+    "height": 10557
+  }
+}

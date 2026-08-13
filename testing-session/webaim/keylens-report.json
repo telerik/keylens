@@ -1,0 +1,1726 @@
+{
+  "version": "0.1.0",
+  "timestamp": "2026-08-12T18:47:03.705Z",
+  "url": "https://webaim.org",
+  "config": {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "browser": "chromium",
+    "rules": {
+      "keyboardTrap": true,
+      "unreachableElements": true,
+      "focusOrderMismatch": true,
+      "tabindexAbuse": true,
+      "missingFocusIndicator": true,
+      "skipLink": true,
+      "focusNotObscured": true,
+      "focusAfterInteraction": true
+    }
+  },
+  "crawl": {
+    "totalFocusableElements": 49,
+    "totalInteractiveElements": 49,
+    "unreachedElements": 0,
+    "cycleCompleted": true,
+    "duration": 13673
+  },
+  "rules": [
+    {
+      "ruleId": "keyboard-trap",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Keyboard Trap",
+      "ruleDescription": "Detects elements that trap keyboard focus, preventing users from navigating away.",
+      "wcag": ["2.1.2"]
+    },
+    {
+      "ruleId": "unreachable-elements",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Unreachable Interactive Elements",
+      "ruleDescription": "Detects interactive elements that cannot be reached via keyboard navigation.",
+      "wcag": ["2.1.1"]
+    },
+    {
+      "ruleId": "focus-order-mismatch",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "focus-order-mismatch",
+          "ruleName": "Focus Order Mismatch",
+          "severity": "warning",
+          "message": "27 element(s) have a focus order that significantly differs from their visual position.",
+          "elements": [
+            {
+              "selector": "#bannerreg > a",
+              "outerHTML": "<a href=\"https://conference.webaim.org/\" class=\"\">LEARN MORE</a>",
+              "tabPosition": 12,
+              "accessibleName": "LEARN MORE"
+            },
+            {
+              "selector": "#strategica11y > h2 > a",
+              "outerHTML": "<a href=\"/training/procurement/\" class=\"\">Accessibility in Procurement</a>",
+              "tabPosition": 15,
+              "accessibleName": "Accessibility in Procurement"
+            },
+            {
+              "selector": "#monitoring > h2 > a",
+              "outerHTML": "<a href=\"/services/monitoring/\" class=\"\">Evaluation and Reporting</a>",
+              "tabPosition": 16,
+              "accessibleName": "Evaluation and Reporting"
+            },
+            {
+              "selector": "#commbox > ul > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"https://conference.webaim.org/\" class=\"\">WebAIM Conference</a>",
+              "tabPosition": 19,
+              "accessibleName": "WebAIM Conference"
+            },
+            {
+              "selector": "#commbox > ul > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"https://www.linkedin.com/company/webaim/\" class=\"\">LinkedIn</a>",
+              "tabPosition": 20,
+              "accessibleName": "LinkedIn"
+            },
+            {
+              "selector": "#features > p.more:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/projects/screenreadersurvey11/\" class=\"\">Take the Survey</a>",
+              "tabPosition": 21,
+              "accessibleName": "Take the Survey"
+            },
+            {
+              "selector": "#features > p.more:nth-of-type(6) > a",
+              "outerHTML": "<a href=\"/AIMee\" class=\"\">Ask AIMee</a>",
+              "tabPosition": 23,
+              "accessibleName": "Ask AIMee"
+            },
+            {
+              "selector": "#features > p.archive:nth-of-type(7) > a",
+              "outerHTML": "<a href=\"/features/\" class=\"\">Archive of featured items…</a>",
+              "tabPosition": 24,
+              "accessibleName": "Archive of featured items…"
+            },
+            {
+              "selector": "#trainings > div.events > ul > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/training/virtual/\" class=\"\"><strong>Virtual Web Accessibility Training</strong></a>",
+              "tabPosition": 25,
+              "accessibleName": "Virtual Web Accessibility Training"
+            },
+            {
+              "selector": "#trainings > div.events > ul > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/training/procurement/\" class=\"\"><strong>Accessibility in Technology Procurement and Use</strong></a>",
+              "tabPosition": 26,
+              "accessibleName": "Accessibility in Technology Procurement and Use"
+            },
+            {
+              "selector": "#trainings > div.events > ul > li:nth-of-type(3) > a:nth-of-type(1)",
+              "outerHTML": "<a href=\"/training/docs/\" class=\"\"><strong>Document Accessibility Online Course</strong></a>",
+              "tabPosition": 27,
+              "accessibleName": "Document Accessibility Online Course"
+            },
+            {
+              "selector": "#trainings > div.events > ul > li:nth-of-type(3) > a:nth-of-type(2)",
+              "outerHTML": "<a href=\"https://webaim.learn.usu.edu/courses/july-2026-accessible-documents\" class=\"\">July cohort</a>",
+              "tabPosition": 28,
+              "accessibleName": "July cohort"
+            },
+            {
+              "selector": "#trainings > div.events > ul > li:nth-of-type(3) > a:nth-of-type(3)",
+              "outerHTML": "<a href=\"https://webaim.learn.usu.edu/courses/august-2026-accessible-documents\" class=\"\">August cohort</a>",
+              "tabPosition": 29,
+              "accessibleName": "August cohort"
+            },
+            {
+              "selector": "#activities > div.events > ul > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"https://www.isu.edu/disabilityservices/community-services/ds-hosted-events/a11y-camp/\" class=\"\"><strong>A11y Camp Pocatello</strong></a>",
+              "tabPosition": 30,
+              "accessibleName": "A11y Camp Pocatello"
+            },
+            {
+              "selector": "#activities > div.events > ul > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"https://conference.webaim.org/\" class=\"\"><strong>Web Accessibility in Mind Conference</strong></a>",
+              "tabPosition": 31,
+              "accessibleName": "Web Accessibility in Mind Conference"
+            },
+            {
+              "selector": "#contact > a.phone",
+              "outerHTML": "<a class=\"phone\" href=\"tel:4357977024\">435.797.7024</a>",
+              "tabPosition": 32,
+              "accessibleName": "435.797.7024"
+            },
+            {
+              "selector": "#waveurl",
+              "outerHTML": "<input type=\"url\" id=\"waveurl\" name=\"url\" title=\"Web site address\" style=\"\" class=\"\">",
+              "tabPosition": 33,
+              "accessibleName": "Web site address"
+            },
+            {
+              "selector": "#checkpage > form > input:nth-of-type(2)",
+              "outerHTML": "<input type=\"submit\" value=\"WAVE\" style=\"\" class=\"\">",
+              "tabPosition": 34
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/blog/an-extension-is-not-an-excuse/\" class=\"\">An Extension is Not an Excuse</a>",
+              "tabPosition": 35,
+              "accessibleName": "An Extension is Not an Excuse"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/blog/tolerating-inaccessibility/\" class=\"\">Tolerating Inaccessibility</a>",
+              "tabPosition": 36,
+              "accessibleName": "Tolerating Inaccessibility"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/blog/ask-aimee/\" class=\"\">Ask AIMee: An accessible accessibility-focused AI chatbot</a>",
+              "tabPosition": 37,
+              "accessibleName": "Ask AIMee: An accessible accessibility-focused AI chatbot"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/blog/a-new-path/\" class=\"\">A New Path for Digital Accessibility?</a>",
+              "tabPosition": 38,
+              "accessibleName": "A New Path for Digital Accessibility?"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/services/training/\" class=\"\">WebAIM Training</a>",
+              "tabPosition": 39,
+              "accessibleName": "WebAIM Training"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/standards/wcag/checklist\" class=\"\">WCAG 2 Checklist</a>",
+              "tabPosition": 40,
+              "accessibleName": "WCAG 2 Checklist"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/AIMee\" class=\"\">Ask AIMee Chatbot</a>",
+              "tabPosition": 41,
+              "accessibleName": "Ask AIMee Chatbot"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/resources/contrastchecker\" class=\"\">Color Contrast Checker</a>",
+              "tabPosition": 42,
+              "accessibleName": "Color Contrast Checker"
+            },
+            {
+              "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"/resources/designers/\" class=\"\">Web Accessibility for Designers</a>",
+              "tabPosition": 43,
+              "accessibleName": "Web Accessibility for Designers"
+            }
+          ],
+          "wcag": ["2.4.3"],
+          "impact": "Keyboard users may be confused when focus jumps to unexpected locations that don't match the visual layout."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Focus Order Mismatch",
+      "ruleDescription": "Detects when keyboard focus order doesn't match the visual layout order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "tabindex-abuse",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Tabindex Abuse",
+      "ruleDescription": "Detects elements with positive tabindex values that disrupt natural focus order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "missing-focus-indicator",
+      "passed": true,
+      "violations": [],
+      "duration": 22,
+      "ruleName": "Missing Focus Indicator",
+      "ruleDescription": "Detects interactive elements that lack a visible focus indicator.",
+      "wcag": ["2.4.7"]
+    },
+    {
+      "ruleId": "skip-link",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Skip Link",
+      "ruleDescription": "Validates that a skip navigation link is present and functions correctly.",
+      "wcag": ["2.4.1"]
+    },
+    {
+      "ruleId": "focus-not-obscured",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Focus Not Obscured",
+      "ruleDescription": "Ensures focused elements are not entirely hidden by sticky/fixed content.",
+      "wcag": ["2.4.11"]
+    },
+    {
+      "ruleId": "focus-after-interaction",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "focus-after-interaction",
+          "ruleName": "Focus After Interaction",
+          "severity": "error",
+          "message": "Focus lost after clicking #sitesearch > p.search > span > input:nth-of-type(2) — activeElement reverted to body",
+          "elements": [
+            {
+              "selector": "#sitesearch > p.search > span > input:nth-of-type(2)",
+              "outerHTML": "<input role=\"input\">Submit Search</input>",
+              "accessibleName": "Submit Search"
+            }
+          ],
+          "wcag": ["2.4.3", "2.4.7"],
+          "impact": "Keyboard users lose their position on the page after interacting with this element, forcing them to Tab from the beginning."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Focus After Interaction",
+      "ruleDescription": "Ensures focus is not lost after clicking interactive elements.",
+      "wcag": ["2.4.3", "2.4.7"]
+    }
+  ],
+  "summary": {
+    "totalErrors": 1,
+    "totalWarnings": 1,
+    "totalInfo": 0,
+    "passed": 6,
+    "failed": 2,
+    "score": 94
+  },
+  "focusSequence": [
+    {
+      "tabIndex": 1,
+      "selector": "#skiptocontent > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "skip to main content",
+      "boundingRect": {
+        "x": 0,
+        "y": 0,
+        "width": 165.515625,
+        "height": 35
+      },
+      "pageRect": {
+        "x": 0,
+        "y": 0,
+        "width": 165.515625,
+        "height": 35
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgba(0, 0, 0, 0) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"#maincontent\" class=\"\">skip to main content</a>",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 2,
+      "selector": "#headcontainer > header > h2 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 157,
+        "y": 67,
+        "width": 315,
+        "height": 33
+      },
+      "pageRect": {
+        "x": 157,
+        "y": 67,
+        "width": 315,
+        "height": 33
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 238)"
+      },
+      "outerHTML": "<a href=\"/\" class=\"\"><img src=\"/media/logo.png\" width=\"315\" height=\"83\" alt=\"WebAIM - Web Accessibility In Mind\"></a>",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 3,
+      "selector": "#headcontainer > header > nav > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Services",
+      "boundingRect": {
+        "x": 596.53125,
+        "y": 40,
+        "width": 96.875,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 596.53125,
+        "y": 40,
+        "width": 96.875,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(147, 33, 40)"
+      },
+      "outerHTML": "<a href=\"/services/\" class=\"\">Services</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 4,
+      "selector": "#headcontainer > header > nav > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Articles",
+      "boundingRect": {
+        "x": 693.40625,
+        "y": 40,
+        "width": 89.1875,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 693.40625,
+        "y": 40,
+        "width": 89.1875,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(147, 33, 40)"
+      },
+      "outerHTML": "<a href=\"/articles/\" class=\"\">Articles</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 5,
+      "selector": "#headcontainer > header > nav > ul > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Resources",
+      "boundingRect": {
+        "x": 782.59375,
+        "y": 40,
+        "width": 110.421875,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 782.59375,
+        "y": 40,
+        "width": 110.421875,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(155, 31, 39)"
+      },
+      "outerHTML": "<a href=\"/resources/\" class=\"\">Resources</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 6,
+      "selector": "#headcontainer > header > nav > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Projects",
+      "boundingRect": {
+        "x": 893.015625,
+        "y": 40,
+        "width": 95.078125,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 893.015625,
+        "y": 40,
+        "width": 95.078125,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(147, 33, 40)"
+      },
+      "outerHTML": "<a href=\"/projects/\" class=\"\">Projects</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 7,
+      "selector": "#headcontainer > header > nav > ul > li:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Community",
+      "boundingRect": {
+        "x": 988.09375,
+        "y": 40,
+        "width": 121.90625,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 988.09375,
+        "y": 40,
+        "width": 121.90625,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(147, 33, 40)"
+      },
+      "outerHTML": "<a href=\"/community/\" class=\"\">Community</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 8,
+      "selector": "#q",
+      "tagName": "input",
+      "role": "input",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 274.03125,
+        "y": 148.71875,
+        "width": 193.515625,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 274.03125,
+        "y": 148.71875,
+        "width": 193.515625,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<input type=\"text\" name=\"q\" id=\"q\" style=\"\" class=\"\">",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 9,
+      "selector": "#sitesearch > p.search > span > input:nth-of-type(2)",
+      "tagName": "input",
+      "role": "input",
+      "accessibleName": "Submit Search",
+      "boundingRect": {
+        "x": 467.546875,
+        "y": 148.71875,
+        "width": 27,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 467.546875,
+        "y": 148.71875,
+        "width": 27,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<input type=\"image\" src=\"/media/template/search.svg\" alt=\"Submit Search\" style=\"\" class=\"\">",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 10,
+      "selector": "#search > p.intro:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Introduction to Web Accessibility",
+      "boundingRect": {
+        "x": 210,
+        "y": 206.71875,
+        "width": 251.28125,
+        "height": 30
+      },
+      "pageRect": {
+        "x": 210,
+        "y": 206.71875,
+        "width": 251.28125,
+        "height": 30
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(30, 69, 113) auto 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 175, 216)"
+      },
+      "outerHTML": "<a href=\"/intro\" class=\"\">Introduction to Web Accessibility</a>",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 11,
+      "selector": "#search > p.training:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "WebAIM Training",
+      "boundingRect": {
+        "x": 210,
+        "y": 268.71875,
+        "width": 135.3125,
+        "height": 30
+      },
+      "pageRect": {
+        "x": 210,
+        "y": 268.71875,
+        "width": 135.3125,
+        "height": 30
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(35, 65, 99) auto 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(0, 175, 216)"
+      },
+      "outerHTML": "<a href=\"/services/training\" class=\"\">WebAIM Training</a>",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 12,
+      "selector": "#bannerreg > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "LEARN MORE",
+      "boundingRect": {
+        "x": 190,
+        "y": 672.15625,
+        "width": 220.859375,
+        "height": 48
+      },
+      "pageRect": {
+        "x": 190,
+        "y": 717.15625,
+        "width": 220.859375,
+        "height": 48
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "3px solid rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"https://conference.webaim.org/\" class=\"\">LEARN MORE</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 13,
+      "selector": "#training > h2 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Accessibility Training",
+      "boundingRect": {
+        "x": 182,
+        "y": 346.15625,
+        "width": 211.515625,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 182,
+        "y": 813.15625,
+        "width": 211.515625,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/services/training/\" class=\"\">Accessibility Training</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 14,
+      "selector": "#consulting > h2 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Technical Assistance",
+      "boundingRect": {
+        "x": 540,
+        "y": 346.15625,
+        "width": 212.125,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 540,
+        "y": 813.15625,
+        "width": 212.125,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/services/consulting/\" class=\"\">Technical Assistance</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 15,
+      "selector": "#strategica11y > h2 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Accessibility in Procurement",
+      "boundingRect": {
+        "x": 182,
+        "y": 495.34375,
+        "width": 284.390625,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 182,
+        "y": 962.34375,
+        "width": 284.390625,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/training/procurement/\" class=\"\">Accessibility in Procurement</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 16,
+      "selector": "#monitoring > h2 > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Evaluation and Reporting",
+      "boundingRect": {
+        "x": 540,
+        "y": 495.34375,
+        "width": 249.53125,
+        "height": 28
+      },
+      "pageRect": {
+        "x": 540,
+        "y": 962.34375,
+        "width": 249.53125,
+        "height": 28
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/services/monitoring/\" class=\"\">Evaluation and Reporting</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 17,
+      "selector": "#commbox > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Newsletter",
+      "boundingRect": {
+        "x": 897,
+        "y": 389.15625,
+        "width": 182,
+        "height": 40.375
+      },
+      "pageRect": {
+        "x": 897,
+        "y": 856.15625,
+        "width": 182,
+        "height": 40.375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/newsletter\" class=\"\">Newsletter</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 18,
+      "selector": "#commbox > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "WebAIM Blog",
+      "boundingRect": {
+        "x": 897,
+        "y": 444.53125,
+        "width": 182,
+        "height": 40.375
+      },
+      "pageRect": {
+        "x": 897,
+        "y": 911.53125,
+        "width": 182,
+        "height": 40.375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/blog/\" class=\"\">WebAIM Blog</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 19,
+      "selector": "#commbox > ul > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "WebAIM Conference",
+      "boundingRect": {
+        "x": 897,
+        "y": 499.90625,
+        "width": 182,
+        "height": 64.375
+      },
+      "pageRect": {
+        "x": 897,
+        "y": 966.90625,
+        "width": 182,
+        "height": 64.375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"https://conference.webaim.org/\" class=\"\">WebAIM Conference</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 20,
+      "selector": "#commbox > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "LinkedIn",
+      "boundingRect": {
+        "x": 897,
+        "y": 579.28125,
+        "width": 182,
+        "height": 40.375
+      },
+      "pageRect": {
+        "x": 897,
+        "y": 1046.28125,
+        "width": 182,
+        "height": 40.375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"https://www.linkedin.com/company/webaim/\" class=\"\">LinkedIn</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 21,
+      "selector": "#features > p.more:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Take the Survey",
+      "boundingRect": {
+        "x": 177.1875,
+        "y": 341.71875,
+        "width": 537.625,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 177.1875,
+        "y": 1303.71875,
+        "width": 537.625,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(204, 204, 204)"
+      },
+      "outerHTML": "<a href=\"/projects/screenreadersurvey11/\" class=\"\">Take the Survey</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 22,
+      "selector": "#features > p.more:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Read the WebAIM Million report",
+      "boundingRect": {
+        "x": 177.1875,
+        "y": 499.96875,
+        "width": 537.625,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 177.1875,
+        "y": 1461.96875,
+        "width": 537.625,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(204, 204, 204)"
+      },
+      "outerHTML": "<a href=\"/projects/million/\" class=\"\">Read the WebAIM Million report</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 23,
+      "selector": "#features > p.more:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Ask AIMee",
+      "boundingRect": {
+        "x": 177.1875,
+        "y": 658.21875,
+        "width": 537.625,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 177.1875,
+        "y": 1620.21875,
+        "width": 537.625,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(204, 204, 204)"
+      },
+      "outerHTML": "<a href=\"/AIMee\" class=\"\">Ask AIMee</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 24,
+      "selector": "#features > p.archive:nth-of-type(7) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Archive of featured items…",
+      "boundingRect": {
+        "x": 177.1875,
+        "y": 683.59375,
+        "width": 537.625,
+        "height": 36
+      },
+      "pageRect": {
+        "x": 177.1875,
+        "y": 1680.59375,
+        "width": 537.625,
+        "height": 36
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(204, 204, 204)"
+      },
+      "outerHTML": "<a href=\"/features/\" class=\"\">Archive of featured items…</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 25,
+      "selector": "#trainings > div.events > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Virtual Web Accessibility Training",
+      "boundingRect": {
+        "x": 742,
+        "y": 182.65625,
+        "width": 300,
+        "height": 26
+      },
+      "pageRect": {
+        "x": 742,
+        "y": 1179.65625,
+        "width": 300,
+        "height": 26
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/training/virtual/\" class=\"\"><strong>Virtual Web Accessibility Training</strong></a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 26,
+      "selector": "#trainings > div.events > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Accessibility in Technology Procurement and Use",
+      "boundingRect": {
+        "x": 742,
+        "y": 261.65625,
+        "width": 239.71875,
+        "height": 50
+      },
+      "pageRect": {
+        "x": 742,
+        "y": 1258.65625,
+        "width": 239.71875,
+        "height": 50
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/training/procurement/\" class=\"\"><strong>Accessibility in Technology Procurement and Use</strong></a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 27,
+      "selector": "#trainings > div.events > ul > li:nth-of-type(3) > a:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Document Accessibility Online Course",
+      "boundingRect": {
+        "x": 742,
+        "y": 364.65625,
+        "width": 273.34375,
+        "height": 50
+      },
+      "pageRect": {
+        "x": 742,
+        "y": 1361.65625,
+        "width": 273.34375,
+        "height": 50
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/training/docs/\" class=\"\"><strong>Document Accessibility Online Course</strong></a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 28,
+      "selector": "#trainings > div.events > ul > li:nth-of-type(3) > a:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "July cohort",
+      "boundingRect": {
+        "x": 742,
+        "y": 412.65625,
+        "width": 89.203125,
+        "height": 26
+      },
+      "pageRect": {
+        "x": 742,
+        "y": 1409.65625,
+        "width": 89.203125,
+        "height": 26
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"https://webaim.learn.usu.edu/courses/july-2026-accessible-documents\" class=\"\">July cohort</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 29,
+      "selector": "#trainings > div.events > ul > li:nth-of-type(3) > a:nth-of-type(3)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "August cohort",
+      "boundingRect": {
+        "x": 872.609375,
+        "y": 412.65625,
+        "width": 118,
+        "height": 26
+      },
+      "pageRect": {
+        "x": 872.609375,
+        "y": 1409.65625,
+        "width": 118,
+        "height": 26
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"https://webaim.learn.usu.edu/courses/august-2026-accessible-documents\" class=\"\">August cohort</a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 30,
+      "selector": "#activities > div.events > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "A11y Camp Pocatello",
+      "boundingRect": {
+        "x": 742,
+        "y": 553.65625,
+        "width": 187.15625,
+        "height": 26
+      },
+      "pageRect": {
+        "x": 742,
+        "y": 1550.65625,
+        "width": 187.15625,
+        "height": 26
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"https://www.isu.edu/disabilityservices/community-services/ds-hosted-events/a11y-camp/\" class=\"\"><strong>A11y Camp Pocatello</strong></a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 31,
+      "selector": "#activities > div.events > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Web Accessibility in Mind Conference",
+      "boundingRect": {
+        "x": 742,
+        "y": 632.65625,
+        "width": 334.59375,
+        "height": 26
+      },
+      "pageRect": {
+        "x": 742,
+        "y": 1629.65625,
+        "width": 334.59375,
+        "height": 26
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"https://conference.webaim.org/\" class=\"\"><strong>Web Accessibility in Mind Conference</strong></a>",
+      "parentContext": "article"
+    },
+    {
+      "tabIndex": 32,
+      "selector": "#contact > a.phone",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "435.797.7024",
+      "boundingRect": {
+        "x": 160,
+        "y": 536.78125,
+        "width": 109.90625,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 160,
+        "y": 1866.78125,
+        "width": 109.90625,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(51, 51, 51)"
+      },
+      "outerHTML": "<a class=\"phone\" href=\"tel:4357977024\">435.797.7024</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 33,
+      "selector": "#waveurl",
+      "tagName": "input",
+      "role": "input",
+      "accessibleName": "Web site address",
+      "boundingRect": {
+        "x": 160,
+        "y": 645.78125,
+        "width": 207,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 160,
+        "y": 1975.78125,
+        "width": 207,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<input type=\"url\" id=\"waveurl\" name=\"url\" title=\"Web site address\" style=\"\" class=\"\">",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 34,
+      "selector": "#checkpage > form > input:nth-of-type(2)",
+      "tagName": "input",
+      "role": "input",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 370.75,
+        "y": 645.78125,
+        "width": 47.78125,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 370.75,
+        "y": 1975.78125,
+        "width": 47.78125,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "1px solid rgb(153, 153, 153)"
+      },
+      "outerHTML": "<input type=\"submit\" value=\"WAVE\" style=\"\" class=\"\">",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 35,
+      "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "An Extension is Not an Excuse",
+      "boundingRect": {
+        "x": 484,
+        "y": 482.78125,
+        "width": 200.40625,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 484,
+        "y": 1812.78125,
+        "width": 200.40625,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/blog/an-extension-is-not-an-excuse/\" class=\"\">An Extension is Not an Excuse</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 36,
+      "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Tolerating Inaccessibility",
+      "boundingRect": {
+        "x": 484,
+        "y": 507.984375,
+        "width": 163.53125,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 484,
+        "y": 1837.984375,
+        "width": 163.53125,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/blog/tolerating-inaccessibility/\" class=\"\">Tolerating Inaccessibility</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 37,
+      "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Ask AIMee: An accessible accessibility-focused AI chatbot",
+      "boundingRect": {
+        "x": 484,
+        "y": 533.1875,
+        "width": 254.1875,
+        "height": 44.203125
+      },
+      "pageRect": {
+        "x": 484,
+        "y": 1863.1875,
+        "width": 254.1875,
+        "height": 44.203125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/blog/ask-aimee/\" class=\"\">Ask AIMee: An accessible accessibility-focused AI chatbot</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 38,
+      "selector": "#footerresources > div.footerblock:nth-of-type(2) > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "A New Path for Digital Accessibility?",
+      "boundingRect": {
+        "x": 484,
+        "y": 583.59375,
+        "width": 236.859375,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 484,
+        "y": 1913.59375,
+        "width": 236.859375,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/blog/a-new-path/\" class=\"\">A New Path for Digital Accessibility?</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 39,
+      "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "WebAIM Training",
+      "boundingRect": {
+        "x": 794,
+        "y": 482.78125,
+        "width": 114.59375,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 794,
+        "y": 1812.78125,
+        "width": 114.59375,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/services/training/\" class=\"\">WebAIM Training</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 40,
+      "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "WCAG 2 Checklist",
+      "boundingRect": {
+        "x": 794,
+        "y": 507.984375,
+        "width": 117.375,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 794,
+        "y": 1837.984375,
+        "width": 117.375,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/standards/wcag/checklist\" class=\"\">WCAG 2 Checklist</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 41,
+      "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Ask AIMee Chatbot",
+      "boundingRect": {
+        "x": 794,
+        "y": 533.1875,
+        "width": 126.921875,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 794,
+        "y": 1863.1875,
+        "width": 126.921875,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/AIMee\" class=\"\">Ask AIMee Chatbot</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 42,
+      "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Color Contrast Checker",
+      "boundingRect": {
+        "x": 794,
+        "y": 558.390625,
+        "width": 155.40625,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 794,
+        "y": 1888.390625,
+        "width": 155.40625,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/resources/contrastchecker\" class=\"\">Color Contrast Checker</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 43,
+      "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Web Accessibility for Designers",
+      "boundingRect": {
+        "x": 794,
+        "y": 583.59375,
+        "width": 207.734375,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 794,
+        "y": 1913.59375,
+        "width": 207.734375,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"/resources/designers/\" class=\"\">Web Accessibility for Designers</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 44,
+      "selector": "#footerresources > div.footerblock:nth-of-type(3) > ul > li:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "WAVE Web Accessibility Evaluation Tool",
+      "boundingRect": {
+        "x": 794,
+        "y": 608.796875,
+        "width": 263.375,
+        "height": 19
+      },
+      "pageRect": {
+        "x": 794,
+        "y": 1938.796875,
+        "width": 263.375,
+        "height": 19
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a href=\"http://wave.webaim.org/\" class=\"\">WAVE Web Accessibility Evaluation Tool</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 45,
+      "selector": "#footercontact",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Contact",
+      "boundingRect": {
+        "x": 487,
+        "y": 686,
+        "width": 73.734375,
+        "height": 21
+      },
+      "pageRect": {
+        "x": 487,
+        "y": 2016,
+        "width": 73.734375,
+        "height": 21
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a id=\"footercontact\" href=\"/contact\" class=\"\">Contact</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 46,
+      "selector": "#footerabout",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "About",
+      "boundingRect": {
+        "x": 578.484375,
+        "y": 686,
+        "width": 62.546875,
+        "height": 21
+      },
+      "pageRect": {
+        "x": 578.484375,
+        "y": 2016,
+        "width": 62.546875,
+        "height": 21
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a id=\"footerabout\" href=\"/about\" class=\"\">About</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 47,
+      "selector": "#footerrss",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "RSS Feeds",
+      "boundingRect": {
+        "x": 658.78125,
+        "y": 686,
+        "width": 89.703125,
+        "height": 21
+      },
+      "pageRect": {
+        "x": 658.78125,
+        "y": 2016,
+        "width": 89.703125,
+        "height": 21
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a id=\"footerrss\" href=\"/community/rss\" class=\"\">RSS Feeds</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 48,
+      "selector": "#footerli",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "LinkedIn",
+      "boundingRect": {
+        "x": 766.234375,
+        "y": 686,
+        "width": 79.3125,
+        "height": 21
+      },
+      "pageRect": {
+        "x": 766.234375,
+        "y": 2016,
+        "width": 79.3125,
+        "height": 21
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a id=\"footerli\" href=\"https://www.linkedin.com/company/webaim/\" class=\"\">LinkedIn</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 49,
+      "selector": "#footercopyright",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Copyright & Terms of Use",
+      "boundingRect": {
+        "x": 863.296875,
+        "y": 686,
+        "width": 193.5625,
+        "height": 21
+      },
+      "pageRect": {
+        "x": 863.296875,
+        "y": 2016,
+        "width": 193.5625,
+        "height": 21
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 95, 204) auto 1px",
+        "boxShadow": "none",
+        "border": "0px none rgb(8, 80, 247)"
+      },
+      "outerHTML": "<a id=\"footercopyright\" href=\"/copyright\" class=\"\">Copyright &amp; Terms of Use</a>",
+      "parentContext": "footer"
+    }
+  ],
+  "pageDimensions": {
+    "width": 1280,
+    "height": 2050
+  }
+}

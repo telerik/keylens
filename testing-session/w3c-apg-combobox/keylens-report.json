@@ -1,0 +1,2063 @@
+{
+  "version": "0.1.0",
+  "timestamp": "2026-08-12T18:47:02.179Z",
+  "url": "https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/",
+  "config": {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "browser": "chromium",
+    "rules": {
+      "keyboardTrap": true,
+      "unreachableElements": true,
+      "focusOrderMismatch": true,
+      "tabindexAbuse": true,
+      "missingFocusIndicator": true,
+      "skipLink": true,
+      "focusNotObscured": true,
+      "focusAfterInteraction": true
+    }
+  },
+  "crawl": {
+    "totalFocusableElements": 57,
+    "totalInteractiveElements": 56,
+    "unreachedElements": 0,
+    "cycleCompleted": true,
+    "duration": 15120
+  },
+  "rules": [
+    {
+      "ruleId": "keyboard-trap",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Keyboard Trap",
+      "ruleDescription": "Detects elements that trap keyboard focus, preventing users from navigating away.",
+      "wcag": ["2.1.2"]
+    },
+    {
+      "ruleId": "unreachable-elements",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Unreachable Interactive Elements",
+      "ruleDescription": "Detects interactive elements that cannot be reached via keyboard navigation.",
+      "wcag": ["2.1.1"]
+    },
+    {
+      "ruleId": "focus-order-mismatch",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "focus-order-mismatch",
+          "ruleName": "Focus Order Mismatch",
+          "severity": "warning",
+          "message": "42 element(s) have a focus order that significantly differs from their visual position.",
+          "elements": [
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"#ex_label\">Example</a>",
+              "tabPosition": 11,
+              "accessibleName": "Example"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"#accessibilityfeatures\">Accessibility Features</a>",
+              "tabPosition": 12,
+              "accessibleName": "Accessibility Features"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"#kbd_label\">Keyboard Support</a>",
+              "tabPosition": 13,
+              "accessibleName": "Keyboard Support"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(6) > a",
+              "outerHTML": "<a href=\"#rps_label\">Role, Property, State, and Tabindex Attributes</a>",
+              "tabPosition": 14,
+              "accessibleName": "Role, Property, State, and Tabindex Attributes"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(7) > a",
+              "outerHTML": "<a href=\"#javascriptandcsssourcecode\">JavaScript and CSS Source Code</a>",
+              "tabPosition": 15,
+              "accessibleName": "JavaScript and CSS Source Code"
+            },
+            {
+              "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(8) > a",
+              "outerHTML": "<a href=\"#sc1_label\">HTML Source Code</a>",
+              "tabPosition": 16,
+              "accessibleName": "HTML Source Code"
+            },
+            {
+              "selector": "#support-notice > summary",
+              "outerHTML": "<summary>\n        The code in this example is not intended for production environments.\n        Before using it for any purpose, read this to understand why.\n      </summary>",
+              "tabPosition": 17,
+              "accessibleName": "The code in this example is not intended for production environments.\n        Before using it for an"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > p:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"../../\">Combobox Pattern</a>",
+              "tabPosition": 18,
+              "accessibleName": "Combobox Pattern"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"../combobox-autocomplete-both/\">Editable Combobox with Both List and Inline Autocomplete</a>",
+              "tabPosition": 19,
+              "accessibleName": "Editable Combobox with Both List and Inline Autocomplete"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"../combobox-autocomplete-list/\">Editable Combobox with List Autocomplete</a>",
+              "tabPosition": 20,
+              "accessibleName": "Editable Combobox with List Autocomplete"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"../combobox-autocomplete-none/\">Editable Combobox Without Autocomplete</a>",
+              "tabPosition": 21,
+              "accessibleName": "Editable Combobox Without Autocomplete"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"../grid-combo/\">Editable Combobox with Grid Popup</a>",
+              "tabPosition": 22,
+              "accessibleName": "Editable Combobox with Grid Popup"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"../combobox-datepicker/\">Date Picker Combobox</a>",
+              "tabPosition": 23,
+              "accessibleName": "Date Picker Combobox"
+            },
+            {
+              "selector": "#ex_label-codepenbutton",
+              "outerHTML": "<button id=\"ex_label-codepenbutton\" style=\"\">Open In CodePen</button>",
+              "tabPosition": 24,
+              "accessibleName": "Open In CodePen"
+            },
+            {
+              "selector": "#combo1",
+              "outerHTML": "<div aria-controls=\"listbox1\" aria-expanded=\"false\" aria-haspopup=\"listbox\" aria-labelledby=\"combo1-label\" id=\"combo1\" class=\"combo-input\" role=\"combobox\" tabindex=\"0\">Choose a Fruit</div>",
+              "tabPosition": 25,
+              "accessibleName": "combo1-label"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(4) > p:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"../../#keyboard_interaction\">Keyboard Interaction section of the combobox pattern.</a>",
+              "tabPosition": 26,
+              "accessibleName": "Keyboard Interaction section of the combobox pattern."
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(4) > p:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"../../../../practices/keyboard-interface/#kbd_focus_activedescendant\">Managing Focus in Composites Using aria-activedescendant</a>",
+              "tabPosition": 27,
+              "accessibleName": "Managing Focus in Composites Using aria-activedescendant"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(5) > p > a",
+              "outerHTML": "<a href=\"../../#roles_states_properties\">Roles, States, and Properties section of the Combobox Pattern</a>",
+              "tabPosition": 28,
+              "accessibleName": "Roles, States, and Properties section of the Combobox Pattern"
+            },
+            {
+              "selector": "#main > div > div > section:nth-of-type(5) > div.table-wrap:nth-of-type(1) > table.data.attributes > tbody > tr:nth-of-type(6) > td:nth-of-type(3) > ul > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"../../../../practices/keyboard-interface/#kbd_focus_activedescendant\">Managing Focus in Composites Using aria-activedescendant</a>",
+              "tabPosition": 29,
+              "accessibleName": "Managing Focus in Composites Using aria-activedescendant"
+            },
+            {
+              "selector": "#css_js_files > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/combobox/examples/css/select-only.css\" type=\"text/css\">select-only.css</a>",
+              "tabPosition": 30,
+              "accessibleName": "select-only.css"
+            },
+            {
+              "selector": "#css_js_files > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/combobox/examples/js/select-only.js\" type=\"text/javascript\">select-only.js</a>",
+              "tabPosition": 31,
+              "accessibleName": "select-only.js"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > p > a",
+              "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\">public-aria-practices@w3.org</a>",
+              "tabPosition": 33,
+              "accessibleName": "public-aria-practices@w3.org"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(1)",
+              "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\" class=\"button\"><span>E-mail</span></a>",
+              "tabPosition": 34,
+              "accessibleName": "E-mail"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(2)",
+              "outerHTML": "<a href=\"\nhttps://github.com/w3c/aria-practices/edit/main/content/patterns/combobox/examples/combobox-select-only.html\n\" class=\"button\"><span>Fork &amp; Edit on GitHub</span></a>",
+              "tabPosition": 35,
+              "accessibleName": "Fork & Edit on GitHub"
+            },
+            {
+              "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(3)",
+              "outerHTML": "<a href=\"https://github.com/w3c/aria-practices/issues/new?template=content-issue.yml&amp;wai-url=https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/\" class=\"button\"><span>New GitHub Issue</span></a>",
+              "tabPosition": 36,
+              "accessibleName": "New GitHub Issue"
+            },
+            {
+              "selector": "a.button.button-backtotop:nth-of-type(2)",
+              "outerHTML": "<a class=\"button button-backtotop active\" href=\"#top\"><span><svg focusable=\"false\" aria-hidden=\"true\" class=\"icon-arrow-up \"><use xlink:href=\"/WAI/assets/images/icons.svg#icon-arrow-up\"></use></svg> Back to Top</span></a>",
+              "tabPosition": 37,
+              "accessibleName": "Back to Top"
+            },
+            {
+              "selector": "#wai-site-footer > div.inner > div.example-page-footer > p:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"https://github.com/orgs/w3c/projects/118\">View issues related to this example</a>",
+              "tabPosition": 38,
+              "accessibleName": "View issues related to this example"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/WAI/news/subscribe/\">Get News in Email</a>",
+              "tabPosition": 40,
+              "accessibleName": "Get News in Email"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"https://www.linkedin.com/company/w3c-wai/\" translate=\"no\">LinkedIn</a>",
+              "tabPosition": 41,
+              "accessibleName": "LinkedIn"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"https://w3c.social/@wai\" translate=\"no\">Mastodon</a>",
+              "tabPosition": 42,
+              "accessibleName": "Mastodon"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"https://www.youtube.com/channel/UCU6ljj3m1fglIPjSjs2DpRA/playlists/\" translate=\"no\">YouTube</a>",
+              "tabPosition": 43,
+              "accessibleName": "YouTube"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(1) > a",
+              "outerHTML": "<a href=\"/WAI/\">Home</a>",
+              "tabPosition": 44,
+              "accessibleName": "Home"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(2) > a",
+              "outerHTML": "<a href=\"/WAI/about/contacting/\">Contact</a>",
+              "tabPosition": 45,
+              "accessibleName": "Contact"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"/WAI/sitemap/\">Site map</a>",
+              "tabPosition": 46,
+              "accessibleName": "Site map"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(4) > a",
+              "outerHTML": "<a href=\"/WAI/about/support/\">Support WAI</a>",
+              "tabPosition": 47,
+              "accessibleName": "Support WAI"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(5) > a",
+              "outerHTML": "<a href=\"/WAI/news/\">News</a>",
+              "tabPosition": 48,
+              "accessibleName": "News"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(6) > a",
+              "outerHTML": "<a href=\"/WAI/about/accessibility-statement/\">Accessibility statement</a>",
+              "tabPosition": 49,
+              "accessibleName": "Accessibility statement"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(7) > a",
+              "outerHTML": "<a href=\"/WAI/translations/\">All Translations</a>",
+              "tabPosition": 50,
+              "accessibleName": "All Translations"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(8) > a",
+              "outerHTML": "<a href=\"/WAI/roles/\">Resources for roles</a>",
+              "tabPosition": 51,
+              "accessibleName": "Resources for roles"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(2)",
+              "outerHTML": "<a href=\"https://www.w3.org/policies/#disclaimers\">liability</a>",
+              "tabPosition": 53,
+              "accessibleName": "liability"
+            },
+            {
+              "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(3)",
+              "outerHTML": "<a href=\"https://www.w3.org/policies/#trademarks\">trademark</a>",
+              "tabPosition": 54,
+              "accessibleName": "trademark"
+            },
+            {
+              "selector": "skip-to-content",
+              "outerHTML": "<skip-to-content version=\"5.9.2\" type=\"pagescript\" focus=\"button\"></skip-to-content>",
+              "tabPosition": 57
+            }
+          ],
+          "wcag": ["2.4.3"],
+          "impact": "Keyboard users may be confused when focus jumps to unexpected locations that don't match the visual layout."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Focus Order Mismatch",
+      "ruleDescription": "Detects when keyboard focus order doesn't match the visual layout order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "tabindex-abuse",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Tabindex Abuse",
+      "ruleDescription": "Detects elements with positive tabindex values that disrupt natural focus order.",
+      "wcag": ["2.4.3"]
+    },
+    {
+      "ruleId": "missing-focus-indicator",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "missing-focus-indicator",
+          "ruleName": "Missing Focus Indicator",
+          "severity": "error",
+          "message": "1 element(s) show no visible change between focused and unfocused states (screenshot comparison).",
+          "elements": [
+            {
+              "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(3) > a",
+              "outerHTML": "<a href=\"../combobox-autocomplete-none/\">Editable Combobox Without Autocomplete</a>",
+              "tabPosition": 21,
+              "accessibleName": "Editable Combobox Without Autocomplete"
+            }
+          ],
+          "wcag": ["2.4.7"],
+          "impact": "Screenshot comparison confirms no visible focus indicator. Keyboard users cannot see which element has focus."
+        }
+      ],
+      "duration": 37,
+      "ruleName": "Missing Focus Indicator",
+      "ruleDescription": "Detects interactive elements that lack a visible focus indicator.",
+      "wcag": ["2.4.7"]
+    },
+    {
+      "ruleId": "skip-link",
+      "passed": false,
+      "violations": [
+        {
+          "ruleId": "skip-link",
+          "ruleName": "Skip Link",
+          "severity": "warning",
+          "message": "No skip navigation link found among the first focusable elements. Keyboard users must tab through all navigation items to reach main content.",
+          "elements": [],
+          "wcag": ["2.4.1"],
+          "impact": "Without a skip link, keyboard users must navigate through all header and navigation elements on every page load."
+        }
+      ],
+      "duration": 0,
+      "ruleName": "Skip Link",
+      "ruleDescription": "Validates that a skip navigation link is present and functions correctly.",
+      "wcag": ["2.4.1"]
+    },
+    {
+      "ruleId": "focus-not-obscured",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Focus Not Obscured",
+      "ruleDescription": "Ensures focused elements are not entirely hidden by sticky/fixed content.",
+      "wcag": ["2.4.11"]
+    },
+    {
+      "ruleId": "focus-after-interaction",
+      "passed": true,
+      "violations": [],
+      "duration": 0,
+      "ruleName": "Focus After Interaction",
+      "ruleDescription": "Ensures focus is not lost after clicking interactive elements.",
+      "wcag": ["2.4.3", "2.4.7"]
+    }
+  ],
+  "summary": {
+    "totalErrors": 1,
+    "totalWarnings": 2,
+    "totalInfo": 0,
+    "passed": 5,
+    "failed": 3,
+    "score": 88
+  },
+  "focusSequence": [
+    {
+      "tabIndex": 1,
+      "selector": "#site-header > div.minimal-header-info:nth-of-type(1) > div.minimal-header-title > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "ARIA Authoring Practices Guide (APG)",
+      "boundingRect": {
+        "x": 88,
+        "y": 21.796875,
+        "width": 386.140625,
+        "height": 39
+      },
+      "pageRect": {
+        "x": 88,
+        "y": 21.796875,
+        "width": 386.140625,
+        "height": 39
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/\">\n        ARIA Authoring Practices Guide (APG)\n      </a>",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 2,
+      "selector": "#site-header > div.minimal-header-logo:nth-of-type(2) > div.logos > a.home.w3c:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "W3C homepage",
+      "boundingRect": {
+        "x": 1012.5625,
+        "y": 16,
+        "width": 36,
+        "height": 52
+      },
+      "pageRect": {
+        "x": 1012.5625,
+        "y": 16,
+        "width": 36,
+        "height": 52
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a lang=\"en\" class=\"home w3c\" href=\"https://www.w3.org/\">\n      <svg role=\"img\" width=\"46\" height=\"46\" version=\"1.1\" viewBox=\"0 0 360 360\" xmlns=\"http://www.w3.org/2000/svg\" aria-labelledby=\"w3c-homepage-title\"><title id=\"w3c-homepage-title\">W3C homepage</title><g><path d=\"M306.80028,149.60422c-6.57",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 3,
+      "selector": "#site-header > div.minimal-header-logo:nth-of-type(2) > div.logos > a.home.wai:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Web Accessibility Initiative (WAI) homepage",
+      "boundingRect": {
+        "x": 1064.5625,
+        "y": 16,
+        "width": 127.4375,
+        "height": 52
+      },
+      "pageRect": {
+        "x": 1064.5625,
+        "y": 16,
+        "width": 127.4375,
+        "height": 52
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(255, 255, 255) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(255, 255, 255)"
+      },
+      "outerHTML": "<a lang=\"en\" class=\"home wai\" href=\"https://www.w3.org/WAI/\">\n      <svg role=\"img\" width=\"162.5\" height=\"45.9\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 162.5 45.9\" aria-labelledby=\"wai-homepage-title\"><title id=\"wai-homepage-title\">Web Accessibility Initiative (WAI) homepage</title><g><path ",
+      "parentContext": "header"
+    },
+    {
+      "tabIndex": 4,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "APG Home",
+      "boundingRect": {
+        "x": 80,
+        "y": 84,
+        "width": 96.21875,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 84,
+        "width": 96.21875,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/\">APG Home</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 5,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(2) > a.active",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Patterns",
+      "boundingRect": {
+        "x": 176.21875,
+        "y": 84,
+        "width": 81.046875,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 176.21875,
+        "y": 84,
+        "width": 81.046875,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/patterns/\" class=\"active\">Patterns</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 6,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Practices",
+      "boundingRect": {
+        "x": 257.265625,
+        "y": 84,
+        "width": 84.03125,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 257.265625,
+        "y": 84,
+        "width": 84.03125,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/practices/\">Practices</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 7,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Index",
+      "boundingRect": {
+        "x": 341.296875,
+        "y": 84,
+        "width": 63.15625,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 341.296875,
+        "y": 84,
+        "width": 63.15625,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/example-index/\">Index</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 8,
+      "selector": "div.default-grid.nav-container:nth-of-type(2) > div.nav > nav.nav > ul > li.nav__item:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "About",
+      "boundingRect": {
+        "x": 404.453125,
+        "y": 84,
+        "width": 65.78125,
+        "height": 48.578125
+      },
+      "pageRect": {
+        "x": 404.453125,
+        "y": 84,
+        "width": 65.78125,
+        "height": 48.578125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": ""
+      },
+      "outerHTML": "<a href=\"/WAI/ARIA/apg/about/\">About</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 9,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Read This First",
+      "boundingRect": {
+        "x": 961,
+        "y": 222.8125,
+        "width": 92.734375,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 222.8125,
+        "width": 92.734375,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#support-notice-header\">Read This First</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 10,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "About This Example",
+      "boundingRect": {
+        "x": 961,
+        "y": 255.640625,
+        "width": 126.25,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 255.640625,
+        "width": 126.25,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#aboutthisexample\">About This Example</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 11,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Example",
+      "boundingRect": {
+        "x": 961,
+        "y": 286.390625,
+        "width": 54.625,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 286.390625,
+        "width": 54.625,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#ex_label\">Example</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 12,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Accessibility Features",
+      "boundingRect": {
+        "x": 961,
+        "y": 317.140625,
+        "width": 135.359375,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 317.140625,
+        "width": 135.359375,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#accessibilityfeatures\">Accessibility Features</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 13,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Keyboard Support",
+      "boundingRect": {
+        "x": 961,
+        "y": 347.890625,
+        "width": 115.53125,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 347.890625,
+        "width": 115.53125,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#kbd_label\">Keyboard Support</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 14,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Role, Property, State, and Tabindex Attributes",
+      "boundingRect": {
+        "x": 961,
+        "y": 378.640625,
+        "width": 221.90625,
+        "height": 40.3125
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 378.640625,
+        "width": 221.90625,
+        "height": 40.3125
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#rps_label\">Role, Property, State, and Tabindex Attributes</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 15,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(7) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "JavaScript and CSS Source Code",
+      "boundingRect": {
+        "x": 961,
+        "y": 425.703125,
+        "width": 200.765625,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 425.703125,
+        "width": 200.765625,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#javascriptandcsssourcecode\">JavaScript and CSS Source Code</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 16,
+      "selector": "div.default-grid.with-gap:nth-of-type(3) > nav.box.nav-hack > div.box-i > ul > li:nth-of-type(8) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "HTML Source Code",
+      "boundingRect": {
+        "x": 961,
+        "y": 456.453125,
+        "width": 120.640625,
+        "height": 24
+      },
+      "pageRect": {
+        "x": 961,
+        "y": 456.453125,
+        "width": 120.640625,
+        "height": 24
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"#sc1_label\">HTML Source Code</a>",
+      "parentContext": "nav"
+    },
+    {
+      "tabIndex": 17,
+      "selector": "#support-notice > summary",
+      "tagName": "summary",
+      "role": "summary",
+      "accessibleName": "The code in this example is not intended for production environments.\n        Before using it for an",
+      "boundingRect": {
+        "x": 81,
+        "y": 290.8125,
+        "width": 830,
+        "height": 80
+      },
+      "pageRect": {
+        "x": 81,
+        "y": 290.8125,
+        "width": 830,
+        "height": 80
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(96, 71, 12) none 0px",
+        "boxShadow": "rgb(96, 71, 13) 0px 0px 5px 0px",
+        "border": "0px none rgb(96, 71, 12)"
+      },
+      "outerHTML": "<summary>\n        The code in this example is not intended for production environments.\n        Before using it for any purpose, read this to understand why.\n      </summary>",
+      "parentContext": "main"
+    },
+    {
+      "tabIndex": 18,
+      "selector": "#main > div > div > section:nth-of-type(1) > p:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Combobox Pattern",
+      "boundingRect": {
+        "x": 520,
+        "y": 443.703125,
+        "width": 141.78125,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 520,
+        "y": 443.703125,
+        "width": 141.78125,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../\">Combobox Pattern</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 19,
+      "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Editable Combobox with Both List and Inline Autocomplete",
+      "boundingRect": {
+        "x": 120,
+        "y": 614.703125,
+        "width": 442.40625,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 120,
+        "y": 614.703125,
+        "width": 442.40625,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../combobox-autocomplete-both/\">Editable Combobox with Both List and Inline Autocomplete</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 20,
+      "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Editable Combobox with List Autocomplete",
+      "boundingRect": {
+        "x": 120,
+        "y": 670.703125,
+        "width": 323.0625,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 120,
+        "y": 670.703125,
+        "width": 323.0625,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../combobox-autocomplete-list/\">Editable Combobox with List Autocomplete</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 21,
+      "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Editable Combobox Without Autocomplete",
+      "boundingRect": {
+        "x": 120,
+        "y": 345.703125,
+        "width": 320.609375,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 120,
+        "y": 726.703125,
+        "width": 320.609375,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": false,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../combobox-autocomplete-none/\">Editable Combobox Without Autocomplete</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 22,
+      "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Editable Combobox with Grid Popup",
+      "boundingRect": {
+        "x": 120,
+        "y": 402.703125,
+        "width": 272.59375,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 120,
+        "y": 783.703125,
+        "width": 272.59375,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../grid-combo/\">Editable Combobox with Grid Popup</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 23,
+      "selector": "#main > div > div > section:nth-of-type(1) > ul > li:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Date Picker Combobox",
+      "boundingRect": {
+        "x": 120,
+        "y": 458.703125,
+        "width": 171.328125,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 120,
+        "y": 839.703125,
+        "width": 171.328125,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../combobox-datepicker/\">Date Picker Combobox</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 24,
+      "selector": "#ex_label-codepenbutton",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Open In CodePen",
+      "boundingRect": {
+        "x": 80,
+        "y": 584.59375,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 965.59375,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<button id=\"ex_label-codepenbutton\" style=\"\">Open In CodePen</button>",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 25,
+      "selector": "#combo1",
+      "tagName": "div",
+      "role": "combobox",
+      "accessibleName": "combo1-label",
+      "boundingRect": {
+        "x": 80,
+        "y": 666.375,
+        "width": 400,
+        "height": 54
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 1057.375,
+        "width": 400,
+        "height": 54
+      },
+      "tabindexAttr": 0,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "rgb(0, 103, 184) 0px 0px 4px 2px",
+        "border": "2px solid rgb(0, 103, 184)"
+      },
+      "outerHTML": "<div aria-controls=\"listbox1\" aria-expanded=\"false\" aria-haspopup=\"listbox\" aria-labelledby=\"combo1-label\" id=\"combo1\" class=\"combo-input\" role=\"combobox\" tabindex=\"0\">Choose a Fruit</div>",
+      "ariaAttributes": {
+        "aria-controls": "listbox1",
+        "aria-expanded": "false",
+        "aria-haspopup": "listbox",
+        "aria-labelledby": "combo1-label"
+      },
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 26,
+      "selector": "#main > div > div > section:nth-of-type(4) > p:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Keyboard Interaction section of the combobox pattern.",
+      "boundingRect": {
+        "x": 493.65625,
+        "y": 345.03125,
+        "width": 412.09375,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 493.65625,
+        "y": 1704.03125,
+        "width": 412.09375,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../#keyboard_interaction\">Keyboard Interaction section of the combobox pattern.</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 27,
+      "selector": "#main > div > div > section:nth-of-type(4) > p:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Managing Focus in Composites Using aria-activedescendant",
+      "boundingRect": {
+        "x": 80,
+        "y": 333.78125,
+        "width": 815.109375,
+        "height": 53
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 2816.78125,
+        "width": 815.109375,
+        "height": 53
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../practices/keyboard-interface/#kbd_focus_activedescendant\">Managing Focus in Composites Using aria-activedescendant</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 28,
+      "selector": "#main > div > div > section:nth-of-type(5) > p > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Roles, States, and Properties section of the Combobox Pattern",
+      "boundingRect": {
+        "x": 80,
+        "y": 333.046875,
+        "width": 823.640625,
+        "height": 53
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 4457.046875,
+        "width": 823.640625,
+        "height": 53
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../#roles_states_properties\">Roles, States, and Properties section of the Combobox Pattern</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 29,
+      "selector": "#main > div > div > section:nth-of-type(5) > div.table-wrap:nth-of-type(1) > table.data.attributes > tbody > tr:nth-of-type(6) > td:nth-of-type(3) > ul > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Managing Focus in Composites Using aria-activedescendant",
+      "boundingRect": {
+        "x": 615.578125,
+        "y": 333.171875,
+        "width": 234.171875,
+        "height": 53
+      },
+      "pageRect": {
+        "x": 615.578125,
+        "y": 5275.171875,
+        "width": 234.171875,
+        "height": 53
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../practices/keyboard-interface/#kbd_focus_activedescendant\">Managing Focus in Composites Using aria-activedescendant</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 30,
+      "selector": "#css_js_files > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "select-only.css",
+      "boundingRect": {
+        "x": 156.109375,
+        "y": 345.25,
+        "width": 106.90625,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 156.109375,
+        "y": 5891.25,
+        "width": 106.90625,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/combobox/examples/css/select-only.css\" type=\"text/css\">select-only.css</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 31,
+      "selector": "#css_js_files > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "select-only.js",
+      "boundingRect": {
+        "x": 201.671875,
+        "y": 377.25,
+        "width": 95.703125,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 201.671875,
+        "y": 5923.25,
+        "width": 95.703125,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"../../../../../../content-assets/wai-aria-practices/patterns/combobox/examples/js/select-only.js\" type=\"text/javascript\">select-only.js</a>",
+      "parentContext": "section"
+    },
+    {
+      "tabIndex": 32,
+      "selector": "#sc1_description-codepenbutton",
+      "tagName": "button",
+      "role": "button",
+      "accessibleName": "Open In CodePen",
+      "boundingRect": {
+        "x": 80,
+        "y": 519.140625,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 6065.140625,
+        "width": 136.34375,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<button id=\"sc1_description-codepenbutton\" style=\"\">Open In CodePen</button>",
+      "parentContext": "form"
+    },
+    {
+      "tabIndex": 33,
+      "selector": "#helpimprove > div.box-i > p > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "public-aria-practices@w3.org",
+      "boundingRect": {
+        "x": 766.921875,
+        "y": 345.328125,
+        "width": 217.8125,
+        "height": 29
+      },
+      "pageRect": {
+        "x": 766.921875,
+        "y": 6767.328125,
+        "width": 217.8125,
+        "height": 29
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\">public-aria-practices@w3.org</a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 34,
+      "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "E-mail",
+      "boundingRect": {
+        "x": 97,
+        "y": 396.328125,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 97,
+        "y": 6818.328125,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a href=\"mailto:public-aria-practices@w3.org?body=%5Binclude%20a%20relevant%20email%20Subject%5D%0A%0A%5Bput%20comment%20here...%5D%0A%0A\" class=\"button\"><span>E-mail</span></a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 35,
+      "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Fork & Edit on GitHub",
+      "boundingRect": {
+        "x": 464.328125,
+        "y": 396.328125,
+        "width": 351.34375,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 464.328125,
+        "y": 6818.328125,
+        "width": 351.34375,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a href=\"\nhttps://github.com/w3c/aria-practices/edit/main/content/patterns/combobox/examples/combobox-select-only.html\n\" class=\"button\"><span>Fork &amp; Edit on GitHub</span></a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 36,
+      "selector": "#helpimprove > div.box-i > div.button-group > a.button:nth-of-type(3)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "New GitHub Issue",
+      "boundingRect": {
+        "x": 831.671875,
+        "y": 396.328125,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 831.671875,
+        "y": 6818.328125,
+        "width": 351.328125,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "none",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a href=\"https://github.com/w3c/aria-practices/issues/new?template=content-issue.yml&amp;wai-url=https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/\" class=\"button\"><span>New GitHub Issue</span></a>",
+      "parentContext": "aside"
+    },
+    {
+      "tabIndex": 37,
+      "selector": "a.button.button-backtotop:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Back to Top",
+      "boundingRect": {
+        "x": 1145.921875,
+        "y": 665.8125,
+        "width": 118.078125,
+        "height": 38.1875
+      },
+      "pageRect": {
+        "x": 1145.921875,
+        "y": 7087.8125,
+        "width": 118.078125,
+        "height": 38.1875
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 51, 102) solid 2px",
+        "boxShadow": "rgba(0, 0, 0, 0.5) 0px 2px 4px 0px",
+        "border": "2px solid rgb(0, 51, 102)"
+      },
+      "outerHTML": "<a class=\"button button-backtotop active\" href=\"#top\"><span><svg focusable=\"false\" aria-hidden=\"true\" class=\"icon-arrow-up \"><use xlink:href=\"/WAI/assets/images/icons.svg#icon-arrow-up\"></use></svg> Back to Top</span></a>"
+    },
+    {
+      "tabIndex": 38,
+      "selector": "#wai-site-footer > div.inner > div.example-page-footer > p:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "View issues related to this example",
+      "boundingRect": {
+        "x": 80,
+        "y": 511.515625,
+        "width": 229.046875,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 6933.515625,
+        "width": 229.046875,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) solid 2px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://github.com/orgs/w3c/projects/118\">View issues related to this example</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 39,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__subsite:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "W3C Web Accessibility Initiative (WAI)",
+      "boundingRect": {
+        "x": 80,
+        "y": 616.515625,
+        "width": 376.265625,
+        "height": 35
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 7038.515625,
+        "width": 376.265625,
+        "height": 35
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/WAI/\" lang=\"en\" dir=\"auto\" translate=\"no\">W3C Web Accessibility Initiative (WAI)</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 40,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Get News in Email",
+      "boundingRect": {
+        "x": 110,
+        "y": 676.078125,
+        "width": 118.1875,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 110,
+        "y": 7119.078125,
+        "width": 118.1875,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/news/subscribe/\">Get News in Email</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 41,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "LinkedIn",
+      "boundingRect": {
+        "x": 280.1875,
+        "y": 676.078125,
+        "width": 56.96875,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 280.1875,
+        "y": 7119.078125,
+        "width": 56.96875,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.linkedin.com/company/w3c-wai/\" translate=\"no\">LinkedIn</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 42,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Mastodon",
+      "boundingRect": {
+        "x": 389.15625,
+        "y": 676.078125,
+        "width": 66.5,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 389.15625,
+        "y": 7119.078125,
+        "width": 66.5,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://w3c.social/@wai\" translate=\"no\">Mastodon</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 43,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.wai-global-footer__content:nth-of-type(1) > div.wai-global-footer__cta.w3c-l-cluster:nth-of-type(3) > ul.w3c-clean-list > li.w3c-with-icon--before.w3c-with-icon--larger:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "YouTube",
+      "boundingRect": {
+        "x": 507.65625,
+        "y": 676.078125,
+        "width": 56.578125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 507.65625,
+        "y": 7119.078125,
+        "width": 56.578125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.youtube.com/channel/UCU6ljj3m1fglIPjSjs2DpRA/playlists/\" translate=\"no\">YouTube</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 44,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(1) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Home",
+      "boundingRect": {
+        "x": 80,
+        "y": 594.0625,
+        "width": 39.828125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 80,
+        "y": 7171.0625,
+        "width": 39.828125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/\">Home</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 45,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(2) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Contact",
+      "boundingRect": {
+        "x": 139.828125,
+        "y": 594.0625,
+        "width": 50.640625,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 139.828125,
+        "y": 7171.0625,
+        "width": 50.640625,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/contacting/\">Contact</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 46,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(3) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Site map",
+      "boundingRect": {
+        "x": 210.46875,
+        "y": 594.0625,
+        "width": 57.421875,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 210.46875,
+        "y": 7171.0625,
+        "width": 57.421875,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/sitemap/\">Site map</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 47,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(4) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Support WAI",
+      "boundingRect": {
+        "x": 287.890625,
+        "y": 594.0625,
+        "width": 82.625,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 287.890625,
+        "y": 7171.0625,
+        "width": 82.625,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/support/\">Support WAI</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 48,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(5) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "News",
+      "boundingRect": {
+        "x": 390.515625,
+        "y": 594.0625,
+        "width": 35.953125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 390.515625,
+        "y": 7171.0625,
+        "width": 35.953125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/news/\">News</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 49,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(6) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Accessibility statement",
+      "boundingRect": {
+        "x": 446.46875,
+        "y": 594.0625,
+        "width": 149.78125,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 446.46875,
+        "y": 7171.0625,
+        "width": 149.78125,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/accessibility-statement/\">Accessibility statement</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 50,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(7) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "All Translations",
+      "boundingRect": {
+        "x": 616.25,
+        "y": 594.0625,
+        "width": 99.515625,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 616.25,
+        "y": 7171.0625,
+        "width": 99.515625,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/translations/\">All Translations</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 51,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > div.w3c-global-footer__links:nth-of-type(2) > div.w3c-l-cluster > ul.w3c-clean-list > li:nth-of-type(8) > a",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Resources for roles",
+      "boundingRect": {
+        "x": 735.765625,
+        "y": 594.0625,
+        "width": 125.734375,
+        "height": 43.984375
+      },
+      "pageRect": {
+        "x": 735.765625,
+        "y": 7171.0625,
+        "width": 125.734375,
+        "height": 43.984375
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/roles/\">Resources for roles</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 52,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(1)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "World Wide Web\tConsortium",
+      "boundingRect": {
+        "x": 199.046875,
+        "y": 649.046875,
+        "width": 189.78125,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 199.046875,
+        "y": 7226.046875,
+        "width": 189.78125,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/\">World Wide Web\tConsortium</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 53,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(2)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "liability",
+      "boundingRect": {
+        "x": 123.21875,
+        "y": 671.6875,
+        "width": 46.140625,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 123.21875,
+        "y": 7248.6875,
+        "width": 46.140625,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/policies/#disclaimers\">liability</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 54,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(3)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "trademark",
+      "boundingRect": {
+        "x": 176.75,
+        "y": 671.6875,
+        "width": 69.078125,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 176.75,
+        "y": 7248.6875,
+        "width": 69.078125,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"https://www.w3.org/policies/#trademarks\">trademark</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 55,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(4)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "W3C Software License",
+      "boundingRect": {
+        "x": 278.203125,
+        "y": 671.6875,
+        "width": 119.703125,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 278.203125,
+        "y": 7248.6875,
+        "width": 119.703125,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a rel=\"license\" href=\"https://www.w3.org/copyright/software-license/\" title=\"W3C Software License\">permissive license</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 56,
+      "selector": "footer.w3c-global-footer.wai-global-footer:nth-of-type(2) > div.inner > p.w3c-copyright > a:nth-of-type(5)",
+      "tagName": "a",
+      "role": "a",
+      "accessibleName": "Permission to Use WAI Material",
+      "boundingRect": {
+        "x": 664.9375,
+        "y": 671.6875,
+        "width": 206.34375,
+        "height": 25
+      },
+      "pageRect": {
+        "x": 664.9375,
+        "y": 7248.6875,
+        "width": 206.34375,
+        "height": 25
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": null,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<a href=\"/WAI/about/using-wai-material/\">Permission to Use WAI Material</a>",
+      "parentContext": "footer"
+    },
+    {
+      "tabIndex": 57,
+      "selector": "skip-to-content",
+      "tagName": "skip-to-content",
+      "role": "skip-to-content",
+      "accessibleName": "",
+      "boundingRect": {
+        "x": 0,
+        "y": -6577,
+        "width": 0,
+        "height": 0
+      },
+      "pageRect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "tabindexAttr": null,
+      "hasFocusIndicator": true,
+      "isObscured": false,
+      "computedFocusStyles": {
+        "outline": "rgb(0, 0, 0) none 0px",
+        "boxShadow": "none",
+        "border": "0px none rgb(0, 0, 0)"
+      },
+      "outerHTML": "<skip-to-content version=\"5.9.2\" type=\"pagescript\" focus=\"button\"></skip-to-content>"
+    }
+  ],
+  "pageDimensions": {
+    "width": 1280,
+    "height": 7297
+  }
+}
