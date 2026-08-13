@@ -43,7 +43,7 @@ aren't dominated by banner noise. Disable with `--keep-overlays`; see
 ## Install from GitHub Packages
 
 Keylens is currently distributed through GitHub Packages, not the public npm registry.
-Node.js 22 or later and a GitHub token with `read:packages` are required.
+Node.js 26 or later and a GitHub token with `read:packages` are required.
 
 ```bash
 gh auth login --scopes read:packages

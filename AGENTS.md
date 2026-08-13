@@ -72,7 +72,6 @@ npm run keylens        # run CLI from source via tsx
 - **Commander.js** for CLI, **chalk** + **ora** for terminal output
 - **Vitest** v4 for testing, **tsup** for bundling
 - **pixelmatch** + **pngjs** for focus indicator screenshot diffing
-- **tabbable** npm package as a reference for expected tabbable elements
 - **@anthropic-ai/sdk** (optional dep) for AI features
 - **@modelcontextprotocol/sdk** + **zod** for MCP server
 

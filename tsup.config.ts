@@ -12,7 +12,7 @@ export default defineConfig([
     sourcemap: true,
     clean: false,
     splitting: false,
-    target: "node22",
+    target: "node26",
     outDir: "dist",
     external: ["playwright", "@anthropic-ai/sdk"],
     define: {
@@ -37,7 +37,7 @@ export default defineConfig([
     sourcemap: true,
     clean: false,
     splitting: false,
-    target: "node22",
+    target: "node26",
     outDir: "dist",
     banner: { js: "#!/usr/bin/env node\n" },
     external: ["playwright", "@anthropic-ai/sdk"],
@@ -52,7 +52,7 @@ export default defineConfig([
     sourcemap: true,
     clean: false,
     splitting: false,
-    target: "node22",
+    target: "node26",
     outDir: "dist",
     banner: { js: "#!/usr/bin/env node\n" },
     external: [
