@@ -19,7 +19,7 @@ secret and configure the scoped registry. Never commit the token.
 ```yaml
 - uses: actions/setup-node@v4
   with:
-    node-version: 22
+    node-version: 26
     registry-url: https://npm.pkg.github.com
     scope: "@telerik"
 - run: npm ci
@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
           registry-url: https://npm.pkg.github.com
           scope: "@telerik"
       - run: npm ci

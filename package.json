@@ -92,7 +92,6 @@
     "pixelmatch": "^7.1.0",
     "playwright": "^1.58.2",
     "pngjs": "^7.0.0",
-    "tabbable": "^6.4.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -128,7 +127,7 @@
     "openai": "^6.0.0"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=26.0.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

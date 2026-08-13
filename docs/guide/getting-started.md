@@ -6,7 +6,7 @@ actually happens.
 
 ## Requirements
 
-- Node.js 22 or later
+- Node.js 26 or later
 - A Playwright-supported operating system
 - Access to the `@telerik/keylens` GitHub Package
 - A GitHub token with `read:packages`

@@ -1,3 +1,5 @@
+import { TEXT_PREVIEW_LENGTH, HTML_PREVIEW_LENGTH } from "./constants.js";
+
 /**
  * Injected into the browser to compute a unique CSS selector for an element.
  * This runs in the page context via page.evaluate().
@@ -67,7 +69,7 @@ export const GET_FOCUSED_ELEMENT_INFO_SCRIPT = `
         || el.getAttribute('aria-labelledby')
         || el.getAttribute('alt')
         || el.getAttribute('title')
-        || el.textContent?.trim().substring(0, 100)
+        || el.textContent?.trim().substring(0, ${TEXT_PREVIEW_LENGTH})
         || '',
       boundingRect: {
         x: rect.x,
@@ -84,7 +86,7 @@ export const GET_FOCUSED_ELEMENT_INFO_SCRIPT = `
       tabindexAttr: el.hasAttribute('tabindex')
         ? parseInt(el.getAttribute('tabindex'), 10)
         : null,
-      outerHTML: el.outerHTML.substring(0, 300),
+      outerHTML: el.outerHTML.substring(0, ${HTML_PREVIEW_LENGTH}),
       ariaAttributes: (function() {
         var attrs = {};
         for (var i = 0; i < el.attributes.length; i++) {
@@ -184,7 +186,7 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
             || el.getAttribute('aria-labelledby')
             || el.getAttribute('alt')
             || el.getAttribute('title')
-            || el.textContent?.trim().substring(0, 100)
+            || el.textContent?.trim().substring(0, ${TEXT_PREVIEW_LENGTH})
             || '',
           boundingRect: {
             x: rect.x,
@@ -196,7 +198,7 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
           tabindexAttr: el.hasAttribute('tabindex')
             ? parseInt(el.getAttribute('tabindex'), 10)
             : null,
-          outerHTML: el.outerHTML.substring(0, 300),
+          outerHTML: el.outerHTML.substring(0, ${HTML_PREVIEW_LENGTH}),
         };
       });
   }
