@@ -38,8 +38,7 @@ describe("Cross-browser audit contract", () => {
   it("crawls, captures, evaluates, and safely activates controls", async () => {
     const browser =
       (process.env.KEYLENS_TEST_BROWSER as
-        | KeylensConfig["browser"]
-        | undefined) ?? "chromium";
+        KeylensConfig["browser"] | undefined) ?? "chromium";
     const report = await audit(url, {
       browser,
       reporters: [],
