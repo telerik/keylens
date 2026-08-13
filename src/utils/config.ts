@@ -254,9 +254,15 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
         model: z.string().min(1).optional(),
         baseURL: z.url().optional(),
         transport: z
-          .custom<
-            NonNullable<AIConfig["transport"]>
-          >((value) => typeof value === "object" && value !== null && typeof (value as AIConfig["transport"])?.query === "function" && typeof (value as AIConfig["transport"])?.queryVision === "function", "transport must implement query() and queryVision()")
+          .custom<NonNullable<AIConfig["transport"]>>(
+            (value) =>
+              typeof value === "object" &&
+              value !== null &&
+              typeof (value as AIConfig["transport"])?.query === "function" &&
+              typeof (value as AIConfig["transport"])?.queryVision ===
+                "function",
+            "transport must implement query() and queryVision()",
+          )
           .optional(),
         features: z
           .object({

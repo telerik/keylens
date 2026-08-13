@@ -769,8 +769,7 @@ async function crawlTabOrder(
     // Capture focused screenshot and computed focus styles if enabled
     let focusedScreenshot: string | undefined;
     let computedFocusStyles:
-      | { outline: string; boxShadow: string; border: string }
-      | undefined;
+      { outline: string; boxShadow: string; border: string } | undefined;
     const captureThisElement =
       captureScreenshots && focusSequence.length < maxElements;
     if (captureThisElement) {

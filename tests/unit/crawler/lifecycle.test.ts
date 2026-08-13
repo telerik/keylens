@@ -72,8 +72,7 @@ describe("crawlPage lifecycle", () => {
 
   it("aborts a stalled launch and closes the browser if launch finishes later", async () => {
     let resolveLaunch:
-      | ((browser: { close: () => Promise<void> }) => void)
-      | undefined;
+      ((browser: { close: () => Promise<void> }) => void) | undefined;
     const browser = {
       close: vi.fn().mockResolvedValue(undefined),
     };
