@@ -1,5 +1,6 @@
 import type { AITransport } from "../types/index.js";
 import { logger } from "../utils/logger.js";
+import { AIError } from "../errors.js";
 
 /** Minimal type surface for the dynamically-imported OpenAI SDK client. */
 interface OpenAIClient {
@@ -89,12 +90,12 @@ export class OpenAITransport implements AITransport {
         logger.warn(
           "OpenAI provider requires the openai package. Install it with: npm install openai",
         );
-        throw new Error("openai package is not installed");
+        throw new AIError("openai package is not installed");
       }
     }
 
     if (!this.client) {
-      throw new Error("openai package is not installed");
+      throw new AIError("openai package is not installed");
     }
     return this.client;
   }

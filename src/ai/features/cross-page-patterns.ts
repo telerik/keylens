@@ -5,6 +5,7 @@ import type {
 } from "../../types/index.js";
 import { logger } from "../../utils/logger.js";
 import { throwIfAborted } from "../../utils/execution.js";
+import { AIError } from "../../errors.js";
 import { safeParseJSON, crossPagePatternBatchSchema } from "../schemas.js";
 import type { AIFeatureContext } from "../provider.js";
 
@@ -78,7 +79,7 @@ For each finding, classify it and provide a fix suggestion. Respond with ONLY a 
     const response = await ctx.provider.query(prompt);
     const parsed = safeParseJSON(response, crossPagePatternBatchSchema);
 
-    if (!parsed) throw new Error("Invalid cross-page pattern response");
+    if (!parsed) throw new AIError("Invalid cross-page pattern response");
 
     for (const item of parsed) {
       // Determine affected pages from the original heuristic data
