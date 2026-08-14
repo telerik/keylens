@@ -1,5 +1,3 @@
-import { writeFile, mkdir } from "fs/promises";
-import { resolve } from "path";
 import type {
   AuditReport,
   MultiPageReport,
@@ -7,8 +5,7 @@ import type {
   AIFocusOrderResult,
   AIReportSummary,
 } from "../types/index.js";
-import { logger } from "../utils/logger.js";
-import { throwIfAborted } from "../utils/execution.js";
+import { writeReportFile } from "../utils/report-writer.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -513,16 +510,14 @@ export async function reportMarkdown(
   outputDir: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  throwIfAborted(signal, "reporters", report.url);
-  const dir = outputDir || process.cwd();
-  await mkdir(dir, { recursive: true });
-  throwIfAborted(signal, "reporters", report.url);
-
-  const markdown = renderMarkdown(report);
-  const filePath = resolve(dir, "keylens-report.md");
-  await writeFile(filePath, markdown, { encoding: "utf-8", signal });
-
-  logger.success(`Markdown report saved to ${filePath}`);
+  await writeReportFile(
+    outputDir,
+    "keylens-report.md",
+    renderMarkdown(report),
+    "Markdown",
+    signal,
+    report.url,
+  );
 }
 
 /**
@@ -533,14 +528,11 @@ export async function reportMultiMarkdown(
   outputDir: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  throwIfAborted(signal, "reporters");
-  const dir = outputDir || process.cwd();
-  await mkdir(dir, { recursive: true });
-  throwIfAborted(signal, "reporters");
-
-  const markdown = renderMultiMarkdown(report);
-  const filePath = resolve(dir, "keylens-report-multi.md");
-  await writeFile(filePath, markdown, { encoding: "utf-8", signal });
-
-  logger.success(`Markdown report saved to ${filePath}`);
+  await writeReportFile(
+    outputDir,
+    "keylens-report-multi.md",
+    renderMultiMarkdown(report),
+    "Markdown",
+    signal,
+  );
 }

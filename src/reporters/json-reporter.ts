@@ -1,8 +1,5 @@
-import { writeFile, mkdir } from "fs/promises";
-import { resolve } from "path";
 import type { AuditReport, MultiPageReport } from "../types/index.js";
-import { logger } from "../utils/logger.js";
-import { throwIfAborted } from "../utils/execution.js";
+import { writeReportFile } from "../utils/report-writer.js";
 import { projectAuditReport, projectMultiPageReport } from "../utils/assets.js";
 
 export function serializeJSON(report: AuditReport, pretty = true): string {
@@ -32,18 +29,14 @@ export async function reportJSON(
   outputDir: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  throwIfAborted(signal, "reporters", report.url);
-  const dir = outputDir || process.cwd();
-  await mkdir(dir, { recursive: true });
-  throwIfAborted(signal, "reporters", report.url);
-
-  const filePath = resolve(dir, "keylens-report.json");
-  await writeFile(filePath, serializeJSON(report), {
-    encoding: "utf-8",
+  await writeReportFile(
+    outputDir,
+    "keylens-report.json",
+    serializeJSON(report),
+    "JSON",
     signal,
-  });
-
-  logger.success(`JSON report saved to ${filePath}`);
+    report.url,
+  );
 }
 
 /**
@@ -54,16 +47,11 @@ export async function reportMultiJSON(
   outputDir: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  throwIfAborted(signal, "reporters");
-  const dir = outputDir || process.cwd();
-  await mkdir(dir, { recursive: true });
-  throwIfAborted(signal, "reporters");
-
-  const filePath = resolve(dir, "keylens-report.json");
-  await writeFile(filePath, serializeMultiJSON(report), {
-    encoding: "utf-8",
+  await writeReportFile(
+    outputDir,
+    "keylens-report.json",
+    serializeMultiJSON(report),
+    "JSON",
     signal,
-  });
-
-  logger.success(`JSON report saved to ${filePath}`);
+  );
 }
