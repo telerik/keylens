@@ -138,3 +138,13 @@ export class ReporterError extends KeylensError {
     this.name = "ReporterError";
   }
 }
+
+export class AIError extends KeylensError {
+  constructor(
+    message: string,
+    options: Omit<KeylensErrorOptions, "phase"> = {},
+  ) {
+    super(message, "AI_ERROR", { phase: "ai", ...options });
+    this.name = "AIError";
+  }
+}

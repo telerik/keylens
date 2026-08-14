@@ -1,6 +1,7 @@
 import type { AIConfig } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 import { raceWithSignal, throwIfAborted } from "../utils/execution.js";
+import { AIError } from "../errors.js";
 import { OpenAITransport } from "./openai-transport.js";
 
 /** An image attachment for a vision-capable AI query. */
@@ -58,11 +59,11 @@ export class AIProvider {
       operation = this.getOpenAITransport().query(prompt, this.signal);
     } else if (this.config.provider === "anthropic") {
       if (!(await this.checkSdkAvailable())) {
-        throw new Error("@anthropic-ai/sdk is not installed");
+        throw new AIError("@anthropic-ai/sdk is not installed");
       }
       operation = this.queryAnthropic(prompt);
     } else {
-      throw new Error(`Unsupported AI provider: ${this.config.provider}`);
+      throw new AIError(`Unsupported AI provider: ${this.config.provider}`);
     }
     return raceWithSignal(operation, this.signal, "ai");
   }
@@ -88,11 +89,11 @@ export class AIProvider {
       );
     } else if (this.config.provider === "anthropic") {
       if (!(await this.checkSdkAvailable())) {
-        throw new Error("@anthropic-ai/sdk is not installed");
+        throw new AIError("@anthropic-ai/sdk is not installed");
       }
       operation = this.queryAnthropicVision(prompt, images);
     } else {
-      throw new Error(`Unsupported AI provider: ${this.config.provider}`);
+      throw new AIError(`Unsupported AI provider: ${this.config.provider}`);
     }
     return raceWithSignal(operation, this.signal, "ai");
   }
@@ -120,7 +121,7 @@ export class AIProvider {
   private getOpenAITransport(): OpenAITransport {
     if (!this.openaiTransport) {
       if (!this.apiKey) {
-        throw new Error(
+        throw new AIError(
           "OpenAI provider requires an API key. Set KEYLENS_AI_API_KEY or OPENAI_API_KEY env var, or use ai.apiKey in config.",
         );
       }
