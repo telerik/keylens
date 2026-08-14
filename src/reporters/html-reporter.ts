@@ -1,5 +1,3 @@
-import { writeFile, mkdir } from "fs/promises";
-import { resolve } from "path";
 import type {
   AuditReport,
   FocusedElement,
@@ -12,8 +10,7 @@ import type {
   AIReportSummary,
   CrossPagePattern,
 } from "../types/index.js";
-import { logger } from "../utils/logger.js";
-import { throwIfAborted } from "../utils/execution.js";
+import { writeReportFile } from "../utils/report-writer.js";
 import { getInlineAssetData } from "../utils/assets.js";
 
 /**
@@ -24,16 +21,14 @@ export async function reportHTML(
   outputDir: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  throwIfAborted(signal, "reporters", report.url);
-  const dir = outputDir || process.cwd();
-  await mkdir(dir, { recursive: true });
-  throwIfAborted(signal, "reporters", report.url);
-
-  const html = renderHTML(report);
-  const filePath = resolve(dir, "keylens-report.html");
-  await writeFile(filePath, html, { encoding: "utf-8", signal });
-
-  logger.success(`HTML report saved to ${filePath}`);
+  await writeReportFile(
+    outputDir,
+    "keylens-report.html",
+    renderHTML(report),
+    "HTML",
+    signal,
+    report.url,
+  );
 }
 
 /**
@@ -44,16 +39,13 @@ export async function reportMultiHTML(
   outputDir: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  throwIfAborted(signal, "reporters");
-  const dir = outputDir || process.cwd();
-  await mkdir(dir, { recursive: true });
-  throwIfAborted(signal, "reporters");
-
-  const html = renderMultiHTML(report);
-  const filePath = resolve(dir, "keylens-report.html");
-  await writeFile(filePath, html, { encoding: "utf-8", signal });
-
-  logger.success(`HTML report saved to ${filePath}`);
+  await writeReportFile(
+    outputDir,
+    "keylens-report.html",
+    renderMultiHTML(report),
+    "HTML",
+    signal,
+  );
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
