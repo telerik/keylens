@@ -302,6 +302,24 @@ export async function crawlPage(
       logger.debug(
         `Skip link ${skipLinkResult.functionWorks ? "works" : "found but does not function correctly"}`,
       );
+
+      // Activating the skip link (Enter press) can leave custom elements/widgets
+      // in a mutated state (e.g. a focus-trapping "activated" mode) that would
+      // otherwise corrupt the full tab-order crawl below. Reload to a pristine
+      // page state before crawling, since only interaction happened above.
+      logger.info("Reloading page after skip link test...");
+      await page.reload({
+        waitUntil: "domcontentloaded",
+        timeout: config.navigationTimeout || DEFAULT_NAVIGATION_TIMEOUT_MS,
+      });
+      if (config.waitForSelector) {
+        await page.waitForSelector(config.waitForSelector, {
+          timeout: config.tabTimeout,
+        });
+      }
+      await page.waitForTimeout(config.waitAfterLoad);
+      throwIfAborted(signal, "crawl", url);
+      await preparePage(page, config, signal, url, onEvent, eventStartedAt);
     }
 
     // Discover all interactive elements

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Keylens Fixture — Skip Link With Side Effect</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+      }
+      a:focus,
+      button:focus {
+        outline: 2px solid #005fcc;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Simulates a real-world bug pattern (seen on custom-element skip links):
+      activating the skip link mutates page state so that, from then on,
+      every subsequent Tab press refocuses the skip link instead of moving
+      on. A single audit run must not let this activation-only side effect
+      corrupt the separate, full tab-order crawl that follows.
+    -->
+    <a href="#main" id="skip-link">Skip to content</a>
+
+    <nav>
+      <a href="/home">Home</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+
+    <main id="main" tabindex="-1">
+      <button type="button">Primary action</button>
+      <a href="/learn-more">Learn more</a>
+    </main>
+
+    <script>
+      const skipLink = document.getElementById("skip-link");
+      skipLink.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        document.getElementById("main").focus();
+
+        // Side effect: once activated, trap all subsequent Tab presses on
+        // the skip link itself.
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Tab") {
+            e.preventDefault();
+            skipLink.focus();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
