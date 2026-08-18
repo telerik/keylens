@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   makeAuditReport,
   makeFocusedElement,
+  makeInlineAsset,
 } from "@tests/helpers/factories.js";
 import type {
   RuleResult,
@@ -242,9 +243,73 @@ describe("HTML Reporter", () => {
     expect(html).toContain("#1");
   });
 
-  it("should collapse elements when more than 3 using details/summary", async () => {
+  it("should wire an issue instance to its focus-map marker via data-marker-target", async () => {
     const reportHTML = await getReportHTML();
-    const elements = Array.from({ length: 7 }, (_, i) => ({
+    const rule: RuleResult = {
+      ruleId: "focus-order-mismatch",
+      passed: false,
+      violations: [
+        {
+          ruleId: "focus-order-mismatch",
+          ruleName: "Focus Order Mismatch",
+          severity: "warning",
+          message: "1 element(s) have mismatched focus order.",
+          elements: [
+            { selector: "a.first", outerHTML: "<a>first</a>", tabPosition: 3 },
+          ],
+          impact: "Medium",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(
+      makeAuditReport({
+        rules: [rule],
+        focusSequence: [
+          makeFocusedElement({ tabIndex: 1, selector: "a.zero" }),
+          makeFocusedElement({ tabIndex: 2, selector: "a.mid" }),
+          makeFocusedElement({ tabIndex: 3, selector: "a.first" }),
+        ],
+        pageDimensions: { width: 1280, height: 720 },
+        assets: [makeInlineAsset("shot", "screenshot-data")],
+        pageScreenshotAssetId: "shot",
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    // The issue instance points at the marker id the reverse-lookup click handler jumps to.
+    expect(html).toContain('data-marker-target="marker-3"');
+    expect(html).toContain('id="marker-3"');
+    expect(html).toContain('data-selector="a.first"');
+  });
+
+  it("should leave data-marker-target empty for violations never reached via Tab", async () => {
+    const reportHTML = await getReportHTML();
+    const rule: RuleResult = {
+      ruleId: "skip-link",
+      passed: false,
+      violations: [
+        {
+          ruleId: "skip-link",
+          ruleName: "Skip Link",
+          severity: "error",
+          message: "No skip link found.",
+          elements: [],
+          impact: "High",
+        },
+      ],
+      duration: 5,
+    };
+    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain('data-marker-target=""');
+  });
+
+  it("should render a collapsed accordion with a paginated issue viewer for violations", async () => {
+    const reportHTML = await getReportHTML();
+    const elements = Array.from({ length: 5 }, (_, i) => ({
       selector: `div.el-${i}`,
       outerHTML: `<div>el-${i}</div>`,
     }));
@@ -256,7 +321,7 @@ describe("HTML Reporter", () => {
           ruleId: "many-elements",
           ruleName: "Many Elements",
           severity: "warning",
-          message: "7 elements found.",
+          message: "5 elements found.",
           elements,
           impact: "Medium",
         },
@@ -266,44 +331,40 @@ describe("HTML Reporter", () => {
     await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
 
     const html = getWrittenHTML();
-    // First 3 visible
+    // Rule body is collapsed by default behind a toggle button.
+    expect(html).toContain("data-rule-toggle");
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain("rule-body");
+    // Pager shows the total count and full navigation controls.
+    expect(html).toContain("<span data-pager-total>5</span>");
+    expect(html).toContain('data-pager-action="first"');
+    expect(html).toContain('data-pager-action="prev"');
+    expect(html).toContain('data-pager-action="next"');
+    expect(html).toContain('data-pager-action="last"');
+    expect(html).toContain('data-pager-action="highlight"');
+    // All instances are present in the markup; only the first starts active.
+    expect(html).toContain('issue-instance active" data-instance-index="0"');
+    expect(html).toContain('data-instance-index="4"');
     expect(html).toContain("div.el-0");
-    expect(html).toContain("div.el-1");
-    expect(html).toContain("div.el-2");
-    // Rest in collapsible
-    expect(html).toContain("<details>");
-    expect(html).toContain("Show 4 more elements");
-    expect(html).toContain("div.el-3");
-    expect(html).toContain("div.el-6");
+    expect(html).toContain("div.el-4");
+    // The Copy selector button was removed.
+    expect(html).not.toContain("Copy selector");
+    expect(html).not.toContain('data-pager-action="copy"');
   });
 
-  it("should not use details/summary when 3 or fewer elements", async () => {
+  it("should not render an accordion toggle for a rule with no violations", async () => {
     const reportHTML = await getReportHTML();
     const rule: RuleResult = {
-      ruleId: "few-elements",
-      passed: false,
-      violations: [
-        {
-          ruleId: "few-elements",
-          ruleName: "Few Elements",
-          severity: "warning",
-          message: "2 elements found.",
-          elements: [
-            { selector: "a.one", outerHTML: "<a>one</a>" },
-            { selector: "a.two", outerHTML: "<a>two</a>" },
-          ],
-          impact: "Medium",
-        },
-      ],
+      ruleId: "clean-rule",
+      passed: true,
+      violations: [],
       duration: 5,
     };
     await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
 
     const html = getWrittenHTML();
-    expect(html).toContain("a.one");
-    expect(html).toContain("a.two");
-    expect(html).not.toContain("<details>");
-    expect(html).not.toContain("Show");
+    expect(html).not.toContain("data-rule-toggle aria-expanded");
+    expect(html).not.toContain('class="issue-viewer" data-issue-viewer');
   });
 
   it("should render WCAG reference badges on violations", async () => {
@@ -490,7 +551,7 @@ describe("HTML Reporter", () => {
     await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
 
     const html = getWrittenHTML();
-    expect(html).not.toContain("<script>");
+    expect(html).not.toContain('<script>alert("xss")</script>');
     expect(html).toContain("&lt;script&gt;");
   });
 
@@ -704,11 +765,11 @@ describe("buildFocusMapHTML", () => {
     expect(result).toContain("focus-marker");
     expect(result).toContain("data:image/png;base64,screenshot-data");
     expect(result).toContain("Focus Order Map");
-    // Marker should show index 1
-    expect(result).toContain(">1</div>");
+    // Marker should show index 1 followed by its tooltip.
+    expect(result).toContain('>1<div class="focus-tooltip">');
   });
 
-  it("should render SVG connecting lines between markers", async () => {
+  it("should render SVG connecting lines with a midpoint arrow between markers", async () => {
     const buildFocusMapHTML = await getBuildFocusMapHTML();
     const el1 = makeFocusedElement({
       tabIndex: 1,
@@ -726,12 +787,13 @@ describe("buildFocusMapHTML", () => {
       height: 720,
     });
 
-    expect(result).toContain("<line");
-    expect(result).toContain("stroke-dasharray");
+    expect(result).toContain('class="route-outline"');
+    expect(result).toContain('class="route"');
+    expect(result).toContain('class="route-arrow"');
     expect(result).toContain("focus-lines");
   });
 
-  it("should color-code violation markers red", async () => {
+  it("should flag a violating stop's marker with a distinct class and role", async () => {
     const buildFocusMapHTML = await getBuildFocusMapHTML();
     const el = makeFocusedElement({
       tabIndex: 1,
@@ -747,7 +809,107 @@ describe("buildFocusMapHTML", () => {
       violationSelectors,
     );
 
-    expect(result).toContain("#ef4444");
+    expect(result).toContain('class="focus-marker focus-marker--violation"');
+    expect(result).toContain('role="button"');
+  });
+
+  it("should color only the dot (not the connectors/arrows) when a stop has a violation", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el1 = makeFocusedElement({
+      tabIndex: 1,
+      selector: "a.one",
+      boundingRect: { x: 100, y: 50, width: 80, height: 30 },
+    });
+    const el2 = makeFocusedElement({
+      tabIndex: 2,
+      selector: "a.two",
+      boundingRect: { x: 300, y: 150, width: 80, height: 30 },
+    });
+    const dims = { width: 1280, height: 720 };
+
+    const withViolation = buildFocusMapHTML(
+      [el1, el2],
+      "data",
+      dims,
+      new Set(["a.two"]),
+    );
+    const withoutViolation = buildFocusMapHTML([el1, el2], "data", dims);
+
+    // Route/arrow markup is identical whether or not a stop has a violation.
+    expect(withViolation).toContain('class="route-outline"');
+    expect(withViolation).toContain('class="route"');
+    expect(withViolation).toContain('class="route-arrow"');
+    expect(withViolation).not.toContain("route violation");
+    expect(withViolation).not.toContain("route-arrow violation");
+    // Only the marker for the violating stop is flagged.
+    expect(withViolation).toContain("focus-marker focus-marker--violation");
+    expect(withoutViolation).not.toContain("focus-marker--violation");
+  });
+
+  it("should place exactly one arrow at each segment's midpoint, not at the stop", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el1 = makeFocusedElement({
+      tabIndex: 1,
+      selector: "a.top",
+      boundingRect: { x: 0, y: 0, width: 20, height: 20 },
+    });
+    const el2 = makeFocusedElement({
+      tabIndex: 2,
+      selector: "a.bottom",
+      boundingRect: { x: 1200, y: 2000, width: 20, height: 20 },
+    });
+
+    const result = buildFocusMapHTML([el1, el2], "data", {
+      width: 1280,
+      height: 2100,
+    });
+
+    const arrowCount = (result.match(/route-arrow/g) ?? []).length;
+    expect(arrowCount).toBe(1);
+
+    // p1 center = (10, 10) -> (0.781%, 0.476%); p2 center = (1210, 2010) -> (94.531%, 95.714%)
+    // midpoint should sit roughly halfway between them, not at either stop.
+    const midXPct = (0.78125 + 94.53125) / 2;
+    const midYPct = (0.47619 + 95.71429) / 2;
+    expect(result).toContain(`left:${midXPct.toFixed(3)}%`);
+    expect(result).toContain(`top:${midYPct.toFixed(3)}%`);
+  });
+
+  it("should give each marker a stable id, tabindex, and selector for click targeting", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el = makeFocusedElement({
+      tabIndex: 1,
+      selector: "button.one",
+      boundingRect: { x: 100, y: 50, width: 80, height: 30 },
+    });
+
+    const result = buildFocusMapHTML([el], "data", {
+      width: 1280,
+      height: 720,
+    });
+
+    expect(result).toContain('id="marker-1"');
+    expect(result).toContain('tabindex="0"');
+    expect(result).toContain('data-selector="button.one"');
+  });
+
+  it("should prefix marker ids with idPrefix for multi-page id uniqueness", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el = makeFocusedElement({
+      tabIndex: 1,
+      selector: "button.one",
+      boundingRect: { x: 100, y: 50, width: 80, height: 30 },
+    });
+
+    const result = buildFocusMapHTML(
+      [el],
+      "data",
+      { width: 1280, height: 720 },
+      undefined,
+      "page-0-",
+    );
+
+    expect(result).toContain('id="page-0-marker-1"');
   });
 
   it("should use pageRect over boundingRect when available", async () => {
@@ -850,5 +1012,43 @@ describe("Multi-Page HTML Reporter", () => {
     const html = getWrittenHTML();
     expect(html).toContain("<script>");
     expect(html).toContain("tab-btn");
+  });
+
+  it("should prefix rule and marker ids per page to avoid id collisions", async () => {
+    const reportMultiHTML = await getReportMultiHTML();
+    const rule: RuleResult = {
+      ruleId: "dup-rule",
+      passed: false,
+      violations: [
+        {
+          ruleId: "dup-rule",
+          ruleName: "Dup Rule",
+          severity: "warning",
+          message: "issue",
+          elements: [
+            { selector: "a.x", outerHTML: "<a>x</a>", tabPosition: 1 },
+          ],
+          impact: "Medium",
+        },
+      ],
+      duration: 5,
+    };
+    const page = makeAuditReport({
+      rules: [rule],
+      focusSequence: [makeFocusedElement({ tabIndex: 1, selector: "a.x" })],
+      pageDimensions: { width: 1280, height: 720 },
+      assets: [makeInlineAsset("shot", "screenshot-data")],
+      pageScreenshotAssetId: "shot",
+    });
+    await reportMultiHTML(
+      makeMultiReport({ pages: [page, { ...page, url: "https://b.com" }] }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain('id="page-0-rule-0-body"');
+    expect(html).toContain('id="page-1-rule-0-body"');
+    expect(html).toContain('id="page-0-marker-1"');
+    expect(html).toContain('id="page-1-marker-1"');
   });
 });
