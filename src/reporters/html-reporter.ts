@@ -96,6 +96,48 @@ function buildStatusKind(errors: number, warnings: number): Kind {
   return "success";
 }
 
+/** Inline SVG icon, paths sourced from Progress/Kendo's kendo-svg-icons (outline set). */
+function klrIcon(paths: string, className: string): string {
+  return `<svg class="klr-icon ${className}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${paths}</svg>`;
+}
+
+const ICON_CHECK = klrIcon(
+  '<path d="M3.75 13.5L9 18.75L21 6.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-status",
+);
+const ICON_X = klrIcon(
+  '<path d="M18.75 5.25L5.25 18.75M18.75 18.75L5.25 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-status",
+);
+const ICON_CHEVRON_DOWN = klrIcon(
+  '<path d="M19.5 9L12 16.5L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "rule-chevron",
+);
+const ICON_BRIGHTNESS = klrIcon(
+  '<path d="M12 3.75V1.5M6 6L4.5 4.5M6 18L4.5 19.5M18 6L19.5 4.5M18 18L19.5 19.5M3.75 12H1.5M12 20.25V22.5M20.25 12H22.5M17.25 12C17.25 14.8995 14.8995 17.25 12 17.25C9.10051 17.25 6.75 14.8995 6.75 12C6.75 9.10051 9.10051 6.75 12 6.75C14.8995 6.75 17.25 9.10051 17.25 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-theme",
+);
+const ICON_CARET_TO_LEFT = klrIcon(
+  '<path d="M18 19.5L10.5 12L18 4.5M6.75 4.5V19.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-pager",
+);
+const ICON_CARET_LEFT = klrIcon(
+  '<path d="M15 19.5L7.5 12L15 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-pager",
+);
+const ICON_CARET_RIGHT = klrIcon(
+  '<path d="M9 4.5L16.5 12L9 19.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-pager",
+);
+const ICON_CARET_TO_RIGHT = klrIcon(
+  '<path d="M6 4.5L13.5 12L6 19.5M17.25 4.5V19.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-pager",
+);
+const ICON_TARGET = klrIcon(
+  '<path d="M11.9999 12L20.9999 3M18.3636 5.63624C16.7695 4.04588 14.6366 3.11176 12.3867 3.01868C10.1369 2.92559 7.93406 3.68032 6.21401 5.13355C4.49397 6.58679 3.38201 8.63268 3.09812 10.8665C2.81422 13.1003 3.37907 15.3593 4.68092 17.1965C5.98277 19.0338 7.92678 20.3156 10.1284 20.7882C12.33 21.2609 14.6288 20.89 16.57 19.749C18.5113 18.6079 19.9536 16.7798 20.6116 14.6263C21.2696 12.4729 21.0953 10.1509 20.1233 8.11968M15.1818 8.81811C14.4374 8.07461 13.456 7.61544 12.4082 7.52041C11.3604 7.42539 10.3124 7.7005 9.4464 8.29794C8.58038 8.89538 7.95108 9.77738 7.66786 10.7906C7.38464 11.8039 7.46541 12.8844 7.89613 13.8443C8.32685 14.8042 9.0803 15.5828 10.0255 16.0449C10.9707 16.5069 12.048 16.6231 13.07 16.3734C14.092 16.1236 14.9942 15.5237 15.6198 14.6777C16.2454 13.8318 16.5548 12.7935 16.4943 11.7431" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  "icon-pager",
+);
+
 function pageScreenshotForMap(report: AuditReport): string {
   if (report.config.capture?.page === "viewport") {
     return "";
@@ -310,6 +352,7 @@ export function renderHTML(input: AuditReport): string {
 <body>
   <div class="container">
     <header>
+      ${THEME_TOGGLE_HTML}
       <h1>Keylens Report <span>v${escapeHTML(report.version)}</span></h1>
       <p style="color: var(--klr-text-subtle); margin-top: 0.5rem;">${escapeHTML(url)}</p>
       <p style="color: var(--klr-text-muted); font-size: 0.8rem;">${escapeHTML(report.timestamp)}</p>
@@ -411,7 +454,8 @@ export function renderMultiHTML(input: MultiPageReport): string {
 <body>
   <div class="container">
     <header>
-      <h1>Keylens Multi-Page Report <span>v${escapeHTML(report.version)}</span></h1>
+      ${THEME_TOGGLE_HTML}
+      <h1>Keylens Multi-Page Report <span>v${escapeHTML(report.version)} ${escapeHTML(report.timestamp)}</span></h1>
       <p style="color: var(--klr-text-subtle); margin-top: 0.5rem;">${report.urls.length} page(s) audited</p>
       <p style="color: var(--klr-text-muted); font-size: 0.8rem;">${escapeHTML(report.timestamp)}</p>
     </header>
@@ -486,7 +530,7 @@ function buildFixSuggestionHTML(fix: string | FixSuggestion): string {
         : "error";
   const codeBlock =
     fix.codeBefore && fix.codeAfter
-      ? `<pre style="margin: 0.5rem 0; padding: 0.5rem; background: var(--klr-background); border-radius: 0.25rem; font-size: 0.8rem; overflow-x: auto;"><code><span style="color: ${onBgVar("error")};">- ${escapeHTML(fix.codeBefore)}</span>
+      ? `<pre style="margin: 0.5rem 0; padding: 0.5rem; background: var(--klr-background); border-radius: 0.1rem; font-size: 0.8rem; overflow-x: auto;"><code><span style="color: ${onBgVar("error")};">- ${escapeHTML(fix.codeBefore)}</span>
 <span style="color: ${onBgVar("success")};">+ ${escapeHTML(fix.codeAfter)}</span></code></pre>`
       : "";
   return `<div class="fix">
@@ -559,7 +603,7 @@ function buildAccessibleNameSuggestionsHTML(
           </div>
           <p style="margin-top: 0.5rem; color: ${onBgVar("success")};">Label: <strong>"${escapeHTML(s.suggestedLabel)}"</strong></p>
           ${s.suggestedRole ? `<p style="color: ${onBgVar("warning")};">Role: <strong>${escapeHTML(s.suggestedRole)}</strong></p>` : ""}
-          <p style="margin-top: 0.25rem; color: var(--klr-text-subtle); font-size: 0.875rem;">${escapeHTML(s.reasoning)}</p>
+          <p style="margin-top: 0.1rem; color: var(--klr-text-subtle); font-size: 0.875rem;">${escapeHTML(s.reasoning)}</p>
         </div>`;
     })
     .join("");
@@ -740,7 +784,7 @@ function buildCrossPagePatternsHTML(patterns?: CrossPagePattern[]): string {
             <span class="status-badge" style="${badgeStyle(sevKind)}">${escapeHTML(cp.type)}</span>
           </div>
           <p style="margin-top: 0.5rem; color: var(--klr-text-subtle); font-size: 0.875rem;">Pages: ${pages}</p>
-          <p style="margin-top: 0.25rem; color: ${onBgVar("accent")}; font-size: 0.875rem;">${escapeHTML(cp.suggestion)}</p>
+          <p style="margin-top: 0.1rem; color: ${onBgVar("accent")}; font-size: 0.875rem;">${escapeHTML(cp.suggestion)}</p>
         </div>`;
     })
     .join("");
@@ -749,6 +793,9 @@ function buildCrossPagePatternsHTML(patterns?: CrossPagePattern[]): string {
     <h2 style="margin: 1.5rem 0 1rem; font-size: 1.125rem;">Cross-Page Patterns</h2>
     ${items}`;
 }
+
+/** Light/dark toggle button, pinned to the top-right corner of the header. */
+const THEME_TOGGLE_HTML = `<button type="button" id="klr-theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">${ICON_BRIGHTNESS}</button>`;
 
 /**
  * Powers rule expand/collapse, the per-instance issue pager, and "Highlight"
@@ -760,6 +807,29 @@ function buildCrossPagePatternsHTML(patterns?: CrossPagePattern[]): string {
  * step runs over this static HTML output.
  */
 const RULES_SCRIPT = `
+    // Light/dark toggle: overrides the default "light dark" color-scheme via a
+    // data-theme attribute on <html>, persisted across reloads in localStorage.
+    (function () {
+      var root = document.documentElement;
+      var btn = document.getElementById('klr-theme-toggle');
+      var stored = null;
+      try { stored = localStorage.getItem('klr-theme'); } catch (e) {}
+      var theme = stored === 'light' || stored === 'dark' ? stored : null;
+      function apply(t) {
+        if (t) root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+      }
+      apply(theme);
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var current = root.getAttribute('data-theme') ||
+            (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          theme = current === 'dark' ? 'light' : 'dark';
+          apply(theme);
+          try { localStorage.setItem('klr-theme', theme); } catch (e) {}
+        });
+      }
+    })();
+
     // Fixed-duration scroll (native "smooth" scrolling scales with distance and can feel sluggish).
     function klrScrollTo(el, block) {
       var rect = el.getBoundingClientRect();
@@ -866,9 +936,9 @@ const RULES_SCRIPT = `
 function COMMON_STYLES(statusKind: Kind): string {
   return `<style>
     :root {
-      color-scheme: dark;
+      color-scheme: light dark;
 
-      --klr-background: #0f172a;
+      --klr-background: light-dark(oklch(98.46% 0.0017 247.84deg), oklch(23.28% 0.0218 272.75deg));
       --klr-background-alt: oklch(from var(--klr-background) calc(l + 0.055) c h);
       --klr-border: oklch(from var(--klr-background) calc(l + 0.16) calc(c * 1.3) h);
 
@@ -876,89 +946,99 @@ function COMMON_STYLES(statusKind: Kind): string {
       --klr-text-subtle: color-mix(in oklch, var(--klr-text) 65%, var(--klr-background));
       --klr-text-muted: color-mix(in oklch, var(--klr-text) 45%, var(--klr-background));
 
-      --klr-accent: #38bdf8;
+      --klr-accent: oklch(56.43% 0.131 241.46deg);
       --klr-accent-on-bg: color-mix(in oklch, oklch(from var(--klr-accent) l c h) 70%, oklch(from var(--klr-background) clamp(0, calc((0.5 - l) * 1000), 1) none none) 30%);
 
-      --klr-success: #22c55e;
+      --klr-success: oklch(51.46% 0.1066 163.53deg);
       --klr-success-on-bg: color-mix(in oklch, oklch(from var(--klr-success) l c h) 70%, oklch(from var(--klr-background) clamp(0, calc((0.5 - l) * 1000), 1) none none) 30%);
 
-      --klr-warning: #f59e0b;
+      --klr-warning: oklch(88.34% 0.1817 99deg);
       --klr-warning-on-bg: color-mix(in oklch, oklch(from var(--klr-warning) l c h) 60%, oklch(from var(--klr-background) clamp(0, calc((0.5 - l) * 1000), 1) none none) 40%);
 
-      --klr-error: #ef4444;
+      --klr-error: oklch(51.01% 0.1951 14.31deg);
       --klr-error-on-bg: color-mix(in oklch, oklch(from var(--klr-error) l c h) 60%, oklch(from var(--klr-background) clamp(0, calc((0.5 - l) * 1000), 1) none none) 40%);
     }
 
+    :root[data-theme="light"] { color-scheme: light; }
+    :root[data-theme="dark"] { color-scheme: dark; }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--klr-background); color: var(--klr-text); line-height: 1.6; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; position: relative; }
     header { border-bottom: 1px solid var(--klr-border); padding-bottom: 1.5rem; margin-bottom: 2rem; }
-    h1 { font-size: 1.5rem; color: var(--klr-accent-on-bg); }
+    .theme-toggle { position: absolute; top: 2rem; right: 2rem; width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; background: var(--klr-background-alt); border: 1px solid var(--klr-border); border-radius: 9999px; color: var(--klr-text); cursor: pointer; }
+    .theme-toggle:hover { border-color: var(--klr-accent-on-bg); color: var(--klr-accent-on-bg); }
+    h1 { font-size: 1.5rem; color: var(--klr-accent-on-bg); padding-right: 3rem; }
     h1 span { color: var(--klr-text-muted); font-weight: normal; font-size: 0.875rem; }
     .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
-    .meta-card { background: var(--klr-background-alt); border-radius: 0.5rem; padding: 1rem; }
+    .meta-card { background: var(--klr-background-alt); padding: 1rem; }
     .meta-card .label { font-size: 0.75rem; color: var(--klr-text-subtle); text-transform: uppercase; letter-spacing: 0.05em; }
     .meta-card .value { font-size: 1.5rem; font-weight: bold; color: var(--klr-text); }
-    .status-badge { display: inline-block; padding: 0.05rem 0.65rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; ${badgeStyle(statusKind)} border-style: solid; border-width: 1px; white-space: nowrap; flex-shrink: 0; }
-    .rule { background: var(--klr-background-alt); border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 0.75rem; border-left: 3px solid; }
+    .status-badge { display: inline-block; padding: 0 0.5rem; border-radius: 0.1rem; font-size: 0.75rem; font-weight: 600; ${badgeStyle(statusKind)} border-style: solid; border-width: 1px; white-space: nowrap; flex-shrink: 0; }
+    .rule { background: var(--klr-background-alt); padding: 1.25rem; margin-bottom: 0.75rem; border-left: 3px solid; }
     .rule.passed { border-color: var(--klr-success-on-bg); }
     .rule.failed { border-color: var(--klr-error-on-bg); }
     .rule.warning { border-color: var(--klr-warning-on-bg); }
     .rule.error { border-color: var(--klr-error-on-bg); }
     .rule-header { display: flex; justify-content: start; align-items: center; gap: 0.5rem; }
-    .rule-name { font-weight: 600; font-size: 1rem; min-width: 0; }
+    .rule-name { font-weight: 600; font-size: 1rem; min-width: 0; display: inline-flex; align-items: center; gap: 0.25rem; }
     button.rule-header { width: 100%; background: none; border: none; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0; }
-    .rule-chevron { color: var(--klr-text-subtle); flex-shrink: 0; transition: transform 0.15s ease; margin-left: auto; }
+    .klr-icon { width: 1em; height: 1em; flex-shrink: 0; }
+    .icon-status { width: 0.95em; height: 0.95em; }
+    .icon-theme { width: 1.1rem; height: 1.1rem; }
+    .icon-pager { width: 0.9rem; height: 0.9rem; }
+    .rule-chevron { width: 1rem; height: 1rem; color: var(--klr-text-subtle); flex-shrink: 0; transition: transform 0.15s ease; margin-left: auto; }
     .rule-header--toggle[aria-expanded="true"] .rule-chevron { transform: rotate(180deg); }
-    .rule-body { margin-top: 0.25rem; }
+    .rule-body { margin-top: 0.1rem; }
     .rule-body[hidden] { display: none; }
     .issue-viewer { margin-top: 0.75rem; }
     .issue-instance { display: none; }
     .issue-instance.active { display: block; }
-    .issue-pager { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: var(--klr-background); border-radius: 0.375rem; }
+    .issue-pager { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: var(--klr-background); border-radius: 0.1rem; }
     .pager-nav { display: flex; align-items: center; gap: 0.25rem; }
-    .pager-count { font-size: 0.9rem; color: var(--klr-text-subtle); padding: 0 0.375rem; white-space: nowrap;     width: 90px;
+    .pager-count { font-size: 0.9rem; color: var(--klr-text-subtle); padding: 0 0.1rem; white-space: nowrap;     width: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 3px;}
-    .pager-btn, .pager-action-btn { background: var(--klr-background-alt); border: 1px solid var(--klr-border); color: var(--klr-text-subtle); border-radius: 0.25rem; padding: 0.5rem 1rem; font-size: 0.8rem; cursor: pointer; line-height: 1; }
+    .pager-btn, .pager-action-btn { background: var(--klr-background-alt); border: 1px solid var(--klr-border); color: var(--klr-text-subtle); border-radius: 0.1rem; padding: 0.5rem 1rem; font-size: 0.8rem; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; gap: 0.25rem; }
     .pager-btn:hover, .pager-action-btn:hover { color: var(--klr-text); border-color: var(--klr-accent-on-bg); }
     .pager-btn:disabled, .pager-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .pager-btn:disabled:hover, .pager-action-btn:disabled:hover { color: var(--klr-text-subtle); border-color: var(--klr-border); }
     .pager-actions { display: flex; gap: 0.5rem; }
-    .code-block { margin: 0.5rem 0 0; padding: 0.625rem; background: var(--klr-background-alt); border-radius: 0.25rem; font-family: 'SF Mono', monospace; font-size: 0.75rem; color: var(--klr-text-subtle); overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
-    .violation { background: var(--klr-background); border-radius: 0.375rem; padding: 1rem; margin-top: 0.75rem; }
+    .code-block { margin: 0.5rem 0 0; padding: 0.625rem; background: var(--klr-background-alt); border-radius: 0.1rem; font-family: 'SF Mono', monospace; font-size: 0.75rem; color: var(--klr-text-subtle); overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+    .violation { background: var(--klr-background); border-radius: 0.1rem; padding: 1rem; margin-top: 0.75rem; }
     .violation .message { color: var(--klr-text); margin-bottom: 0.5rem; display: flex; align-items: start; justify-content: space-between;}
     .violation .elements { font-family: 'SF Mono', monospace; font-size: 0.8rem; color: var(--klr-text-subtle); overflow-wrap: break-word; word-break: break-all; }
-    .violation .element-item { padding: 0.375rem 0.5rem; border-bottom: 1px solid var(--klr-background-alt); }
+    .violation .element-item { padding: 0.1rem 0.5rem; border-bottom: 1px solid var(--klr-background-alt); }
     .violation .element-item:last-child { border-bottom: none; }
     .violation .element-head { display: flex; align-items: baseline; gap: 0.5rem; }
     .violation .tab-pos { color: var(--klr-accent-on-bg); font-size: 1.2rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
     .violation .selector-text { min-width: 0; color: var(--klr-text-subtle); margin-top: 0.125rem; word-break: break-all; }
-    .violation details { margin-top: 0.25rem; }
-    .violation details summary { cursor: pointer; color: var(--klr-text-muted); font-size: 0.8rem; padding: 0.375rem 0.5rem; }
+    .violation details { margin-top: 0.1rem; }
+    .violation details summary { cursor: pointer; color: var(--klr-text-muted); font-size: 0.8rem; padding: 0.1rem 0.5rem; }
     .violation details summary:hover { color: var(--klr-text-subtle); }
-    .violation .impact { color: var(--klr-text-muted); font-size: 0.8rem; font-style: italic; margin-top: 0.375rem; }
-    .violation .wcag-badges { display: flex; flex-wrap: wrap; gap: 0.375rem; min-width: fit-content; }
-    .violation .wcag-badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; ${badgeStyle("accent")} border-style: solid; border-width: 1px; text-decoration: none; }
+    .violation .impact { color: var(--klr-text-muted); font-size: 0.8rem; font-style: italic; margin-top: 0.1rem; }
+    .violation .wcag-badges { display: flex; flex-wrap: wrap; gap: 0.25rem; min-width: fit-content; }
+    .violation .wcag-badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 0.1rem; font-size: 0.75rem; font-weight: 600; ${badgeStyle("accent")} border-style: solid; border-width: 1px; text-decoration: none; }
     .violation .wcag-badge:hover { background: color-mix(in srgb, var(--klr-accent) 20%, transparent); }
-    .rule-meta { color: var(--klr-text-subtle); font-size: 0.8rem; margin-top: 0.25rem; }
+    .rule-meta { color: var(--klr-text-subtle); font-size: 0.8rem; margin-top: 0.1rem; }
     .element-name { color: var(--klr-success-on-bg); font-size: 1.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
-    .violation .fix { background: color-mix(in srgb, var(--klr-accent) 18%, var(--klr-background)); border-radius: 0.375rem; padding: 0.75rem; margin-top: 0.5rem; color: var(--klr-accent-on-bg); font-size: 0.875rem; }
+    .violation .fix { background: color-mix(in srgb, var(--klr-accent) 18%, var(--klr-background)); border-radius: 0.1rem; padding: 0.75rem; margin-top: 0.5rem; color: var(--klr-accent-on-bg); font-size: 0.875rem; }
     .focus-map { position: relative; margin: 2rem 0; }
-    .focus-map-surface { position: relative; background: var(--klr-background-alt); border-radius: 0.5rem; overflow: hidden; }
-    .focus-map-surface img { width: 100%; display: block; opacity: 0.85; }
+    .focus-map-surface { position: relative; background: var(--klr-background-alt); overflow: hidden; border: 1px solid white;
+    outline: 1px solid var(--klr-accent); }
+    .focus-map-surface img { width: 100%; display: block; filter: brightness(0.85) saturate(0.9); }
     .focus-map .focus-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
     .focus-lines .route { fill: none; stroke: var(--klr-accent); stroke-width: 2; stroke-linecap: round; }
     .focus-lines .route-outline { fill: none; stroke: white; stroke-width: 4; stroke-linecap: round; }
     .route-arrow { position: absolute; width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 10px solid var(--klr-accent); z-index: 1; pointer-events: none; height: 13px; }
-    .focus-marker { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--klr-accent); border: 1px solid white; color: var(--klr-text); font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: transform 0.12s ease; z-index: 2; cursor: pointer; }
+    .focus-marker { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--klr-accent); border: 1px solid white; color: white; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: transform 0.12s ease; z-index: 2; cursor: pointer; }
     .focus-marker:hover, .focus-marker:focus { transform: translate(-50%, -50%) scale(1.25); z-index: 3; outline: 1px solid black; }
-    .focus-marker.focus-marker--violation { background: var(--klr-warning); }
-    .focus-tooltip { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%) translateY(4px); width: max-content; max-width: 320px; background: var(--klr-background-alt); border: 1px solid var(--klr-border); border-radius: 0.5rem; padding: 0.75rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); text-align: left; font-weight: normal; font-size: 0.75rem; line-height: 1.5; color: var(--klr-text-subtle); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.12s ease, transform 0.12s ease; z-index: 4; }
+    .focus-marker.focus-marker--violation { background: var(--klr-warning); color: black; }
+    .focus-tooltip { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%) translateY(4px); width: max-content; max-width: 320px; background: var(--klr-background-alt); border: 1px solid var(--klr-border); border-radius: 0.2rem; padding: 0.75rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); text-align: left; font-weight: normal; font-size: 0.75rem; line-height: 1.5; color: var(--klr-text-subtle); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.12s ease, transform 0.12s ease; z-index: 4; }
     .focus-marker:hover .focus-tooltip, .focus-marker:focus .focus-tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-    .focus-tooltip-title { color: var(--klr-text); font-weight: 600; font-size: 0.8rem; margin-bottom: 0.375rem; display: flex; justify-content: space-between; gap: 0.75rem; }
+    .focus-tooltip-title { color: var(--klr-text); font-weight: 600; font-size: 0.8rem; margin-bottom: 0.1rem; display: flex; justify-content: space-between; gap: 0.75rem; }
     .focus-tooltip-title span { color: var(--klr-text-muted); font-weight: normal; }
     .focus-tooltip-row { display: flex; gap: 0.5rem; padding: 0.125rem 0; }
     .focus-tooltip-row > span:first-child { flex-shrink: 0; color: var(--klr-text-muted); min-width: 6.5rem; }
@@ -1024,8 +1104,8 @@ function buildPrepareNote(crawl: AuditReport["crawl"]): string {
   return `
     <div style="margin: 1rem 0; padding: 0.75rem 1rem; background: var(--klr-background-alt); border-radius: 0.5rem; font-size: 0.85rem; color: var(--klr-text-subtle);">
       ${dismissals ? `<div><strong style="color: var(--klr-text);">Overlays dismissed:</strong> ${dismissals}</div>` : ""}
-      ${expansion ? `<div style="margin-top: ${dismissals ? "0.25rem" : "0"};"><strong style="color: var(--klr-text);">Scroll container expanded:</strong> ${expansion}</div>` : ""}
-      ${warnings ? `<div style="color: ${onBgVar("warning")}; margin-top: ${dismissals || expansion ? "0.25rem" : "0"};"><strong>Prepare warnings:</strong> ${warnings}</div>` : ""}
+      ${expansion ? `<div style="margin-top: ${dismissals ? "0.1rem" : "0"};"><strong style="color: var(--klr-text);">Scroll container expanded:</strong> ${expansion}</div>` : ""}
+      ${warnings ? `<div style="color: ${onBgVar("warning")}; margin-top: ${dismissals || expansion ? "0.1rem" : "0"};"><strong>Prepare warnings:</strong> ${warnings}</div>` : ""}
     </div>`;
 }
 
@@ -1133,14 +1213,14 @@ function buildIssueViewerHTML(
     <div class="issue-viewer" data-issue-viewer>
       <div class="issue-pager">
         <div class="pager-nav">
-          <button type="button" class="pager-btn" data-pager-action="first" aria-label="First issue">&#171;</button>
-          <button type="button" class="pager-btn" data-pager-action="prev" aria-label="Previous issue">&#8249;</button>
+          <button type="button" class="pager-btn" data-pager-action="first" aria-label="First issue">${ICON_CARET_TO_LEFT}</button>
+          <button type="button" class="pager-btn" data-pager-action="prev" aria-label="Previous issue">${ICON_CARET_LEFT}</button>
           <span class="pager-count"><span data-pager-current>1</span> of <span data-pager-total>${instances.length}</span></span>
-          <button type="button" class="pager-btn" data-pager-action="next" aria-label="Next issue">&#8250;</button>
-          <button type="button" class="pager-btn" data-pager-action="last" aria-label="Last issue">&#187;</button>
+          <button type="button" class="pager-btn" data-pager-action="next" aria-label="Next issue">${ICON_CARET_RIGHT}</button>
+          <button type="button" class="pager-btn" data-pager-action="last" aria-label="Last issue">${ICON_CARET_TO_RIGHT}</button>
         </div>
         <div class="pager-actions">
-          <button type="button" class="pager-action-btn" data-pager-action="highlight">&#9678; Highlight</button>
+          <button type="button" class="pager-action-btn" data-pager-action="highlight">${ICON_TARGET} Highlight</button>
         </div>
       </div>
       ${panels}
@@ -1182,7 +1262,7 @@ function buildRulesHTML(rules: AuditReport["rules"], idPrefix = ""): string {
         return `
       <div class="rule ${status}">
         <div class="rule-header">
-          <span class="rule-name">${rule.passed ? "&#10003;" : "&#10007;"} ${escapeHTML(rule.ruleName || rule.ruleId)}</span>
+          <span class="rule-name">${rule.passed ? ICON_CHECK : ICON_X} ${escapeHTML(rule.ruleName || rule.ruleId)}</span>
           <span class="status-badge" style="${badgeStyle(statusKind)}">${statusLabel}</span>
         </div>
         ${description}
@@ -1194,9 +1274,9 @@ function buildRulesHTML(rules: AuditReport["rules"], idPrefix = ""): string {
       return `
       <div class="rule ${status}">
         <button type="button" class="rule-header rule-header--toggle" data-rule-toggle aria-expanded="false" aria-controls="${bodyId}">
-          <span class="rule-name">&#10007; ${escapeHTML(rule.ruleName || rule.ruleId)}</span>
+          <span class="rule-name">${ICON_X} ${escapeHTML(rule.ruleName || rule.ruleId)}</span>
           <span class="status-badge" style="${badgeStyle(statusKind)}">${statusLabel}</span>
-          <svg class="rule-chevron" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ${ICON_CHEVRON_DOWN}
         </button>
         ${description}
         <div class="rule-body" id="${bodyId}" hidden>

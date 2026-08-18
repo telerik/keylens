@@ -21,7 +21,7 @@ src/
   rules/                 # Each rule implements the Rule interface, evaluated against CrawlResult
     keyboard-trap.ts     # WCAG 2.1.2 - focus trap detection
     unreachable-elements.ts  # WCAG 2.1.1 - interactive elements never reached
-    focus-order-mismatch.ts  # WCAG 2.4.3 - tab order vs visual layout
+    focus-order-mismatch.ts  # WCAG 2.4.3 - tab order vs DOM order
     tabindex-abuse.ts    # WCAG 2.4.3 - positive tabindex values
     missing-focus-indicator.ts  # WCAG 2.4.7 - pixelmatch screenshot diff + CSS heuristic
     skip-link.ts         # WCAG 2.4.1 - skip link presence and functional verification

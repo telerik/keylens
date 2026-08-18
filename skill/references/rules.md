@@ -20,9 +20,9 @@
 
 - **WCAG**: 2.4.3 Focus Order
 - **Severity**: warning
-- **Detects**: Tab order that significantly diverges from visual layout order (tolerance: 3+ position difference)
-- **Common causes**: CSS reordering (flexbox `order`, grid placement, absolute positioning) without matching DOM order
-- **Fix**: Align DOM order with visual order, or use `tabindex` carefully to correct the sequence
+- **Detects**: Tab order that significantly diverges from DOM (content) order (tolerance: 3+ position difference). Does NOT compare against visual/pixel layout — WCAG 2.4.3 explicitly allows focus order to differ from visual layout (e.g. a nav sidebar fully before main content)
+- **Common causes**: Positive `tabindex` values or scripted focus management reordering the tab sequence away from DOM order
+- **Fix**: Remove positive tabindex values; rely on natural DOM order for focus sequence
 
 ## tabindex-abuse
 

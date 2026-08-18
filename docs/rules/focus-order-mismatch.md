@@ -8,38 +8,35 @@
 
 ## What it checks
 
-Detects when the keyboard focus order significantly differs from the visual layout order (top-to-bottom, left-to-right).
+Detects when the keyboard focus order significantly diverges from DOM (content) order — a signal that `tabindex` or scripted focus management has reordered the tab sequence away from the natural content flow (see [F44](https://www.w3.org/WAI/WCAG21/Techniques/failures/F44)).
 
 ## How it works
 
-1. Elements are sorted by their visual position — first by vertical position (Y coordinate), then by horizontal position (X) for elements in the same row (within a 50px threshold).
-2. Each element's position in the focus sequence is compared to its visual position.
-3. Elements where the focus position differs from the visual position by more than 3 places are flagged.
+1. All interactive elements are enumerated in DOM order (the order they appear in the document) before tabbing begins.
+2. Each element's position in the observed focus sequence is compared to its position in DOM order.
+3. Elements where the focus position differs from the DOM position by more than 3 places are flagged.
 
-The tolerance of 3 positions avoids false positives from minor layout variations (e.g., a logo link that's visually centered but first in DOM order).
+The tolerance of 3 positions avoids false positives from minor reordering that doesn't meaningfully disrupt the sequence.
 
-This geometric heuristic assumes top-to-bottom, left-to-right layout. It does not
-understand language direction, component semantics, or author intent, so findings
-require human review.
+Per the [WCAG 2.4.3 Understanding doc](https://www.w3.org/WAI/WCAG21/Understanding/focus-order), focus order does **not** need to follow visual/pixel layout — e.g. a nav sidebar column may legitimately receive focus fully before a shorter, independent main-content column. This rule intentionally compares against DOM order rather than screen position, since native tab order already equals DOM order unless something (tabindex, scripted `.focus()` calls) reorders it — comparing pixel coordinates instead produces false positives on any multi-column layout (nav + main + table-of-contents sidebars are extremely common).
 
 ## Examples
 
 ### Fail
 
 ```html
-<!-- Footer link receives focus before main content -->
-<footer>
-  <a href="/contact" tabindex="1">Contact</a>
-</footer>
-<main>
-  <a href="/about">About</a>
-</main>
+<!-- tabindex reorders focus away from DOM/content order -->
+<nav>
+  <a href="/home" tabindex="1">Home</a>
+  <a href="/about" tabindex="3">About</a>
+  <a href="/contact" tabindex="2">Contact</a>
+</nav>
 ```
 
 ### Pass
 
 ```html
-<!-- Focus follows visual top-to-bottom order -->
+<!-- Focus follows natural DOM order -->
 <nav>
   <a href="/home">Home</a>
   <a href="/about">About</a>
@@ -51,7 +48,7 @@ require human review.
 
 ## How to fix
 
-- Match DOM order to visual order — CSS layout (flexbox `order`, grid placement, `position: absolute`) should not reorder content in ways that confuse focus sequence
-- Remove positive `tabindex` values (see [Tabindex Abuse](/rules/tabindex-abuse))
-- Keep DOM, reading, and visual order aligned; avoid CSS reordering that creates a
-  different keyboard sequence
+- Remove positive `tabindex` values and let elements follow natural DOM order (see [Tabindex Abuse](/rules/tabindex-abuse))
+- Avoid scripted focus management (e.g. manual `.focus()` calls) that jumps focus somewhere other than the next logical element
+- When inserting dynamic content (menus, dialogs), place it adjacent to its trigger in the DOM so focus order stays adjacent to the trigger control (see [F85](https://www.w3.org/WAI/WCAG21/Techniques/failures/F85))
+- Keep DOM order aligned with content sequence and relationships — visual/CSS layout does not need to match focus order as long as meaning and operability are preserved
