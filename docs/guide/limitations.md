@@ -36,10 +36,12 @@ fragment target.
 ## Iframes and shadow DOM
 
 Discovery and focused-element inspection run against the top-level `document`.
-Keylens does not traverse iframe documents or shadow roots. Browser focus may be
-represented by an iframe or shadow host rather than the internal focused control.
-Audit iframe documents as separate URLs when possible and test shadow-root internals
-with component-specific automation.
+Keylens does not traverse iframe documents or shadow roots, and cannot see what's
+focused inside them. Before the tab crawl starts, all `<iframe>` elements are set to
+`tabindex="-1"` so keyboard navigation skips over them entirely instead of tabbing
+into content Keylens can't inspect or report on — iframes are never recorded in the
+focus sequence or interactive element list. Audit iframe documents as separate URLs
+and test shadow-root internals with component-specific automation.
 
 ## Cookie/consent auto-dismissal
 

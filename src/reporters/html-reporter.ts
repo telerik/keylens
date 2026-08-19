@@ -946,7 +946,7 @@ function COMMON_STYLES(statusKind: Kind): string {
       --klr-text-subtle: color-mix(in oklch, var(--klr-text) 65%, var(--klr-background));
       --klr-text-muted: color-mix(in oklch, var(--klr-text) 45%, var(--klr-background));
 
-      --klr-accent: oklch(56.43% 0.131 241.46deg);
+      --klr-accent: oklch(54.53% 0.2124 275.85deg);
       --klr-accent-on-bg: color-mix(in oklch, oklch(from var(--klr-accent) l c h) 70%, oklch(from var(--klr-background) clamp(0, calc((0.5 - l) * 1000), 1) none none) 30%);
 
       --klr-success: oklch(51.46% 0.1066 163.53deg);
@@ -965,7 +965,7 @@ function COMMON_STYLES(statusKind: Kind): string {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--klr-background); color: var(--klr-text); line-height: 1.6; }
     .container { max-width: 1200px; margin: 0 auto; padding: 2rem; position: relative; }
-    header { border-bottom: 1px solid var(--klr-border); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+    header { margin-bottom: 2rem; }
     .theme-toggle { position: absolute; top: 2rem; right: 2rem; width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; background: var(--klr-background-alt); border: 1px solid var(--klr-border); border-radius: 9999px; color: var(--klr-text); cursor: pointer; }
     .theme-toggle:hover { border-color: var(--klr-accent-on-bg); color: var(--klr-accent-on-bg); }
     h1 { font-size: 1.5rem; color: var(--klr-accent-on-bg); padding-right: 3rem; }
