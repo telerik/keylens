@@ -25,6 +25,10 @@ export class KeyboardTrapRule implements Rule {
       const prev = focusSequence[i - 1];
       const curr = focusSequence[i];
 
+      // Iframes are excluded from the tab order (tabindex="-1") before crawling, so they
+      // should never appear here — skip defensively in case a page re-adds tabbability.
+      if (curr.tagName === "iframe") continue;
+
       if (prev.selector === curr.selector) {
         violations.push({
           ruleId: this.id,

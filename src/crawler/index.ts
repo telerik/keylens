@@ -520,6 +520,19 @@ async function resetSequentialFocus(
   await page.waitForTimeout(tabDelay);
 }
 
+/**
+ * Iframes cannot be inspected from the top-level document, and tabbing into one
+ * can burn many tab presses on internal content we can't see or report on. Remove
+ * them from the tab order entirely rather than crawling into them blind.
+ */
+async function excludeIframesFromTabOrder(page: Page): Promise<void> {
+  await page.evaluate(`(() => {
+    document.querySelectorAll('iframe').forEach((el) => {
+      el.setAttribute('tabindex', '-1');
+    });
+  })()`);
+}
+
 async function testSkipLink(
   page: Page,
   tabDelay: number,
@@ -693,6 +706,7 @@ async function crawlTabOrder(
   const tabDelay = config.tabDelay;
 
   await resetSequentialFocus(page, tabDelay);
+  await excludeIframesFromTabOrder(page);
 
   for (let i = 0; i < config.maxTabs; i++) {
     throwIfAborted(signal, "crawl", url);
