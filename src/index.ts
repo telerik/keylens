@@ -27,6 +27,7 @@ import {
 import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
 import { hasConfiguredAIAPIKey, normalizeConfig } from "./utils/config.js";
 import { createExecutionScope, throwIfAborted } from "./utils/execution.js";
+import { getUnreachedInteractiveElements } from "./utils/roving-tabindex.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
@@ -170,8 +171,8 @@ function buildBaseReport(
     crawl: {
       totalFocusableElements: crawlResult.focusSequence.length,
       totalInteractiveElements: crawlResult.interactiveElements.length,
-      unreachedElements: crawlResult.interactiveElements.filter(
-        (element) => !element.reached,
+      unreachedElements: getUnreachedInteractiveElements(
+        crawlResult.interactiveElements,
       ).length,
       cycleCompleted: crawlResult.cycleCompleted,
       duration: crawlResult.crawlDuration,

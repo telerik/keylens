@@ -560,6 +560,11 @@ export interface InteractiveElement {
   tabindexAttr: number | null;
   /** Raw outer HTML (truncated) */
   outerHTML: string;
+  /**
+   * Selector of the nearest ancestor composite widget container (e.g. `[role="tablist"]`)
+   * when this element is a roving-tabindex member (e.g. `[role="tab"]`). Null otherwise.
+   */
+  rovingContainerSelector: string | null;
 }
 
 export interface SkipLinkResult {

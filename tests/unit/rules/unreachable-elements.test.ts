@@ -76,4 +76,62 @@ describe("UnreachableElementsRule", () => {
 
     expect(result.passed).toBe(true);
   });
+
+  it("should not flag roving-tabindex members of an active composite widget", async () => {
+    // W3C APG tabs pattern: only the active tab is a Tab stop (tabindex="0"),
+    // the rest use tabindex="-1" and are reached via arrow keys, not Tab.
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({
+            selector: "#tab-1",
+            reached: true,
+            tabindexAttr: null,
+            rovingContainerSelector: "#tablist",
+          }),
+          makeInteractiveElement({
+            selector: "#tab-2",
+            reached: false,
+            tabindexAttr: -1,
+            rovingContainerSelector: "#tablist",
+          }),
+          makeInteractiveElement({
+            selector: "#tab-3",
+            reached: false,
+            tabindexAttr: -1,
+            rovingContainerSelector: "#tablist",
+          }),
+        ],
+      }),
+    );
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toHaveLength(0);
+  });
+
+  it("should still flag a composite widget whose members are all unreachable", async () => {
+    // No member of the group ever received focus, so the widget isn't
+    // reachable at all - a genuine keyboard trap, not a benign roving pattern.
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({
+            selector: "#tab-1",
+            reached: false,
+            tabindexAttr: null,
+            rovingContainerSelector: "#tablist",
+          }),
+          makeInteractiveElement({
+            selector: "#tab-2",
+            reached: false,
+            tabindexAttr: -1,
+            rovingContainerSelector: "#tablist",
+          }),
+        ],
+      }),
+    );
+
+    expect(result.passed).toBe(false);
+    expect(result.violations[0].elements).toHaveLength(2);
+  });
 });

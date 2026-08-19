@@ -1,4 +1,5 @@
 import type { Rule, CrawlResult, RuleResult } from "../types/index.js";
+import { getUnreachedInteractiveElements } from "../utils/roving-tabindex.js";
 
 /**
  * Detects interactive elements (buttons, links, inputs, etc.)
@@ -16,7 +17,7 @@ export class UnreachableElementsRule implements Rule {
     const violations: RuleResult["violations"] = [];
     const { interactiveElements } = crawlResult;
 
-    const unreached = interactiveElements.filter((el) => !el.reached);
+    const unreached = getUnreachedInteractiveElements(interactiveElements);
 
     if (unreached.length > 0) {
       violations.push({

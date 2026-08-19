@@ -38,6 +38,7 @@ export function makeInteractiveElement(
     reached: false,
     tabindexAttr: null,
     outerHTML: "<button>Test</button>",
+    rovingContainerSelector: null,
     ...overrides,
   };
 }

@@ -146,6 +146,32 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
     const elements = document.querySelectorAll(interactiveSelectors.join(','));
     const getSelector = ${GET_UNIQUE_SELECTOR_SCRIPT};
 
+    // ARIA composite widgets (e.g. tablist, menu) use "roving tabindex": only the
+    // active member is a Tab stop (tabindex="0"), the rest are tabindex="-1" and
+    // reached via arrow keys, not Tab. Find the nearest such ancestor so the
+    // unreachable-elements rule can avoid flagging these as keyboard-inaccessible.
+    const rovingWidgetMemberRoles = [
+      'tab', 'menuitem', 'menuitemradio', 'menuitemcheckbox', 'option', 'radio',
+      'gridcell', 'treeitem', 'columnheader', 'rowheader',
+    ];
+    const rovingContainerRoles = [
+      'tablist', 'menu', 'menubar', 'listbox', 'radiogroup', 'tree', 'treegrid',
+      'grid', 'toolbar',
+    ];
+    const getRovingContainerSelector = (el) => {
+      const role = el.getAttribute('role');
+      if (!role || rovingWidgetMemberRoles.indexOf(role) === -1) return null;
+      let parent = el.parentElement;
+      while (parent && parent !== document.body) {
+        const parentRole = parent.getAttribute('role');
+        if (parentRole && rovingContainerRoles.indexOf(parentRole) !== -1) {
+          return getSelector(parent);
+        }
+        parent = parent.parentElement;
+      }
+      return null;
+    };
+
     // Check if an element is inside a disabled fieldset (but not inside its legend)
     const isInDisabledFieldset = (el) => {
       let parent = el.parentElement;
@@ -199,6 +225,7 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
             ? parseInt(el.getAttribute('tabindex'), 10)
             : null,
           outerHTML: el.outerHTML.substring(0, ${HTML_PREVIEW_LENGTH}),
+          rovingContainerSelector: getRovingContainerSelector(el),
         };
       });
   }
