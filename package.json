@@ -124,7 +124,7 @@
   },
   "optionalDependencies": {
     "@anthropic-ai/sdk": "^0.116.0",
-    "openai": "^6.0.0"
+    "openai": "^7.4.0"
   },
   "engines": {
     "node": ">=26.0.0"
