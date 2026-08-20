@@ -51,7 +51,7 @@ Execution profiles do not remove capture, interaction, or timeout budgets.
 npx keylens audit <URL> --ai --output cli,json,html --output-dir ./keylens-report
 ```
 
-### Audit with screenshot-based focus indicator detection
+### Audit with per-element screenshots (AI focus-indicator quality scoring)
 
 ```bash
 npx keylens audit <URL> --screenshots --output cli,json

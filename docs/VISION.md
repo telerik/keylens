@@ -47,7 +47,7 @@ A CLI tool that uses Playwright under the hood to:
 - **Unreachable interactives** (WCAG 2.1.1): `<button>`, `<a href>`, `<input>`, etc. discovered on page but never reached via Tab
 - **Focus order vs visual order mismatch** (WCAG 2.4.3): element position in tab sequence doesn't match its screen position (with tolerance for minor discrepancies)
 - **Positive tabindex abuse** (WCAG 2.4.3): any `tabindex > 0` detected — disrupts natural tab order
-- **Missing focus indicator** (WCAG 2.4.7): two-phase detection — CSS heuristic checks for `outline: none` patterns (severity: warning), then pixelmatch screenshot comparison confirms no visible focus style change (severity: error when `--screenshots` enabled)
+- **Missing focus indicator** (WCAG 2.4.7): computed-style diff — compares outline, box-shadow, border, background, color, pseudo-elements, and parent styles taken while focused vs. once focus moves away. Runs by default (no flag needed); any difference counts as a visible indicator (severity: error)
 - **Skip link** (WCAG 2.4.1): crawler tabs through the first 5 elements, identifies a skip-link pattern, presses Enter, and records the resulting focus target. The current pass check only establishes that focus is not lost to the document; manual destination verification remains necessary
 - **Focus not obscured** (WCAG 2.4.11): checks if focused elements are hidden behind overlays or other content using `elementFromPoint` at the element's center
 - **Focus after interaction** (WCAG 2.4.3, 2.4.7): when experimental interactions are enabled, runs bounded configured activations against eligible controls and verifies focus remains on a valid target. Each failed interaction is a separate error-severity violation
@@ -128,7 +128,7 @@ keylens/
 │   │   ├── unreachable-elements.ts  # WCAG 2.1.1 - interactive elements never reached
 │   │   ├── focus-order-mismatch.ts  # WCAG 2.4.3 - tab order vs visual layout
 │   │   ├── tabindex-abuse.ts      # WCAG 2.4.3 - positive tabindex values
-│   │   ├── missing-focus-indicator.ts  # WCAG 2.4.7 - pixelmatch diff + CSS heuristic
+│   │   ├── missing-focus-indicator.ts  # WCAG 2.4.7 - computed-style diff (focused vs unfocused)
 │   │   ├── skip-link.ts          # WCAG 2.4.1 - skip link presence and functional test
 │   │   ├── focus-not-obscured.ts  # WCAG 2.4.11 - focused element not hidden by overlays
 │   │   └── focus-after-interaction.ts  # WCAG 2.4.3/2.4.7 - focus not lost after clicking
@@ -156,9 +156,9 @@ keylens/
 
 - **Playwright over Puppeteer** — cross-browser support (Chromium, Firefox, WebKit), better API, actively maintained
 - **Rule-based architecture** — each check is a standalone module, easy to add new rules or let community contribute them
-- **Two-phase focus indicator detection** — fast CSS heuristic first (detects `outline: none` patterns in inline styles), then pixel-accurate screenshot comparison via pixelmatch when `--screenshots` is enabled. Screenshot-confirmed violations are severity "error" vs heuristic "warning"
+- **Computed-style diffing for focus indicators** — crawler diffs a computed-style snapshot (outline, box-shadow, border, background, color, `::before`/`::after`, and parent styles for `:focus-within`) taken while focused vs. once focus moves away. Runs by default (no flag needed) since the crawler already focuses every element for real; catches JS/attribute-driven indicators and container-level highlighting that a CSS/HTML text scan would miss
 - **Skip link functional testing** — crawler tabs through first 5 elements, identifies skip links by regex pattern, presses Enter, and records the resulting focus target; current pass logic only checks that focus remains on a non-document element
-- **Per-element focused/unfocused screenshots** — during tab crawl, captures focused state of current element + unfocused state of previous element (which just lost focus), enabling before/after pixelmatch comparison
+- **Per-element focused/unfocused screenshots** — during tab crawl, captures focused state of current element + unfocused state of previous element (which just lost focus); used only by the AI focus-indicator-quality feature (contrast/visibility scoring), not for presence detection
 - **HTML focus order overlay** — `buildFocusMapHTML()` renders page screenshot as background with numbered markers at each focused element, SVG connecting lines showing tab flow. Percentage-based positioning via `pageRect` / `pageDimensions`. Violation markers colored red
 - **Multi-page scanning** — `auditMultiple()` reuses one browser with bounded concurrency and aggregates results into `MultiPageReport`. CLI URL is optional; reads from config `urls` when omitted. Tabbed HTML report with per-page focus maps
 - **HTML escaping throughout** — all user-supplied strings escaped in HTML output to prevent XSS
@@ -172,7 +172,7 @@ keylens/
 | Actually tabs through page   | No               | Manual only            | Yes, automated                                      |
 | Detects keyboard traps       | No               | Manual only            | Yes                                                 |
 | Focus order visualization    | No               | Manual only            | Yes, HTML overlay with numbered markers + SVG lines |
-| Focus indicator detection    | No               | No                     | Yes, pixelmatch screenshot diff                     |
+| Focus indicator detection    | No               | No                     | Yes, computed-style diff (focused vs unfocused)     |
 | Skip link functional testing | No               | No                     | Yes, verifies Enter + focus target                  |
 | Multi-page scanning          | Yes              | No                     | Yes, aggregate report with tabbed HTML              |
 | Scriptable / configurable    | Yes              | No                     | Yes, JSON config + CLI flags                        |
@@ -411,7 +411,7 @@ npx keylens https://example.com
 
 **False positives on focus order:** "Logical" order is subjective in complex layouts. Mitigation: flag as warnings not errors, let users configure expected order.
 
-**Screenshot diffing reliability:** Focus styles vary wildly. Currently uses pixelmatch with a 1% pixel difference threshold (`DIFF_THRESHOLD = 0.01`) — below that, the element is flagged as having no focus indicator. CSS heuristic (detecting `outline: none` patterns) runs as a fast-path before screenshot comparison. Could further supplement with computed style comparison (outline, box-shadow, border changes).
+**Focus indicator detection reliability:** Focus styles vary wildly. Uses a computed-style diff (outline, box-shadow, border, background, color, pseudo-elements, parent) between focused and unfocused snapshots — any difference counts as a visible indicator. Runs by default; per-element screenshots (`--screenshots`) are a separate, opt-in input to the AI focus-indicator-quality scoring feature, not to presence detection.
 
 ---
 

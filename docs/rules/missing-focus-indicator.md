@@ -3,7 +3,7 @@
 | Property | Value                                                                                 |
 | -------- | ------------------------------------------------------------------------------------- |
 | ID       | `missing-focus-indicator`                                                             |
-| Severity | Warning / Error                                                                       |
+| Severity | Error                                                                                 |
 | WCAG     | [2.4.7 Focus Visible](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html) |
 
 ## What it checks
@@ -12,34 +12,28 @@ Detects interactive elements that lack a visible focus indicator — keyboard us
 
 ## How it works
 
-Keylens uses a two-phase detection approach:
+While tabbing through the page, the crawler captures a computed-style snapshot of each
+element the moment it receives focus, and another snapshot of the same element once
+focus moves away. The snapshot covers:
 
-### Phase 1: CSS Heuristic (always active)
+- The element's own `outline`, `outline-offset`, `box-shadow`, `border`, `background-color`,
+  `color`, `text-decoration-line`, `filter`, and `background-image`
+- Its `::before` / `::after` pseudo-elements (`content` and `box-shadow`)
+- Its immediate parent's `outline`, `box-shadow`, and `background-color` (for
+  `:focus-within` container patterns)
 
-Scans each element's `outerHTML` for patterns that suppress focus outlines:
+If **any** of these properties differ between the focused and unfocused snapshots, the
+element is considered to have a visible focus indicator. If none differ, it's flagged.
 
-- `outline: none`
-- `outline: 0`
-- `outline:none` (no space)
-- `outline:0` (no space)
+This runs by default — no flags required — because the crawler already focuses every
+element for real during the tab crawl; reading computed styles twice is inexpensive.
+It also catches indicators that a static HTML/CSS scan would miss, such as classes or
+attributes toggled by JavaScript (e.g. `data-focus-visible`) and `:focus-within`
+container highlighting.
 
-Elements matching these patterns are flagged with **Warning** severity.
-
-### Phase 2: Screenshot Comparison (with `--screenshots`)
-
-When `--screenshots` is enabled and capture budgets permit, the crawler captures:
-
-- A **focused screenshot** of each element immediately after it receives focus
-- An **unfocused screenshot** of the same element after focus moves away
-
-Only complete, same-sized pairs are compared with
-[pixelmatch](https://github.com/mapbox/pixelmatch). If fewer than 1% of pixels differ,
-the element is flagged with **Error** severity.
-
-This provides stronger evidence than the inline HTML heuristic, but it is not a
-contrast measurement or WCAG conformance proof. Animation, clipping, antialiasing,
-content changes, and indicators painted outside the captured rectangle can cause false
-results. Missing or failed pairs receive no screenshot result.
+Per-element screenshots (`--screenshots`) are unrelated to this detection — they feed
+the separate AI focus-indicator-quality scoring feature, which rates contrast/visibility
+of indicators that are already confirmed present.
 
 ## Examples
 
@@ -50,7 +44,7 @@ results. Missing or failed pairs receive no screenshot result.
 ```
 
 ```css
-/* External stylesheet — caught by screenshot diff, not CSS heuristic */
+/* No compensating style — outline is truly gone with nothing replacing it */
 .nav-link:focus {
   outline: none;
 }
@@ -63,7 +57,7 @@ results. Missing or failed pairs receive no screenshot result.
 <a href="/about">About</a>
 
 <!-- Custom focus style -->
-<button class="btn" style="outline: none">
+<button class="btn">
   <!-- Has box-shadow focus style instead -->
 </button>
 ```
@@ -80,4 +74,4 @@ results. Missing or failed pairs receive no screenshot result.
 - Never remove focus outlines without providing a visible alternative
 - Use `:focus-visible` instead of `:focus` to only show focus styles for keyboard navigation
 - Ensure custom focus indicators have sufficient contrast (at least 3:1 ratio)
-- Test with `--screenshots` to verify your focus styles are actually visible
+- Use `--screenshots` to get an AI-scored quality rating of indicators already detected as present

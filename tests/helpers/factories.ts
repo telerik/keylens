@@ -1,5 +1,6 @@
 import type {
   FocusedElement,
+  FocusStyleSnapshot,
   InteractiveElement,
   CrawlResult,
   AuditReport,
@@ -23,6 +24,48 @@ export function makeFocusedElement(
     hasFocusIndicator: null,
     outerHTML: '<button class="test">Test Button</button>',
     ...overrides,
+  };
+}
+
+export function makeFocusStyleSnapshot(
+  overrides: {
+    self?: Partial<FocusStyleSnapshot["self"]>;
+    before?: Partial<FocusStyleSnapshot["before"]>;
+    after?: Partial<FocusStyleSnapshot["after"]>;
+    parent?: Partial<NonNullable<FocusStyleSnapshot["parent"]>>;
+  } = {},
+): FocusStyleSnapshot {
+  const baseSelf = {
+    outline: "rgb(0, 0, 0) none 0px",
+    "outline-offset": "0px",
+    "box-shadow": "none",
+    border: "0px none rgb(0, 0, 0)",
+    "background-color": "rgba(0, 0, 0, 0)",
+    color: "rgb(0, 0, 0)",
+    "text-decoration-line": "none",
+    filter: "none",
+    "background-image": "none",
+  };
+  const basePseudo = {
+    content: "none",
+    "box-shadow": "none",
+    "background-color": "rgba(0, 0, 0, 0)",
+    width: "0px",
+    height: "0px",
+    opacity: "1",
+    transform: "none",
+  };
+  const baseParent = {
+    "box-shadow": "none",
+    "background-color": "rgba(0, 0, 0, 0)",
+    outline: "rgb(0, 0, 0) none 0px",
+  };
+
+  return {
+    self: { ...baseSelf, ...overrides.self },
+    before: { ...basePseudo, ...overrides.before },
+    after: { ...basePseudo, ...overrides.after },
+    parent: { ...baseParent, ...overrides.parent },
   };
 }
 

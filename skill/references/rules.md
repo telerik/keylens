@@ -35,8 +35,8 @@
 ## missing-focus-indicator
 
 - **WCAG**: 2.4.7 Focus Visible
-- **Severity**: error (when confirmed via screenshot diff) or warning (CSS heuristic only)
-- **Detects**: Elements that receive focus but show no visible focus indicator
+- **Severity**: error
+- **Detects**: Elements that receive focus but show no visible focus indicator (computed-style diff between focused/unfocused states, always on — no flag needed)
 - **Common causes**: `outline: none` / `outline: 0` in CSS without replacement styles, transparent outlines, browser default overridden
 - **Fix**: Add visible `:focus-visible` styles (outline, box-shadow, or border change)
 

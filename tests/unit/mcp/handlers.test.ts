@@ -17,6 +17,7 @@ import {
   makeCrawlResult,
   makeInteractiveElement,
   makeInlineAsset,
+  makeFocusStyleSnapshot,
 } from "@tests/helpers/factories.js";
 import type {
   AuditReport,
@@ -264,17 +265,16 @@ describe("compactReport", () => {
     ).toBeUndefined();
   });
 
-  it("removes boundingRect, pageRect, computedFocusStyles from elements", () => {
+  it("removes boundingRect, pageRect, style snapshots from elements", () => {
     const report = makeAuditReport({
       focusSequence: [
         makeFocusedElement({
           boundingRect: { x: 10, y: 20, width: 100, height: 40 },
           pageRect: { x: 10, y: 20, width: 100, height: 40 },
-          computedFocusStyles: {
-            outline: "2px solid blue",
-            boxShadow: "none",
-            border: "none",
-          },
+          focusedStyleSnapshot: makeFocusStyleSnapshot({
+            self: { outline: "rgb(0, 0, 255) solid 2px" },
+          }),
+          unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
         }),
       ],
     });
@@ -284,7 +284,8 @@ describe("compactReport", () => {
 
     expect(el.boundingRect).toBeUndefined();
     expect(el.pageRect).toBeUndefined();
-    expect(el.computedFocusStyles).toBeUndefined();
+    expect(el.focusedStyleSnapshot).toBeUndefined();
+    expect(el.unfocusedStyleSnapshot).toBeUndefined();
   });
 
   it("removes screenshot assets and their references", () => {
@@ -614,11 +615,9 @@ describe("handleAudit", () => {
           outerHTML: "<button>Click</button>",
           boundingRect: { x: 0, y: 0, width: 100, height: 40 },
           pageRect: { x: 0, y: 0, width: 100, height: 40 },
-          computedFocusStyles: {
-            outline: "2px solid",
-            boxShadow: "none",
-            border: "none",
-          },
+          focusedStyleSnapshot: makeFocusStyleSnapshot({
+            self: { outline: "rgb(0, 0, 255) solid 2px" },
+          }),
         }),
       ],
     });
@@ -631,7 +630,7 @@ describe("handleAudit", () => {
     expect(parsed.focusSequence[0].outerHTML).toBeUndefined();
     expect(parsed.focusSequence[0].boundingRect).toBeUndefined();
     expect(parsed.focusSequence[0].pageRect).toBeUndefined();
-    expect(parsed.focusSequence[0].computedFocusStyles).toBeUndefined();
+    expect(parsed.focusSequence[0].focusedStyleSnapshot).toBeUndefined();
   });
 
   it("strips screenshots from response", async () => {

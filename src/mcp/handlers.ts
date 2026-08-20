@@ -137,7 +137,7 @@ export function injectSampling(config: KeylensConfig, server?: Server): void {
 
 /**
  * Slim down a FocusedElement to only the fields an LLM needs.
- * Drops: screenshots, outerHTML, boundingRect, pageRect, computedFocusStyles.
+ * Drops: screenshots, outerHTML, boundingRect, pageRect, style snapshots.
  */
 function compactElement(el: FocusedElement) {
   return {
@@ -214,7 +214,7 @@ function compactNameSuggestions(
 /**
  * Produce a compact single-page report for MCP consumption.
  * Strips: screenshots, outerHTML, boundingRect, pageRect,
- * computedFocusStyles, and the echoed config object.
+ * style snapshots, and the echoed config object.
  */
 export function compactReport(report: AuditReport) {
   return {

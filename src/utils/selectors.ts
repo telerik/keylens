@@ -60,6 +60,63 @@ export const GET_UNIQUE_SELECTOR_SCRIPT = `
 `;
 
 /**
+ * Computes a FocusStyleSnapshot for a given element: the *entire* computed
+ * style declaration (all longhand properties, not a curated subset) for the
+ * element itself, its ::before/::after pseudo-elements, and its immediate
+ * parent (for :focus-within container patterns). Diffing full declarations
+ * avoids blind spots from hand-picking properties — any CSS-expressible
+ * indicator (border-radius, background-image/position, text-shadow,
+ * clip-path, letter-spacing, etc.) shows up as a value difference somewhere.
+ * Runs in page context.
+ */
+export const GET_FOCUS_STYLE_SNAPSHOT_SCRIPT = `
+  (el) => {
+    const serialize = (style) => {
+      const out = {};
+      for (let i = 0; i < style.length; i++) {
+        const prop = style[i];
+        out[prop] = style.getPropertyValue(prop);
+      }
+      return out;
+    };
+    return {
+      self: serialize(window.getComputedStyle(el)),
+      before: serialize(window.getComputedStyle(el, '::before')),
+      after: serialize(window.getComputedStyle(el, '::after')),
+      parent: el.parentElement ? serialize(window.getComputedStyle(el.parentElement)) : undefined,
+    };
+  }
+`;
+
+/**
+ * Computes a FocusStyleSnapshot for document.activeElement.
+ * Runs in page context via page.evaluate().
+ */
+export const GET_ACTIVE_ELEMENT_STYLE_SNAPSHOT_SCRIPT = `
+  () => {
+    const el = document.activeElement;
+    if (!el || el === document.body || el === document.documentElement) return null;
+    const getSnapshot = ${GET_FOCUS_STYLE_SNAPSHOT_SCRIPT};
+    return getSnapshot(el);
+  }
+`;
+
+/**
+ * Computes a FocusStyleSnapshot for the element matching a CSS selector.
+ * Used to read the style of an element that just lost focus — it's no
+ * longer document.activeElement, so it must be re-located by selector.
+ * Runs in page context via page.evaluate().
+ */
+export const GET_STYLE_SNAPSHOT_BY_SELECTOR_SCRIPT = `
+  (selector) => {
+    const el = document.querySelector(selector);
+    if (!el) return null;
+    const getSnapshot = ${GET_FOCUS_STYLE_SNAPSHOT_SCRIPT};
+    return getSnapshot(el);
+  }
+`;
+
+/**
  * Script to extract info about the currently focused element.
  * Runs in page context.
  */
