@@ -45,8 +45,9 @@ export async function scoreFocusIndicatorQuality(
   try {
     const elementDescriptions = elementsToScore
       .map(({ element: el }, i) => {
-        const styleInfo = el.computedFocusStyles
-          ? ` | Computed focus styles — outline: ${el.computedFocusStyles.outline}, box-shadow: ${el.computedFocusStyles.boxShadow}, border: ${el.computedFocusStyles.border}`
+        const self = el.focusedStyleSnapshot?.self;
+        const styleInfo = self
+          ? ` | Computed focus styles — outline: ${self.outline}, box-shadow: ${self["box-shadow"]}, border: ${self.border}`
           : "";
         return `Element ${i + 1}: <${el.tagName}> role="${el.role}" name="${el.accessibleName || "(none)"}"${styleInfo}`;
       })

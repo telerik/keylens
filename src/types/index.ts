@@ -484,6 +484,24 @@ export interface MultiPageAuditTimings {
 
 // ─── Crawl Results ───────────────────────────────────────────────
 
+/** All computed style properties for an element, keyed by CSS property name. */
+export type ComputedStyleMap = Record<string, string>;
+
+/**
+ * Computed style snapshot compared between a focused and unfocused capture of
+ * the same element to detect a visible focus indicator (WCAG 2.4.7). Captures
+ * the *entire* computed style declaration (not a curated property subset) for
+ * the element itself, its ::before/::after pseudo-elements, and its immediate
+ * parent (for :focus-within patterns) — any CSS-expressible visual change
+ * shows up as a value difference somewhere in one of these maps.
+ */
+export interface FocusStyleSnapshot {
+  self: ComputedStyleMap;
+  before: ComputedStyleMap;
+  after: ComputedStyleMap;
+  parent?: ComputedStyleMap;
+}
+
 export interface FocusedElement {
   /** Position in the tab sequence (1-indexed) */
   tabIndex: number;
@@ -521,12 +539,11 @@ export interface FocusedElement {
   /** Element's bounding rectangle in absolute page coordinates (accounts for scroll) */
   pageRect?: BoundingRect;
 
-  /** Computed focus-related CSS styles (captured when --screenshots enabled) */
-  computedFocusStyles?: {
-    outline: string;
-    boxShadow: string;
-    border: string;
-  };
+  /** Computed style snapshot captured the moment this element received focus */
+  focusedStyleSnapshot?: FocusStyleSnapshot;
+
+  /** Computed style snapshot captured for this same element once focus moved away */
+  unfocusedStyleSnapshot?: FocusStyleSnapshot;
 
   /** Raw outer HTML (truncated) */
   outerHTML: string;

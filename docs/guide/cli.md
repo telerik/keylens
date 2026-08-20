@@ -54,9 +54,11 @@ Focus pairs are bounded by `capture.limits`. The CLI progress display reports Ta
 attempts, focus stops, completed pairs, and bytes while work runs. The final CLI report
 shows complete/partial pair coverage plus skipped or failed capture totals.
 
-`missing-focus-indicator` compares only complete pairs. If a pair is absent because of
-a limit, clipping problem, animation, or capture failure, that element receives no
-pixel-diff result. The rule can still apply its much narrower inline-style heuristic.
+`missing-focus-indicator` always runs via a computed-style diff (outline, box-shadow,
+border, background, color, pseudo-elements, and parent styles) taken while each
+element was focused vs. once focus moved away — no flag required. `--screenshots`
+is a separate, opt-in capture used only by the AI focus-indicator-quality feature to
+score the contrast/visibility of indicators already confirmed present.
 
 ```bash
 npx keylens audit https://example.com \

@@ -74,19 +74,27 @@ was handled. Use `--dismiss <selector>` for a known banner the built-ins miss, o
 ## Focus screenshots
 
 `--screenshots` captures a clipped PNG for an element while focused and another after
-focus moves. A complete pair is compared for pixel change; it does not measure contrast
-or prove WCAG Focus Appearance conformance.
-
-False results can come from animation, caret blinking, content changes, antialiasing,
-scrolling, clipping, transparent effects outside the element rectangle, browser theme,
-device scale, or focus styles that do not alter enough pixels. Elements with different
-image dimensions or failed/omitted captures are not compared. The fallback heuristic
-only recognizes inline `outline: none`/`outline: 0` text in recorded outer HTML; it
-cannot understand external stylesheets or prove that an alternative indicator exists.
+focus moves. These images are not used by `missing-focus-indicator` — that rule always
+runs via a computed-style diff instead (see below). Screenshot pairs feed only the AI
+focus-indicator-quality feature, which scores contrast/visibility of indicators already
+confirmed present; it is not a contrast measurement or WCAG Focus Appearance proof on
+its own.
 
 Capture limits can skip a page image or focus pairs without failing the audit. Review
-CLI pair coverage, `crawl.capture`, and screenshot IDs before interpreting the
-missing-focus-indicator result.
+CLI pair coverage, `crawl.capture`, and screenshot IDs before interpreting AI
+focus-indicator-quality scores.
+
+## Focus indicator detection
+
+`missing-focus-indicator` diffs a computed-style snapshot (outline, box-shadow, border,
+background, color, `::before`/`::after`, and the immediate parent for `:focus-within`
+patterns) taken while an element was focused against one taken once focus moved away —
+always, with no flag required. Any difference counts as a visible indicator.
+
+This is more reliable than a text-based CSS scan (it reflects the real cascade,
+including JS/attribute-toggled classes), but it is not a contrast measurement or proof
+of WCAG Focus Appearance conformance. Indicators implemented via canvas drawing, or
+whose visual delta only appears mid-transition before settling, can still be missed.
 
 ## Page screenshots and HTML maps
 

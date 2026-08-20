@@ -12,6 +12,7 @@ import type {
   KeylensConfig,
   CrawlResult,
   FocusedElement,
+  FocusStyleSnapshot,
   InteractiveElement,
   InteractionResult,
   BoundingRect,
@@ -54,6 +55,8 @@ import { logger } from "../utils/logger.js";
 import {
   GET_FOCUSED_ELEMENT_INFO_SCRIPT,
   GET_INTERACTIVE_ELEMENTS_SCRIPT,
+  GET_ACTIVE_ELEMENT_STYLE_SNAPSHOT_SCRIPT,
+  GET_STYLE_SNAPSHOT_BY_SELECTOR_SCRIPT,
 } from "../utils/selectors.js";
 import {
   AuditTimeoutError,
@@ -815,10 +818,36 @@ async function crawlTabOrder(
       // If the check fails, assume not obscured
     }
 
-    // Capture focused screenshot and computed focus styles if enabled
+    // Capture a computed-style snapshot while the element is focused (always —
+    // cheap style reads, no images). Diffed against the unfocused snapshot
+    // below by the missing-focus-indicator rule.
+    let focusedStyleSnapshot: FocusStyleSnapshot | undefined;
+    try {
+      focusedStyleSnapshot =
+        (await page.evaluate(
+          `(${GET_ACTIVE_ELEMENT_STYLE_SNAPSHOT_SCRIPT})()`,
+        )) ?? undefined;
+    } catch {
+      throwIfAborted(signal, "capture", url);
+      // Ignore style capture failures
+    }
+
+    // The previous element just lost focus — re-locate it by selector (it's no
+    // longer document.activeElement) and snapshot its unfocused style.
+    if (lastElement && !lastElement.unfocusedStyleSnapshot) {
+      try {
+        lastElement.unfocusedStyleSnapshot =
+          (await page.evaluate(
+            `(${GET_STYLE_SNAPSHOT_BY_SELECTOR_SCRIPT})(${JSON.stringify(lastElement.selector)})`,
+          )) ?? undefined;
+      } catch {
+        throwIfAborted(signal, "capture", url);
+      }
+    }
+
+    // Capture per-element screenshots if enabled (used for AI focus-indicator
+    // quality scoring — presence detection no longer depends on these)
     let focusedScreenshot: string | undefined;
-    let computedFocusStyles:
-      { outline: string; boxShadow: string; border: string } | undefined;
     const captureThisElement =
       captureScreenshots && focusSequence.length < maxElements;
     if (captureThisElement) {
@@ -838,29 +867,11 @@ async function crawlTabOrder(
           focusedScreenshot,
         );
       }
-
-      // Capture computed focus-related CSS styles while element is focused
-      try {
-        computedFocusStyles = await page.evaluate(`(() => {
-          const el = document.activeElement;
-          if (!el || el === document.body) return null;
-          const s = window.getComputedStyle(el);
-          return {
-            outline: s.outline || '',
-            boxShadow: s.boxShadow || '',
-            border: s.border || '',
-          };
-        })()`);
-      } catch {
-        throwIfAborted(signal, "capture", url);
-        // Ignore style capture failures
-      }
     } else if (captureScreenshots) {
       captureBudget.skip(2);
     }
 
     // Capture unfocused screenshot of the *previous* element (if screenshots enabled)
-    // The previous element just lost focus, so it's now in unfocused state
     if (
       captureScreenshots &&
       lastElement &&
@@ -897,7 +908,7 @@ async function crawlTabOrder(
       hasFocusIndicator: null, // Will be determined by focus indicator rule
       isObscured,
       focusedScreenshot,
-      computedFocusStyles: computedFocusStyles ?? undefined,
+      focusedStyleSnapshot,
       outerHTML: elementInfo.outerHTML,
       ariaAttributes:
         Object.keys(elementInfo.ariaAttributes).length > 0
@@ -917,32 +928,48 @@ async function crawlTabOrder(
     );
   }
 
-  // Capture unfocused screenshot of the last element (it just lost focus when cycle ends)
-  if (
-    captureScreenshots &&
-    focusSequence.length > 0 &&
-    focusSequence.length <= maxElements
-  ) {
+  // Capture unfocused state of the last element (it just lost focus when cycle ends)
+  if (focusSequence.length > 0) {
     const lastEl = focusSequence[focusSequence.length - 1];
-    if (!lastEl.unfocusedScreenshot) {
+    const needsScreenshot =
+      captureScreenshots &&
+      focusSequence.length <= maxElements &&
+      !lastEl.unfocusedScreenshot;
+    const needsStyleSnapshot = !lastEl.unfocusedStyleSnapshot;
+
+    if (needsScreenshot || needsStyleSnapshot) {
       // Tab once more so the last element loses focus
       await page.keyboard.press("Tab");
       await page.waitForTimeout(tabDelay);
-      lastEl.unfocusedScreenshot = await captureElementScreenshot(
-        page,
-        lastEl.pageRect ?? lastEl.boundingRect,
-        captureBudget,
-        signal,
-        url,
-      );
-      if (lastEl.unfocusedScreenshot) {
-        emitAssetCaptured(
-          onEvent,
-          eventStartedAt,
+
+      if (needsStyleSnapshot) {
+        try {
+          lastEl.unfocusedStyleSnapshot =
+            (await page.evaluate(
+              `(${GET_STYLE_SNAPSHOT_BY_SELECTOR_SCRIPT})(${JSON.stringify(lastEl.selector)})`,
+            )) ?? undefined;
+        } catch {
+          throwIfAborted(signal, "capture", url);
+        }
+      }
+
+      if (needsScreenshot) {
+        lastEl.unfocusedScreenshot = await captureElementScreenshot(
+          page,
+          lastEl.pageRect ?? lastEl.boundingRect,
+          captureBudget,
+          signal,
           url,
-          "unfocused-element-screenshot",
-          lastEl.unfocusedScreenshot,
         );
+        if (lastEl.unfocusedScreenshot) {
+          emitAssetCaptured(
+            onEvent,
+            eventStartedAt,
+            url,
+            "unfocused-element-screenshot",
+            lastEl.unfocusedScreenshot,
+          );
+        }
       }
     }
   }

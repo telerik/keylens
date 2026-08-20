@@ -23,7 +23,7 @@ src/
     unreachable-elements.ts  # WCAG 2.1.1 - interactive elements never reached
     focus-order-mismatch.ts  # WCAG 2.4.3 - tab order vs DOM order
     tabindex-abuse.ts    # WCAG 2.4.3 - positive tabindex values
-    missing-focus-indicator.ts  # WCAG 2.4.7 - pixelmatch screenshot diff + CSS heuristic
+    missing-focus-indicator.ts  # WCAG 2.4.7 - computed-style diff (focused vs unfocused)
     skip-link.ts         # WCAG 2.4.1 - skip link presence and functional verification
     focus-not-obscured.ts  # WCAG 2.4.11 - focused element not hidden by overlays
     focus-after-interaction.ts  # WCAG 2.4.3/2.4.7 - focus not lost after clicking buttons
@@ -81,8 +81,8 @@ npm run keylens        # run CLI from source via tsx
 
 - **Playwright over Puppeteer** - cross-browser, better API, active maintenance
 - **Rule-based architecture** - each check is a standalone module implementing `Rule` interface
-- **Screenshot diffing for focus indicators** - pixelmatch compares focused vs unfocused element screenshots pixel-by-pixel. Novel approach, no other tool does this programmatically
-- **Two-phase focus indicator detection** - fast CSS heuristic first (outline: none patterns in HTML), then pixel-accurate screenshot comparison when `--screenshots` is enabled
+- **Computed-style diffing for focus indicators** - crawler diffs a computed-style snapshot (outline, box-shadow, border, background, color, `::before`/`::after`, and parent styles for `:focus-within`) taken while focused vs. once focus moves away. Runs by default (no flag needed) since the crawler already focuses every element for real; catches JS/attribute-driven indicators and container-level highlighting that a CSS/HTML text scan would miss
+- **Screenshots are a separate, opt-in concern** - `--screenshots` captures focused/unfocused element screenshots used only by the AI focus-indicator-quality feature (contrast/visibility scoring of indicators already confirmed present), not for presence detection
 - **Skip link functional testing** - crawler tabs through first 5 elements, identifies skip links by pattern, presses Enter, verifies focus actually moves to main content region
 - **Per-element screenshots** - during tab crawl, captures focused state of current element + unfocused state of previous element, enabling before/after comparison
 - **HTML focus order overlay** - `buildFocusMapHTML()` renders page screenshot as background with percentage-positioned numbered markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red. Uses `pageRect` for absolute positioning within `pageDimensions`
@@ -91,7 +91,7 @@ npm run keylens        # run CLI from source via tsx
 - **AI widget classification** - `classifyWidgets()` filters interactive elements to complex ARIA roles, sends to Claude to identify APG patterns (dialog, menu, tabs, accordion, combobox, disclosure, tooltip), returns confidence scores and expected keyboard behaviors
 - **Vision-based AI analysis** - `queryVision()` sends annotated screenshots + text prompts to Anthropic vision API for focus order validation and accessible name inference. Screenshot annotator draws numbered markers on page screenshots using pngjs bitmap rendering
 - **Structured AI outputs** - fix suggestions, focus order analysis, and name suggestions return structured JSON (e.g. `FixSuggestion`, `AIFocusOrderResult`) with fallback to plain strings for backward compatibility
-- **Computed focus styles** - crawler captures `outline`, `boxShadow`, `border` CSS values while elements are focused (when `--screenshots` enabled), enriching AI fix suggestion prompts
+- **Focus style snapshots** - crawler captures a `FocusStyleSnapshot` (outline, box-shadow, border, background, color, pseudo-elements, parent) for every element while focused and once unfocused, always - not gated behind `--screenshots`. Used by `missing-focus-indicator`; also enriches AI fix suggestion prompts
 - **HTML escaping** - all user-supplied strings (selectors, messages, URLs) are escaped in HTML output via `escapeHTML()` helper to prevent XSS
 - **Tabbed multi-page HTML** - multi-page reports use CSS tabs with JS switching, each page gets its own focus map and rules section
 - **AI is optional** - tool is fully useful without an API key. AI is a premium layer on top
@@ -112,7 +112,7 @@ The crawler (`src/crawler/index.ts`) runs these phases in order:
 3. **Page dimensions** — capture scrollWidth/scrollHeight for overlay positioning
 4. **Skip link test** — tab through first 5 elements, detect skip link patterns, press Enter, verify focus moves to `<main>`, `[role="main"]`, `#main-content`, `#content`, or `#main`. Uses `page.mouse.click(0,0)` to reset sequential focus navigation between phases
 5. **Interactive element discovery** — inject `GET_INTERACTIVE_ELEMENTS_SCRIPT` to find all interactive DOM elements
-6. **Tab crawl** — press Tab in a loop (up to `maxTabs`), recording each focused element with selector, role, accessible name, bounding rect, page rect (absolute coords), optional focused/unfocused screenshots, and computed focus styles (outline, boxShadow, border). Tab settle delay is configurable via `--tab-delay <ms>` (default 250ms, min 10ms)
+6. **Tab crawl** — press Tab in a loop (up to `maxTabs`), recording each focused element with selector, role, accessible name, bounding rect, page rect (absolute coords), a computed focus-style snapshot (always captured) and its unfocused counterpart, and optional focused/unfocused screenshots (`--screenshots`). Tab settle delay is configurable via `--tab-delay <ms>` (default 250ms, min 10ms)
 7. **Cross-reference** — mark which interactive elements were reached via tab
 8. **Interaction testing** (opt-in, `--interactions`) — click buttons and `role="button"` elements, verify focus isn't lost to `<body>`. Skips links and submit inputs. Records `InteractionResult[]` for the `focus-after-interaction` rule
 9. **Roving-tabindex verification** (always runs) — for each discovered composite widget (tablist, menu, listbox, tree, toolbar, radiogroup, grid, treegrid), simulates arrow-key presses from the active member and records which siblings actually receive focus, feeding the `roving-tabindex-broken` rule. Runs last since arrow-key navigation can visibly mutate page state
@@ -124,7 +124,7 @@ When enabled, the crawler captures per-element screenshots during the tab crawl:
 - **Focused screenshot**: captured immediately after an element receives focus
 - **Unfocused screenshot**: captured from the _previous_ element (which just lost focus when Tab moved forward)
 - Uses `pageRect` (absolute page coordinates with scroll offset) for clip region
-- The `missing-focus-indicator` rule compares these pairs via pixelmatch to detect missing focus styles
+- Used only by the AI focus-indicator-quality feature (contrast/visibility scoring) — `missing-focus-indicator` itself relies on the always-on `FocusStyleSnapshot`, not these screenshots
 
 ## Conventions
 
@@ -141,7 +141,7 @@ When enabled, the crawler captures per-element screenshots during the tab crawl:
 ### High-Impact (all implemented)
 
 1. **Focus order validation** - Vision-based: annotates page screenshot with numbered markers at each focus position, sends to vision model with focus sequence metadata. Returns structured `AIFocusOrderResult` with issues and overall assessment (`good`/`acceptable`/`poor`). Falls back to text-only analysis when no screenshot available. Implemented via `validateFocusOrder()` on `AIAnalyzer`
-2. **Auto-generated fix suggestions** - Returns structured `FixSuggestion` with before/after code, WCAG reference, effort estimate, and explanation. Includes computed focus styles (outline, boxShadow, border) for richer context when `--screenshots` enabled. Falls back to plain-text string. Implemented via `generateFixSuggestions()` on `AIAnalyzer`
+2. **Auto-generated fix suggestions** - Returns structured `FixSuggestion` with before/after code, WCAG reference, effort estimate, and explanation. Includes the focused element's computed style snapshot (outline, box-shadow, border) for richer context. Falls back to plain-text string. Implemented via `generateFixSuggestions()` on `AIAnalyzer`
 3. **Accessible name inference** - Vision model examines unnamed/generic interactive elements in context and suggests `aria-label` values with confidence scores and reasoning. Up to 10 elements per audit. Implemented via `inferAccessibleNames()` on `AIAnalyzer`
 4. **Widget classification** - Classify interactive elements by APG pattern (dialog, menu, accordion, tabs, combobox, disclosure, tooltip) with confidence scores, and report expected keyboard behaviors for each. Implemented via `classifyWidgets()` on `AIAnalyzer`
 
