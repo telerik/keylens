@@ -14,6 +14,7 @@ const RULE_WEIGHTS: Record<string, number> = {
   "tabindex-abuse": 5, // WCAG 2.4.3 – positive tabindex
   "focus-not-obscured": 10, // WCAG 2.4.11 – focus not hidden
   "focus-after-interaction": 5, // WCAG 2.4.3/2.4.7 – post-click focus
+  "roving-tabindex-broken": 5, // WCAG 2.1.1 – arrow-key nav within composite widgets
 };
 
 const TOTAL_WEIGHT = Object.values(RULE_WEIGHTS).reduce((a, b) => a + b, 0);

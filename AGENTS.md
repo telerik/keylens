@@ -27,6 +27,7 @@ src/
     skip-link.ts         # WCAG 2.4.1 - skip link presence and functional verification
     focus-not-obscured.ts  # WCAG 2.4.11 - focused element not hidden by overlays
     focus-after-interaction.ts  # WCAG 2.4.3/2.4.7 - focus not lost after clicking buttons
+    roving-tabindex-broken.ts  # WCAG 2.1.1 - composite widget members unreachable via arrow keys despite roving-tabindex markup
   reporters/             # CLI (chalk), JSON (CI-friendly), HTML (visual focus map overlay), Markdown (LLM-friendly)
     cli-reporter.ts      # Terminal output, single + multi-page (reportCLI + reportMultiCLI)
     json-reporter.ts     # JSON for CI, single + multi-page (screenshots stripped)
@@ -44,6 +45,7 @@ src/
     logger.ts            # Leveled logging (debug/info/warn/error/silent)
     selectors.ts         # Browser-injected scripts for element discovery + pageRect
     screenshot-annotator.ts  # Annotate page screenshots with numbered focus order markers (pngjs)
+    aria-orientation.ts  # Per-role arrow-key direction (Left/Right vs Up/Down) for verifying roving-tabindex composite widgets
   errors.ts              # Custom error hierarchy (KeylensError, CrawlError, etc.)
 index.ts                 # Programmatic API: audit() + auditMultiple() -> AuditReport / MultiPageReport
 skill/
@@ -99,6 +101,7 @@ npm run keylens        # run CLI from source via tsx
 - **MCP sampling** - `src/mcp/sampling.ts` implements `AITransport` via MCP `sampling/createMessage`, allowing AI features without a separate API key when the client supports sampling (Copilot, Claude Desktop). Priority: direct API key > sampling > no AI
 - **AITransport abstraction** - `AITransport` interface in `types/index.ts` decouples `AIAnalyzer` from specific providers. `query()` and `queryVision()` route through transport when present and no API key is set
 - **MCP tools wrap full pipeline** - specialized tools (`classify_widgets`, `validate_focus_order`) run a full audit with only the relevant AI feature enabled, then extract that portion of the report. Avoids exposing internal AI methods
+- **Roving-tabindex arrow-key verification** - `verifyRovingTabindexGroups()` runs as the LAST crawl phase (after tab crawl and interactions) since arrow-key presses can visibly mutate page state (e.g. switching the active tab panel). Simulates real key presses per composite widget to confirm every `tabindex="-1"` member is actually reachable, rather than trusting the markup pattern alone. Reached members' live `pageRect`s feed dashed satellite markers on the HTML focus map (they never appear in the Tab-order `focusSequence`)
 
 ## Crawler Pipeline
 
@@ -112,6 +115,7 @@ The crawler (`src/crawler/index.ts`) runs these phases in order:
 6. **Tab crawl** — press Tab in a loop (up to `maxTabs`), recording each focused element with selector, role, accessible name, bounding rect, page rect (absolute coords), optional focused/unfocused screenshots, and computed focus styles (outline, boxShadow, border). Tab settle delay is configurable via `--tab-delay <ms>` (default 250ms, min 10ms)
 7. **Cross-reference** — mark which interactive elements were reached via tab
 8. **Interaction testing** (opt-in, `--interactions`) — click buttons and `role="button"` elements, verify focus isn't lost to `<body>`. Skips links and submit inputs. Records `InteractionResult[]` for the `focus-after-interaction` rule
+9. **Roving-tabindex verification** (always runs) — for each discovered composite widget (tablist, menu, listbox, tree, toolbar, radiogroup, grid, treegrid), simulates arrow-key presses from the active member and records which siblings actually receive focus, feeding the `roving-tabindex-broken` rule. Runs last since arrow-key navigation can visibly mutate page state
 
 ### Element Screenshots (`--screenshots`)
 

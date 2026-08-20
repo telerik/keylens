@@ -7,43 +7,55 @@ import { TEXT_PREVIEW_LENGTH, HTML_PREVIEW_LENGTH } from "./constants.js";
 export const GET_UNIQUE_SELECTOR_SCRIPT = `
   (element) => {
     if (!element) return '';
-    if (element.id) return '#' + CSS.escape(element.id);
 
-    const parts = [];
-    let current = element;
+    // Cache the computed selector per DOM node (identity-keyed, not string-keyed)
+    // for the lifetime of the page. Pages commonly mutate attributes at runtime in
+    // response to interaction - a "focus"/"active"/"selected" class, an id added
+    // for aria-activedescendant wiring, aria-current toggling, etc. Recomputing
+    // the selector from live attributes on every call would make it unstable
+    // across discovery-time vs. later lookups (e.g. document.activeElement after
+    // a Tab press) for any of those cases. Freezing it on first observation makes
+    // the identifier stable regardless of what the page mutates afterwards.
+    if (!window.__klrSelectorCache) window.__klrSelectorCache = new WeakMap();
+    const cache = window.__klrSelectorCache;
+    if (cache.has(element)) return cache.get(element);
 
-    while (current && current !== document.body && current !== document.documentElement) {
-      let selector = current.tagName.toLowerCase();
+    let result;
+    if (element.id) {
+      result = '#' + CSS.escape(element.id);
+    } else {
+      const parts = [];
+      let current = element;
 
-      if (current.id) {
-        selector = '#' + CSS.escape(current.id);
+      while (current && current !== document.body && current !== document.documentElement) {
+        let selector = current.tagName.toLowerCase();
+
+        if (current.id) {
+          selector = '#' + CSS.escape(current.id);
+          parts.unshift(selector);
+          break;
+        }
+
+        const parent = current.parentElement;
+        if (parent) {
+          const siblings = Array.from(parent.children).filter(
+            (el) => el.tagName === current.tagName
+          );
+          if (siblings.length > 1) {
+            const index = siblings.indexOf(current) + 1;
+            selector += ':nth-of-type(' + index + ')';
+          }
+        }
+
         parts.unshift(selector);
-        break;
+        current = current.parentElement;
       }
 
-      if (current.className && typeof current.className === 'string') {
-        const classes = current.className.trim().split(/\\s+/).slice(0, 2);
-        if (classes.length > 0 && classes[0] !== '') {
-          selector += '.' + classes.map(c => CSS.escape(c)).join('.');
-        }
-      }
-
-      const parent = current.parentElement;
-      if (parent) {
-        const siblings = Array.from(parent.children).filter(
-          (el) => el.tagName === current.tagName
-        );
-        if (siblings.length > 1) {
-          const index = siblings.indexOf(current) + 1;
-          selector += ':nth-of-type(' + index + ')';
-        }
-      }
-
-      parts.unshift(selector);
-      current = current.parentElement;
+      result = parts.join(' > ');
     }
 
-    return parts.join(' > ');
+    cache.set(element, result);
+    return result;
   }
 `;
 

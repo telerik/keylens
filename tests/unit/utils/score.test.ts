@@ -51,6 +51,7 @@ describe("computeScore", () => {
         makePassedRule("skip-link"),
         makePassedRule("focus-not-obscured"),
         makePassedRule("focus-after-interaction"),
+        makePassedRule("roving-tabindex-broken"),
       ],
     });
 
@@ -185,7 +186,7 @@ describe("computeScore", () => {
       ],
     });
 
-    expect(computeScore(report)).toBe(20);
+    expect(computeScore(report)).toBe(19);
   });
 
   it("handles unknown rule IDs gracefully (0 weight)", () => {
@@ -204,10 +205,10 @@ describe("computeScore", () => {
     });
 
     // custom-rule has 0 weight, so it doesn't affect score
-    // Only keyboard-trap (weight 20) of total 100 known weight
-    // But since we only have 1 known rule passing, score = 20/100 * 100 = 20
+    // Only keyboard-trap (weight 20) of total 105 known weight
+    // But since we only have 1 known rule passing, score = round(20/105 * 100) = 19
     const score = computeScore(report);
-    expect(score).toBe(20);
+    expect(score).toBe(19);
   });
 
   it("clamps score between 0 and 100", () => {

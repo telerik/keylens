@@ -207,6 +207,7 @@ function buildBaseReport(
     focusSequence: crawlResult.focusSequence,
     interactiveElements: crawlResult.interactiveElements,
     interactionResults: crawlResult.interactionResults,
+    rovingTabindexGroups: crawlResult.rovingTabindexGroups,
     pageDimensions: crawlResult.pageDimensions,
   };
   report.summary.score = computeScore(report);

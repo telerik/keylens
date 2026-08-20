@@ -10,16 +10,17 @@ Keylens runs a set of rules against the keyboard focus sequence it captures from
 
 ## Available Rules
 
-| Rule                                                      | ID                        | Severity        | WCAG         |
-| --------------------------------------------------------- | ------------------------- | --------------- | ------------ |
-| [Keyboard Trap](/rules/keyboard-trap)                     | `keyboard-trap`           | Error           | 2.1.2        |
-| [Unreachable Elements](/rules/unreachable-elements)       | `unreachable-elements`    | Error           | 2.1.1        |
-| [Focus Order Mismatch](/rules/focus-order-mismatch)       | `focus-order-mismatch`    | Warning         | 2.4.3        |
-| [Tabindex Abuse](/rules/tabindex-abuse)                   | `tabindex-abuse`          | Warning         | 2.4.3        |
-| [Missing Focus Indicator](/rules/missing-focus-indicator) | `missing-focus-indicator` | Warning / Error | 2.4.7        |
-| [Skip Link](/rules/skip-link)                             | `skip-link`               | Warning / Error | 2.4.1        |
-| [Focus Not Obscured](/rules/focus-not-obscured)           | `focus-not-obscured`      | Error           | 2.4.11       |
-| [Focus After Interaction](/rules/focus-after-interaction) | `focus-after-interaction` | Error           | 2.4.3, 2.4.7 |
+| Rule                                                               | ID                        | Severity        | WCAG         |
+| ------------------------------------------------------------------ | ------------------------- | --------------- | ------------ |
+| [Keyboard Trap](/rules/keyboard-trap)                              | `keyboard-trap`           | Error           | 2.1.2        |
+| [Unreachable Elements](/rules/unreachable-elements)                | `unreachable-elements`    | Error           | 2.1.1        |
+| [Focus Order Mismatch](/rules/focus-order-mismatch)                | `focus-order-mismatch`    | Warning         | 2.4.3        |
+| [Tabindex Abuse](/rules/tabindex-abuse)                            | `tabindex-abuse`          | Warning         | 2.4.3        |
+| [Missing Focus Indicator](/rules/missing-focus-indicator)          | `missing-focus-indicator` | Warning / Error | 2.4.7        |
+| [Skip Link](/rules/skip-link)                                      | `skip-link`               | Warning / Error | 2.4.1        |
+| [Focus Not Obscured](/rules/focus-not-obscured)                    | `focus-not-obscured`      | Error           | 2.4.11       |
+| [Focus After Interaction](/rules/focus-after-interaction)          | `focus-after-interaction` | Error           | 2.4.3, 2.4.7 |
+| [Broken Roving Tabindex Navigation](/rules/roving-tabindex-broken) | `roving-tabindex-broken`  | Warning         | 2.1.1        |
 
 ::: tip Variable severity
 **Missing Focus Indicator**: CSS heuristic detection (e.g. `outline: none`) reports as Warning. When `--screenshots` is enabled and pixelmatch confirms no visible change, severity is upgraded to Error.
@@ -31,6 +32,13 @@ Keylens runs a set of rules against the keyboard focus sequence it captures from
 **Focus After Interaction** requires `--interactions` (or
 `interactions.enabled: true` in config). Without interaction data, the rule passes with
 no violations; that pass does not mean activation behavior was tested.
+:::
+
+::: info Heuristic verification
+**Broken Roving Tabindex Navigation** verifies composite widgets (tabs, menus,
+listboxes, etc.) by simulating real arrow-key presses, always runs (no flag
+required), and reports as Warning rather than Error since it's a best-effort
+simulation rather than a structural markup check.
 :::
 
 ## Disabling Rules

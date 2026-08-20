@@ -20,12 +20,17 @@ import type {
   AuditAsset,
   AuditEvent,
   InteractionSummary,
+  RovingTabindexGroupResult,
 } from "../types/index.js";
 import {
   SKIP_LINK_PATTERNS,
   MAIN_CONTENT_SELECTORS,
 } from "../utils/constants.js";
 import { applyPrepareCookies, preparePage } from "./prepare.js";
+import {
+  getRovingArrowKeys,
+  getFallbackArrowKeys,
+} from "../utils/aria-orientation.js";
 
 /** Shape returned by GET_FOCUSED_ELEMENT_INFO_SCRIPT inside the browser. */
 interface FocusedElementInfo {
@@ -392,6 +397,17 @@ export async function crawlPage(
       ? summarizeInteractions(interactionResults)
       : undefined;
 
+    // Runs last: arrow-key navigation can visibly mutate page state (e.g.
+    // switching the active tab panel), so it must not run before phases that
+    // depend on a stable page (tab crawl, interactions, screenshots).
+    logger.info("Verifying roving-tabindex composite widgets...");
+    const rovingTabindexGroups = await verifyRovingTabindexGroups(
+      page,
+      interactiveElements,
+      signal,
+      url,
+    );
+
     const duration = Date.now() - startTime;
     throwIfAborted(signal, "crawl", url);
     logger.success(`Crawl completed in ${duration}ms`);
@@ -429,6 +445,7 @@ export async function crawlPage(
       interactionSummary,
       prepare: prepareResult,
       capture: captureBudget.summary,
+      rovingTabindexGroups,
     };
   } catch (error) {
     throwIfAborted(signal, "crawl", url);
@@ -1414,4 +1431,124 @@ export function markReachedElements(
   for (const element of interactiveElements) {
     element.reached = reachedSelectors.has(element.selector);
   }
+}
+
+/** Max arrow-key presses attempted per direction when verifying a single roving-tabindex group. */
+const ROVING_TABINDEX_MAX_PRESSES = 50;
+
+/**
+ * Verifies that every member of each roving-tabindex composite widget (e.g. a
+ * tablist) is actually reachable via arrow keys from the active member, not
+ * just structurally declared via tabindex="-1" markup.
+ *
+ * Runs as the LAST crawl phase (after tab crawl and interactions) because
+ * arrow-key navigation can visibly change page state (e.g. switching the
+ * active tab panel in an "automatic activation" tabs widget), which would
+ * otherwise corrupt subsequent phases that depend on a stable page.
+ */
+async function verifyRovingTabindexGroups(
+  page: Page,
+  interactiveElements: InteractiveElement[],
+  signal?: AbortSignal,
+  url?: string,
+): Promise<RovingTabindexGroupResult[]> {
+  const groups = new Map<string, InteractiveElement[]>();
+  for (const el of interactiveElements) {
+    if (!el.rovingContainerSelector) continue;
+    const members = groups.get(el.rovingContainerSelector) ?? [];
+    members.push(el);
+    groups.set(el.rovingContainerSelector, members);
+  }
+
+  const results: RovingTabindexGroupResult[] = [];
+
+  for (const [containerSelector, members] of groups) {
+    throwIfAborted(signal, "crawl", url);
+    if (members.length < 2) continue;
+
+    try {
+      const containerLocator = page.locator(containerSelector).first();
+      if ((await containerLocator.count()) === 0) continue;
+      const containerRole = (await containerLocator.getAttribute("role")) ?? "";
+      const ariaOrientation =
+        await containerLocator.getAttribute("aria-orientation");
+
+      // The active member is the one that's a real Tab stop (tabindex !== -1);
+      // that's the entry point a keyboard user actually lands on. If NO member
+      // is a Tab stop, this isn't the per-member roving-tabindex pattern at all
+      // (e.g. some widgets keep real DOM focus on the container itself and move
+      // an internal highlight via arrow keys instead) - skip rather than force-
+      // focus an arbitrary member, which wouldn't reflect real keyboard use and
+      // would produce a misleading "broken" result.
+      const activeMember = members.find((el) => el.tabindexAttr !== -1);
+      if (!activeMember) continue;
+      const activeLocator = page.locator(activeMember.selector).first();
+      if ((await activeLocator.count()) === 0) continue;
+      await activeLocator.focus();
+
+      const memberSelectors = new Set(members.map((el) => el.selector));
+      // Capture each reached member's live page-relative rect (not the
+      // viewport-relative rect from initial discovery) so reports can plot
+      // these as focus-map markers regardless of scroll position.
+      const reached = new Map<string, BoundingRect>();
+      const activeInfo = (await page.evaluate(
+        `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
+      )) as FocusedElementInfo | null;
+      if (activeInfo && memberSelectors.has(activeInfo.selector)) {
+        reached.set(activeInfo.selector, activeInfo.pageRect);
+      }
+
+      const primary = getRovingArrowKeys(containerRole, ariaOrientation);
+      const fallback = getFallbackArrowKeys(primary);
+      const keyAttempts = [
+        primary.forward,
+        primary.backward,
+        fallback.forward,
+        fallback.backward,
+      ].filter((keys) => keys.length > 0);
+
+      for (const keys of keyAttempts) {
+        if (reached.size === memberSelectors.size) break;
+        await activeLocator.focus();
+        for (
+          let i = 0;
+          i < ROVING_TABINDEX_MAX_PRESSES &&
+          reached.size < memberSelectors.size;
+          i++
+        ) {
+          for (const key of keys) {
+            await page.keyboard.press(key);
+          }
+          const info = (await page.evaluate(
+            `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
+          )) as FocusedElementInfo | null;
+          if (info && memberSelectors.has(info.selector)) {
+            reached.set(info.selector, info.pageRect);
+          }
+        }
+      }
+
+      const unreached = members
+        .map((el) => el.selector)
+        .filter((selector) => !reached.has(selector));
+
+      results.push({
+        containerSelector,
+        containerRole,
+        totalMembers: members.length,
+        reachedViaArrowKeys: [...reached].map(([selector, pageRect]) => ({
+          selector,
+          pageRect,
+        })),
+        unreachedViaArrowKeys: unreached,
+      });
+    } catch {
+      throwIfAborted(signal, "crawl", url);
+      logger.debug(
+        `Roving-tabindex verification failed for container: ${containerSelector}`,
+      );
+    }
+  }
+
+  return results;
 }

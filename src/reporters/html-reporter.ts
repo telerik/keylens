@@ -9,6 +9,9 @@ import type {
   FocusIndicatorScore,
   AIReportSummary,
   CrossPagePattern,
+  RovingTabindexGroupResult,
+  InteractiveElement,
+  BoundingRect,
 } from "../types/index.js";
 import { writeReportFile } from "../utils/report-writer.js";
 import { getInlineAssetData } from "../utils/assets.js";
@@ -170,7 +173,13 @@ function toFocusMapPoint(
   el: FocusedElement,
   dims: { width: number; height: number },
 ): FocusMapPoint {
-  const rect = el.pageRect ?? el.boundingRect;
+  return rectToFocusMapPoint(el.pageRect ?? el.boundingRect, dims);
+}
+
+function rectToFocusMapPoint(
+  rect: BoundingRect,
+  dims: { width: number; height: number },
+): FocusMapPoint {
   const px = rect.x + rect.width / 2;
   const py = rect.y + rect.height / 2;
   return {
@@ -178,6 +187,89 @@ function toFocusMapPoint(
     py,
     xPct: (px / dims.width) * 100,
     yPct: (py / dims.height) * 100,
+  };
+}
+
+/** Tooltip for a roving-tabindex satellite marker (reached via arrow keys, not Tab). */
+function buildRovingSatelliteTooltipHTML(
+  member: InteractiveElement | undefined,
+  selector: string,
+  containerRole: string,
+  activeMarkerIndex: number | undefined,
+): string {
+  const row = (label: string, value?: string) =>
+    value
+      ? `<div class="focus-tooltip-row"><span>${label}</span><span class="focus-tooltip-value focus-tooltip-value--clamp">${escapeHTML(value)}</span></div>`
+      : "";
+  const roleLabel = member?.role || "element";
+
+  return `<div class="focus-tooltip">
+      <div class="focus-tooltip-title">&lt;${escapeHTML(roleLabel)}&gt; <span>via arrow keys</span></div>
+      ${row("Selector", selector)}
+      ${row("Accessible name", member?.accessibleName)}
+      ${row("Composite widget", containerRole)}
+      ${row(
+        "Reached from",
+        activeMarkerIndex ? `Tab stop #${activeMarkerIndex}` : undefined,
+      )}
+    </div>`;
+}
+
+/**
+ * Build dashed satellite markers + connectors for roving-tabindex composite
+ * widget members that are only reachable via arrow keys, not Tab - these
+ * never appear in `focusSequence` so the plain focus map would otherwise
+ * make them invisible.
+ */
+function buildRovingTabindexOverlayHTML(
+  groups: RovingTabindexGroupResult[] | undefined,
+  interactiveElements: InteractiveElement[] | undefined,
+  dims: { width: number; height: number },
+  markerIndexBySelector: Map<string, number>,
+  idPrefix = "",
+): { markers: string; connectors: string } {
+  if (!groups?.length) return { markers: "", connectors: "" };
+
+  const elementsBySelector = new Map(
+    (interactiveElements ?? []).map((el) => [el.selector, el]),
+  );
+  const markers: string[] = [];
+  const connectors: string[] = [];
+  let satelliteIndex = 0;
+
+  for (const group of groups) {
+    const [active, ...satellites] = group.reachedViaArrowKeys;
+    if (!active || satellites.length === 0) continue;
+
+    const activePoint = rectToFocusMapPoint(active.pageRect, dims);
+    const activeMarkerIndex = markerIndexBySelector.get(active.selector);
+
+    for (const satellite of satellites) {
+      satelliteIndex++;
+      const point = rectToFocusMapPoint(satellite.pageRect, dims);
+      // Outline path first (wider, white) so the accent path drawn on top
+      // leaves a crisp border, matching the main route's rendering.
+      connectors.push(
+        `<path class="route-roving-outline" vector-effect="non-scaling-stroke" d="M ${activePoint.xPct.toFixed(3)} ${activePoint.yPct.toFixed(3)} L ${point.xPct.toFixed(3)} ${point.yPct.toFixed(3)}"/>`,
+      );
+      connectors.push(
+        `<path class="route-roving" vector-effect="non-scaling-stroke" d="M ${activePoint.xPct.toFixed(3)} ${activePoint.yPct.toFixed(3)} L ${point.xPct.toFixed(3)} ${point.yPct.toFixed(3)}"/>`,
+      );
+      const tooltip = buildRovingSatelliteTooltipHTML(
+        elementsBySelector.get(satellite.selector),
+        satellite.selector,
+        group.containerRole,
+        activeMarkerIndex,
+      );
+      markers.push(
+        `<div class="focus-marker focus-marker--roving" id="${idPrefix}roving-${satelliteIndex}" data-selector="${escapeHTML(satellite.selector)}" tabindex="0" style="left:${point.xPct.toFixed(3)}%;top:${point.yPct.toFixed(3)}%;">&#8646;${tooltip}</div>`,
+      );
+    }
+  }
+
+  return {
+    markers: markers.join("\n      "),
+    connectors: connectors.join("\n        "),
   };
 }
 
@@ -248,6 +340,8 @@ export function buildFocusMapHTML(
   pageDimensions?: { width: number; height: number },
   violationSelectors?: Set<string>,
   idPrefix = "",
+  rovingTabindexGroups?: RovingTabindexGroupResult[],
+  interactiveElements?: InteractiveElement[],
 ): string {
   if (!focusSequence.length || !pageScreenshot) return "";
 
@@ -300,6 +394,17 @@ export function buildFocusMapHTML(
     )
     .join("\n        ");
 
+  const markerIndexBySelector = new Map(
+    focusSequence.map((el, i) => [el.selector, i + 1]),
+  );
+  const rovingOverlay = buildRovingTabindexOverlayHTML(
+    rovingTabindexGroups,
+    interactiveElements,
+    dims,
+    markerIndexBySelector,
+    idPrefix,
+  );
+
   return `
     <h2 style="margin: 1.5rem 0 1rem; font-size: 1.125rem;">Focus Order Map</h2>
     <div class="focus-map">
@@ -307,10 +412,12 @@ export function buildFocusMapHTML(
         <img src="data:image/png;base64,${pageScreenshot}" alt="Page screenshot">
         <svg class="focus-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
           ${connectors}
+          ${rovingOverlay.connectors}
         </svg>
       </div>
       ${arrows}
       ${markers.join("\n      ")}
+      ${rovingOverlay.markers}
     </div>`;
 }
 
@@ -339,6 +446,9 @@ export function renderHTML(input: AuditReport): string {
     pageScreenshotForMap(report),
     report.pageDimensions,
     violationSelectors,
+    "",
+    report.rovingTabindexGroups,
+    report.interactiveElements,
   );
 
   return `<!DOCTYPE html>
@@ -424,6 +534,8 @@ export function renderMultiHTML(input: MultiPageReport): string {
         page.pageDimensions,
         violationSelectors,
         idPrefix,
+        page.rovingTabindexGroups,
+        page.interactiveElements,
       );
 
       return `
@@ -948,6 +1060,7 @@ function COMMON_STYLES(statusKind: Kind): string {
 
       --klr-accent: oklch(54.53% 0.2124 275.85deg);
       --klr-accent-on-bg: color-mix(in oklch, oklch(from var(--klr-accent) l c h) 70%, oklch(from var(--klr-background) clamp(0, calc((0.5 - l) * 1000), 1) none none) 30%);
+      --klr-accent-subtle: oklch(from var(--klr-accent) calc(l + 0.2) c h);
 
       --klr-success: oklch(51.46% 0.1066 163.53deg);
       --klr-success-on-bg: color-mix(in oklch, oklch(from var(--klr-success) l c h) 70%, oklch(from var(--klr-background) clamp(0, calc((0.5 - l) * 1000), 1) none none) 30%);
@@ -1032,10 +1145,13 @@ function COMMON_STYLES(statusKind: Kind): string {
     .focus-map .focus-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
     .focus-lines .route { fill: none; stroke: var(--klr-accent); stroke-width: 2; stroke-linecap: round; }
     .focus-lines .route-outline { fill: none; stroke: white; stroke-width: 4; stroke-linecap: round; }
+    .focus-lines .route-roving { fill: none; stroke: var(--klr-accent-subtle); stroke-width: 2; stroke-linecap: round; }
+    .focus-lines .route-roving-outline { fill: none; stroke: white; stroke-width: 4; stroke-linecap: round; }
     .route-arrow { position: absolute; width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 10px solid var(--klr-accent); z-index: 1; pointer-events: none; height: 13px; }
     .focus-marker { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--klr-accent); border: 1px solid white; color: white; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: transform 0.12s ease; z-index: 2; cursor: pointer; }
     .focus-marker:hover, .focus-marker:focus { transform: translate(-50%, -50%) scale(1.25); z-index: 3; outline: 1px solid black; }
     .focus-marker.focus-marker--violation { background: var(--klr-warning); color: black; }
+    .focus-marker.focus-marker--roving { width: 30px; height: 30px; border: 1px dashed white; background-color: var(--klr-accent-subtle);}
     .focus-tooltip { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%) translateY(4px); width: max-content; max-width: 320px; background: var(--klr-background-alt); border: 1px solid var(--klr-border); border-radius: 0.2rem; padding: 0.75rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); text-align: left; font-weight: normal; font-size: 0.75rem; line-height: 1.5; color: var(--klr-text-subtle); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.12s ease, transform 0.12s ease; z-index: 4; }
     .focus-marker:hover .focus-tooltip, .focus-marker:focus .focus-tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
     .focus-tooltip-title { color: var(--klr-text); font-weight: 600; font-size: 0.8rem; margin-bottom: 0.1rem; display: flex; justify-content: space-between; gap: 0.75rem; }

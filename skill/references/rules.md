@@ -56,6 +56,14 @@
 - **Common causes**: Sticky navigation bars, cookie banners, chat widgets covering focused elements
 - **Fix**: Use `scroll-padding-top`/`scroll-padding-bottom` to account for fixed elements, or dynamically scroll focused elements into visible area
 
+## roving-tabindex-broken
+
+- **WCAG**: 2.1.1 Keyboard
+- **Severity**: warning
+- **Detects**: Composite widget members (tabs, menu items, listbox options, etc.) declared with the roving-tabindex pattern (`tabindex="-1"` on inactive members) that are NOT actually reachable via arrow keys from the active member — verified by simulating real key presses, not just inferred from markup
+- **Common causes**: Missing or broken keydown handler on the composite container; wrong assumed arrow-key direction (e.g. handling only Left/Right on a vertically-oriented widget)
+- **Fix**: Attach a keydown handler on the container that moves DOM focus (and updates `tabindex`) between members on the arrow keys appropriate for the widget's role/orientation (see WAI-ARIA APG keyboard interaction patterns for tablist/menu/listbox/tree/toolbar/radiogroup)
+
 ## focus-after-interaction
 
 - **WCAG**: 2.4.3 / 2.4.7
