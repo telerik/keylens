@@ -105,7 +105,8 @@ or timeout limits.
     "missingFocusIndicator": true,
     "skipLink": true,
     "focusNotObscured": true,
-    "focusAfterInteraction": true
+    "focusAfterInteraction": true,
+    "rovingTabindexBroken": true
   },
   "reporters": ["cli", "json"],
   "outputDir": "./keylens-report",

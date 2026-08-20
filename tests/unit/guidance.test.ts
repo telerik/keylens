@@ -9,8 +9,8 @@ import {
 describe("rule guidance", () => {
   it("provides remediation for every public rule", () => {
     expect(getRuleCatalog()).toBe(RULE_CATALOG);
-    expect(RULE_CATALOG).toHaveLength(8);
-    expect(new Set(RULE_CATALOG.map((rule) => rule.ruleId)).size).toBe(8);
+    expect(RULE_CATALOG).toHaveLength(9);
+    expect(new Set(RULE_CATALOG.map((rule) => rule.ruleId)).size).toBe(9);
 
     for (const rule of RULE_CATALOG) {
       expect(rule.guidance.length).toBeGreaterThan(20);

@@ -68,6 +68,7 @@ describe("runRules", () => {
         skipLink: false,
         focusNotObscured: false,
         focusAfterInteraction: false,
+        rovingTabindexBroken: false,
       },
     };
 
@@ -104,6 +105,6 @@ describe("runRules", () => {
 
     expect(events).toContain("rule-started:keyboard-trap");
     expect(events).toContain("rule-completed:keyboard-trap");
-    expect(events).toHaveLength(16);
+    expect(events).toHaveLength(18);
   });
 });

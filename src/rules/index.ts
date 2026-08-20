@@ -15,6 +15,7 @@ import { MissingFocusIndicatorRule } from "./missing-focus-indicator.js";
 import { SkipLinkRule } from "./skip-link.js";
 import { FocusNotObscuredRule } from "./focus-not-obscured.js";
 import { FocusAfterInteractionRule } from "./focus-after-interaction.js";
+import { RovingTabindexBrokenRule } from "./roving-tabindex-broken.js";
 
 /**
  * Registry of all available rules.
@@ -28,6 +29,7 @@ const ALL_RULES: Rule[] = [
   new SkipLinkRule(),
   new FocusNotObscuredRule(),
   new FocusAfterInteractionRule(),
+  new RovingTabindexBrokenRule(),
 ];
 
 /**
@@ -42,6 +44,7 @@ const RULE_CONFIG_MAP: Record<string, keyof KeylensConfig["rules"]> = {
   "skip-link": "skipLink",
   "focus-not-obscured": "focusNotObscured",
   "focus-after-interaction": "focusAfterInteraction",
+  "roving-tabindex-broken": "rovingTabindexBroken",
 };
 
 /**

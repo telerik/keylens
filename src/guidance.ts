@@ -163,6 +163,23 @@ const RULE_CATALOG_DATA: RuleRemediation[] = [
 modal.querySelector("[autofocus]")?.focus();`,
     wcag: wcag("2.4.3", "2.4.7"),
   },
+  {
+    ruleId: "roving-tabindex-broken",
+    title: "Wire up arrow-key navigation for composite widgets",
+    description:
+      "Detects composite widget members (tabs, menu items, options, etc.) that are not reachable via arrow keys from the active member, despite following the roving-tabindex markup pattern.",
+    severity: "warning",
+    guidance:
+      'When using tabindex="-1" on inactive composite-widget members (tablist, menu, listbox, tree, toolbar, radiogroup), attach a keydown handler on the container that moves DOM focus and updates tabindex between members on the expected arrow keys.',
+    codeExample: `tablist.addEventListener("keydown", (event) => {
+  if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+  const next = event.key === "ArrowRight" ? nextTab(current) : prevTab(current);
+  current.tabIndex = -1;
+  next.tabIndex = 0;
+  next.focus();
+});`,
+    wcag: wcag("2.1.1"),
+  },
 ];
 for (const rule of RULE_CATALOG_DATA) {
   Object.freeze(rule);

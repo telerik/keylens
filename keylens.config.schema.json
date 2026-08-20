@@ -63,7 +63,8 @@
         "missingFocusIndicator": { "type": "boolean", "default": true },
         "skipLink": { "type": "boolean", "default": true },
         "focusNotObscured": { "type": "boolean", "default": true },
-        "focusAfterInteraction": { "type": "boolean", "default": true }
+        "focusAfterInteraction": { "type": "boolean", "default": true },
+        "rovingTabindexBroken": { "type": "boolean", "default": true }
       }
     },
     "reporters": {

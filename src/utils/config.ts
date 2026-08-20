@@ -26,6 +26,7 @@ export const DEFAULT_CONFIG: KeylensConfig = {
     skipLink: true,
     focusNotObscured: true,
     focusAfterInteraction: true,
+    rovingTabindexBroken: true,
   },
   reporters: ["cli"],
   outputDir: "./keylens-report",
@@ -139,6 +140,7 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
         skipLink: z.boolean().optional(),
         focusNotObscured: z.boolean().optional(),
         focusAfterInteraction: z.boolean().optional(),
+        rovingTabindexBroken: z.boolean().optional(),
       })
       .strict()
       .optional(),

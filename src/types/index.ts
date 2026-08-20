@@ -292,6 +292,8 @@ export interface RuleConfig {
   focusNotObscured: boolean;
   /** Detect focus lost after clicking interactive elements */
   focusAfterInteraction: boolean;
+  /** Detect composite widget members unreachable via arrow keys despite roving tabindex markup */
+  rovingTabindexBroken: boolean;
 }
 
 export interface WcagReference {
@@ -624,6 +626,36 @@ export interface CrawlResult {
 
   /** Capture resource usage and skipped/failed attempts */
   capture: CaptureSummary;
+
+  /** Arrow-key reachability verification results for roving-tabindex composite widgets */
+  rovingTabindexGroups?: RovingTabindexGroupResult[];
+}
+
+/**
+ * Result of verifying that every member of a roving-tabindex composite widget
+ * (e.g. a tablist) is actually reachable via arrow keys from the active member -
+ * not just assumed from `tabindex="-1"` markup.
+ */
+export interface RovingTabindexGroupResult {
+  /** Selector of the composite container element (e.g. the `[role="tablist"]`) */
+  containerSelector: string;
+
+  /** Role of the composite container */
+  containerRole: string;
+
+  /** Total number of members discovered in this container */
+  totalMembers: number;
+
+  /**
+   * Members confirmed reachable via arrow keys, in traversal order (the
+   * active/entry member - the one that's a real Tab stop - always comes
+   * first). Each entry includes a live-captured page-relative bounding rect
+   * so reports can plot these as focus-map markers.
+   */
+  reachedViaArrowKeys: Array<{ selector: string; pageRect: BoundingRect }>;
+
+  /** Selectors of members that could not be reached via arrow keys */
+  unreachedViaArrowKeys: string[];
 }
 
 // ─── Interaction Results ─────────────────────────────────────────
@@ -886,6 +918,9 @@ export interface AuditReport {
 
   /** Per-case post-activation outcomes */
   interactionResults?: InteractionResult[];
+
+  /** Arrow-key reachability verification results for roving-tabindex composite widgets */
+  rovingTabindexGroups?: RovingTabindexGroupResult[];
 
   /** Page dimensions for focus map overlay rendering */
   pageDimensions?: { width: number; height: number };

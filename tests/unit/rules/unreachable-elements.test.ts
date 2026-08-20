@@ -134,4 +134,38 @@ describe("UnreachableElementsRule", () => {
     expect(result.passed).toBe(false);
     expect(result.violations[0].elements).toHaveLength(2);
   });
+
+  it("should not flag composite widget members when the container itself (not any member) was reached via Tab", async () => {
+    // jQuery UI menu pattern: the container (role="menu", tabindex="0") keeps
+    // real DOM focus for its whole lifetime; arrow keys move an internal
+    // highlight without ever moving focus onto an individual menuitem. No
+    // member has tabindex="0", but the container itself proves the widget is
+    // enterable by keyboard.
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({
+            selector: "#menu",
+            reached: true,
+            tabindexAttr: 0,
+          }),
+          makeInteractiveElement({
+            selector: "#menu > li:nth-of-type(1)",
+            reached: false,
+            tabindexAttr: -1,
+            rovingContainerSelector: "#menu",
+          }),
+          makeInteractiveElement({
+            selector: "#menu > li:nth-of-type(2)",
+            reached: false,
+            tabindexAttr: -1,
+            rovingContainerSelector: "#menu",
+          }),
+        ],
+      }),
+    );
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toHaveLength(0);
+  });
 });

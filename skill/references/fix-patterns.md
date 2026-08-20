@@ -127,3 +127,23 @@ html {
   scroll-margin-top: 80px;
 }
 ```
+
+## Broken Roving Tabindex Navigation — Wire up arrow-key handling
+
+```js
+// Before: tabindex="-1" siblings declared, but no keydown handler moves focus
+
+// After: container manages focus and tabindex between members
+tablist.addEventListener("keydown", (event) => {
+  if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+  const currentIndex = tabs.indexOf(document.activeElement);
+  const nextIndex =
+    event.key === "ArrowRight"
+      ? (currentIndex + 1) % tabs.length
+      : (currentIndex - 1 + tabs.length) % tabs.length;
+  tabs[currentIndex].tabIndex = -1;
+  tabs[nextIndex].tabIndex = 0;
+  tabs[nextIndex].focus();
+});
+```

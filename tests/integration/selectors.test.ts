@@ -60,12 +60,12 @@ describe("Integration: browser selector scripts", () => {
       expect(selector).toBe("#unique-id");
     });
 
-    it("should include classes in selector", async () => {
+    it("should not include classes in selector (classes can be toggled at runtime, e.g. on focus)", async () => {
       const selector = await page.evaluate(
         `(${GET_UNIQUE_SELECTOR_SCRIPT})(document.querySelector('.cls-a'))`,
       );
-      expect(selector).toContain("cls-a");
-      expect(selector).toContain("cls-b");
+      expect(selector).not.toContain("cls-a");
+      expect(selector).not.toContain("cls-b");
     });
 
     it("should build path with > for nested elements", async () => {

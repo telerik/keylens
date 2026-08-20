@@ -84,7 +84,7 @@ describe("Cross-browser audit contract", () => {
     expect(positiveTabindexIndex).toBeGreaterThanOrEqual(0);
     expect(positiveTabindexIndex).toBeLessThan(preserveIndex);
     expect(selectors[preserveIndex + 1]).toBe("#main > input:nth-of-type(2)");
-    expect(report.rules).toHaveLength(8);
+    expect(report.rules).toHaveLength(9);
     expect(report.summary.errors).toBe(0);
     expect(
       report.rules.find((rule) => rule.ruleId === "skip-link")?.passed,
