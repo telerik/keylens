@@ -12,6 +12,7 @@ import type {
   RovingTabindexGroupResult,
   InteractiveElement,
   BoundingRect,
+  Severity,
 } from "../types/index.js";
 import { writeReportFile } from "../utils/report-writer.js";
 import { getInlineAssetData } from "../utils/assets.js";
@@ -338,7 +339,7 @@ export function buildFocusMapHTML(
   focusSequence: FocusedElement[],
   pageScreenshot: string,
   pageDimensions?: { width: number; height: number },
-  violationSelectors?: Set<string>,
+  violationSeverities?: Map<string, Severity>,
   idPrefix = "",
   rovingTabindexGroups?: RovingTabindexGroupResult[],
   interactiveElements?: InteractiveElement[],
@@ -353,19 +354,22 @@ export function buildFocusMapHTML(
     .slice(1)
     .map((p2, i) => buildFocusMapSegment(points[i]!, p2));
 
-  const hasViolationFlags = focusSequence.map(
-    (el) => violationSelectors?.has(el.selector) ?? false,
+  const severityFlags = focusSequence.map((el) =>
+    violationSeverities?.get(el.selector),
   );
 
   const markers = focusSequence.map((el, i) => {
     const { xPct, yPct } = points[i]!;
-    const hasViolation = hasViolationFlags[i]!;
-    const cls = hasViolation
-      ? "focus-marker focus-marker--violation"
-      : "focus-marker";
+    const severity = severityFlags[i];
+    const cls =
+      severity === "error"
+        ? "focus-marker focus-marker--violation focus-marker--violation-error"
+        : severity
+          ? "focus-marker focus-marker--violation"
+          : "focus-marker";
     const tooltip = buildFocusTooltipHTML(el, i, focusSequence.length);
     // Jump target for the rule panel's "Highlight" button and reverse lookup for marker clicks.
-    const roleAttr = hasViolation ? ' role="button"' : "";
+    const roleAttr = severity ? ' role="button"' : "";
 
     return `<div class="${cls}" id="${idPrefix}marker-${i + 1}" data-selector="${escapeHTML(el.selector)}" tabindex="0"${roleAttr} style="left:${xPct.toFixed(3)}%;top:${yPct.toFixed(3)}%;">${i + 1}${tooltip}</div>`;
   });
@@ -431,12 +435,15 @@ export function renderHTML(input: AuditReport): string {
     summary.totalWarnings,
   );
 
-  // Collect selectors of elements with violations for focus map color-coding
-  const violationSelectors = new Set<string>();
+  // Collect selectors of elements with violations for focus map color-coding,
+  // keeping the highest severity (error beats warning) seen per selector.
+  const violationSeverities = new Map<string, Severity>();
   for (const rule of rules) {
     for (const v of rule.violations) {
       for (const el of v.elements) {
-        violationSelectors.add(el.selector);
+        if (violationSeverities.get(el.selector) !== "error") {
+          violationSeverities.set(el.selector, v.severity);
+        }
       }
     }
   }
@@ -445,7 +452,7 @@ export function renderHTML(input: AuditReport): string {
     report.focusSequence ?? [],
     pageScreenshotForMap(report),
     report.pageDimensions,
-    violationSelectors,
+    violationSeverities,
     "",
     report.rovingTabindexGroups,
     report.interactiveElements,
@@ -518,11 +525,13 @@ export function renderMultiHTML(input: MultiPageReport): string {
 
   const panels = report.pages
     .map((page, i) => {
-      const violationSelectors = new Set<string>();
+      const violationSeverities = new Map<string, Severity>();
       for (const rule of page.rules) {
         for (const v of rule.violations) {
           for (const el of v.elements) {
-            violationSelectors.add(el.selector);
+            if (violationSeverities.get(el.selector) !== "error") {
+              violationSeverities.set(el.selector, v.severity);
+            }
           }
         }
       }
@@ -532,7 +541,7 @@ export function renderMultiHTML(input: MultiPageReport): string {
         page.focusSequence ?? [],
         pageScreenshotForMap(page),
         page.pageDimensions,
-        violationSelectors,
+        violationSeverities,
         idPrefix,
         page.rovingTabindexGroups,
         page.interactiveElements,
@@ -1151,6 +1160,7 @@ function COMMON_STYLES(statusKind: Kind): string {
     .focus-marker { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--klr-accent); border: 1px solid white; color: white; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: transform 0.12s ease; z-index: 2; cursor: pointer; }
     .focus-marker:hover, .focus-marker:focus { transform: translate(-50%, -50%) scale(1.25); z-index: 3; outline: 1px solid black; }
     .focus-marker.focus-marker--violation { background: var(--klr-warning); color: black; }
+    .focus-marker.focus-marker--violation-error { background: var(--klr-error-on-bg); color: white; }
     .focus-marker.focus-marker--roving { width: 30px; height: 30px; border: 1px dashed white; background-color: var(--klr-accent-subtle);}
     .focus-tooltip { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%) translateY(4px); width: max-content; max-width: 320px; background: var(--klr-background-alt); border: 1px solid var(--klr-border); border-radius: 0.2rem; padding: 0.75rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); text-align: left; font-weight: normal; font-size: 0.75rem; line-height: 1.5; color: var(--klr-text-subtle); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.12s ease, transform 0.12s ease; z-index: 4; }
     .focus-marker:hover .focus-tooltip, .focus-marker:focus .focus-tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }

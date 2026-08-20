@@ -801,15 +801,37 @@ describe("buildFocusMapHTML", () => {
       boundingRect: { x: 100, y: 50, width: 80, height: 30 },
     });
 
-    const violationSelectors = new Set(["button.bad"]);
+    const violationSeverities = new Map([["button.bad", "warning" as const]]);
     const result = buildFocusMapHTML(
       [el],
       "data",
       { width: 1280, height: 720 },
-      violationSelectors,
+      violationSeverities,
     );
 
     expect(result).toContain('class="focus-marker focus-marker--violation"');
+    expect(result).toContain('role="button"');
+  });
+
+  it("should flag an error-severity stop's marker with an additional error class", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el = makeFocusedElement({
+      tabIndex: 1,
+      selector: "button.bad",
+      boundingRect: { x: 100, y: 50, width: 80, height: 30 },
+    });
+
+    const violationSeverities = new Map([["button.bad", "error" as const]]);
+    const result = buildFocusMapHTML(
+      [el],
+      "data",
+      { width: 1280, height: 720 },
+      violationSeverities,
+    );
+
+    expect(result).toContain(
+      'class="focus-marker focus-marker--violation focus-marker--violation-error"',
+    );
     expect(result).toContain('role="button"');
   });
 
@@ -831,7 +853,7 @@ describe("buildFocusMapHTML", () => {
       [el1, el2],
       "data",
       dims,
-      new Set(["a.two"]),
+      new Map([["a.two", "warning" as const]]),
     );
     const withoutViolation = buildFocusMapHTML([el1, el2], "data", dims);
 
@@ -984,7 +1006,7 @@ describe("buildFocusMapHTML", () => {
       elements,
       "data",
       { width: 1280, height: 720 },
-      new Set([nestedSelector]),
+      new Map([[nestedSelector, "warning" as const]]),
     );
 
     expect(result).toContain('id="marker-1"');
