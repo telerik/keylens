@@ -3,13 +3,17 @@ import {
   makeAuditReport,
   makeFocusedElement,
   makeInlineAsset,
+  makeInteractiveElement,
 } from "@tests/helpers/factories.js";
+import { DEFAULT_CONFIG, normalizeConfig } from "@/utils/config.js";
 import type {
   RuleResult,
   MultiPageReport,
   AIReportSummary,
   FixSuggestion,
   AIFocusOrderResult,
+  CrossPagePattern,
+  RovingTabindexGroupResult,
 } from "@/types/index.js";
 
 vi.mock("fs/promises", () => ({
@@ -100,6 +104,61 @@ describe("HTML Reporter", () => {
     expect(html).toContain("div.parallax (900px &rarr; 5198px)");
   });
 
+  it("should mark an unverified overlay dismissal in the prepare note", async () => {
+    const reportHTML = await getReportHTML();
+    await reportHTML(
+      makeAuditReport({
+        crawl: {
+          totalFocusableElements: 0,
+          totalInteractiveElements: 0,
+          unreachedElements: 0,
+          cycleCompleted: true,
+          duration: 1000,
+          prepare: {
+            attempted: true,
+            dismissals: [
+              {
+                provider: "onetrust",
+                action: "reject",
+                selector: "#onetrust-reject",
+                verified: false,
+              },
+            ],
+            warnings: [],
+            duration: 50,
+          },
+        },
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain("onetrust (reject, unverified)");
+  });
+
+  it("should omit the page screenshot from the focus map when capture.page is viewport", async () => {
+    const reportHTML = await getReportHTML();
+    await reportHTML(
+      makeAuditReport({
+        config: {
+          ...normalizeConfig(DEFAULT_CONFIG),
+          capture: {
+            ...DEFAULT_CONFIG.capture,
+            page: "viewport",
+          },
+        },
+        focusSequence: [makeFocusedElement()],
+        pageDimensions: { width: 1280, height: 720 },
+        assets: [makeInlineAsset("shot", "screenshot-data")],
+        pageScreenshotAssetId: "shot",
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).not.toContain("data:image/png;base64,screenshot-data");
+  });
+
   it("should include the version", async () => {
     const reportHTML = await getReportHTML();
     await reportHTML(makeAuditReport({ version: "1.2.3" }), "./out");
@@ -124,7 +183,9 @@ describe("HTML Reporter", () => {
     );
 
     const html = getWrittenHTML();
-    expect(html).toContain("#ef4444");
+    expect(html).toMatch(
+      /Errors<\/div>\s*<div class="value" style="color: var\(--klr-error-on-bg\)">2<\/div>/,
+    );
   });
 
   it("should show amber status color when only warnings", async () => {
@@ -143,7 +204,9 @@ describe("HTML Reporter", () => {
     );
 
     const html = getWrittenHTML();
-    expect(html).toContain("#f59e0b");
+    expect(html).toMatch(
+      /Warnings<\/div>\s*<div class="value" style="color: var\(--klr-warning-on-bg\)">3<\/div>/,
+    );
   });
 
   it("should show green status color when all pass", async () => {
@@ -162,7 +225,12 @@ describe("HTML Reporter", () => {
     );
 
     const html = getWrittenHTML();
-    expect(html).toContain("#22c55e");
+    expect(html).toMatch(
+      /Errors<\/div>\s*<div class="value" style="color: var\(--klr-success-on-bg\)">0<\/div>/,
+    );
+    expect(html).toMatch(
+      /Warnings<\/div>\s*<div class="value" style="color: var\(--klr-success-on-bg\)">0<\/div>/,
+    );
   });
 
   it("should render passed rules with PASS badge", async () => {
@@ -305,6 +373,48 @@ describe("HTML Reporter", () => {
 
     const html = getWrittenHTML();
     expect(html).toContain('data-marker-target=""');
+  });
+
+  it("should render dashed satellite markers for roving-tabindex members reached only via arrow keys", async () => {
+    const reportHTML = await getReportHTML();
+    const rovingTabindexGroups: RovingTabindexGroupResult[] = [
+      {
+        containerSelector: "[role=tablist]",
+        containerRole: "tablist",
+        totalMembers: 3,
+        reachedViaArrowKeys: [
+          {
+            selector: "#tab-1",
+            pageRect: { x: 0, y: 0, width: 80, height: 30 },
+          },
+          {
+            selector: "#tab-2",
+            pageRect: { x: 90, y: 0, width: 80, height: 30 },
+          },
+        ],
+        unreachedViaArrowKeys: [],
+      },
+    ];
+    await reportHTML(
+      makeAuditReport({
+        focusSequence: [
+          makeFocusedElement({ tabIndex: 1, selector: "#tab-1" }),
+        ],
+        interactiveElements: [
+          makeInteractiveElement({ selector: "#tab-2", role: "tab" }),
+        ],
+        rovingTabindexGroups,
+        pageDimensions: { width: 1280, height: 720 },
+        assets: [makeInlineAsset("shot", "screenshot-data")],
+        pageScreenshotAssetId: "shot",
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain("focus-marker--roving");
+    expect(html).toContain('data-selector="#tab-2"');
+    expect(html).toContain("route-roving");
   });
 
   it("should render a collapsed accordion with a paginated issue viewer for violations", async () => {
@@ -636,6 +746,20 @@ describe("HTML Reporter", () => {
     expect(html).toContain("Footer focused before main content");
     expect(html).toContain("Reorder DOM to place footer after main");
     expect(html).toContain("poor");
+  });
+
+  it("should render string AI focus order analysis (fallback)", async () => {
+    const reportHTML = await getReportHTML();
+    await reportHTML(
+      makeAuditReport({
+        aiFocusOrderAnalysis: "Focus order looks reasonable overall.",
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain("AI Focus Order Analysis");
+    expect(html).toContain("Focus order looks reasonable overall.");
   });
 
   it("should render widget classifications", async () => {
@@ -1050,5 +1174,37 @@ describe("Multi-Page HTML Reporter", () => {
     expect(html).toContain('id="page-1-rule-0-body"');
     expect(html).toContain('id="page-0-marker-1"');
     expect(html).toContain('id="page-1-marker-1"');
+  });
+
+  it("should fall back to the raw URL as a tab label when it cannot be parsed", async () => {
+    const reportMultiHTML = await getReportMultiHTML();
+    const page = makeAuditReport({ url: "not-a-valid-url" });
+    await reportMultiHTML(
+      makeMultiReport({ urls: ["not-a-valid-url"], pages: [page] }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain('data-tab="page-0">not-a-valid-url</button>');
+  });
+
+  it("should render cross-page patterns", async () => {
+    const reportMultiHTML = await getReportMultiHTML();
+    const crossPagePatterns: CrossPagePattern[] = [
+      {
+        type: "inconsistent-focus-style",
+        description: "Focus indicator style differs between pages",
+        affectedPages: ["https://a.com", "https://b.com"],
+        severity: "warning",
+        suggestion: "Use a shared focus-visible style across pages",
+      },
+    ];
+    await reportMultiHTML(makeMultiReport({ crossPagePatterns }), "./out");
+
+    const html = getWrittenHTML();
+    expect(html).toContain("Cross-Page Patterns");
+    expect(html).toContain("Focus indicator style differs between pages");
+    expect(html).toContain("Use a shared focus-visible style across pages");
+    expect(html).toContain("Pages: /, /");
   });
 });
