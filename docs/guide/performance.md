@@ -23,7 +23,6 @@ profile.
   capture resources.
 - `interactions.maxCases` and `interactions.timeout` bound experimental activations.
 - `timeouts` enforce total and phase wall-clock deadlines.
-- `multiPage.concurrency` bounds isolated contexts while one browser is reused.
 
 Limits degrade capture or interaction coverage where documented; total and phase
 timeouts abort the operation. Inspect coverage rather than assuming a completed process
@@ -40,13 +39,6 @@ in the in-memory report. JSON serialization omits assets, but capture still cons
 time and memory before serialization. Use `projectAuditReport({ assets: "omit" })` for
 compact programmatic payloads.
 
-## Multi-page execution
-
-`auditMultipleBase()` and `auditMultiple()` launch one browser and process URLs through
-bounded workers. Each page gets an isolated browser context; report page order matches
-input order. Increasing concurrency can reduce wall time but raises concurrent memory,
-CPU, and target-server load.
-
 ## Benchmark harness
 
 Repository contributors can run the deterministic local harness:
@@ -56,7 +48,7 @@ npm run --silent benchmark
 ```
 
 It prints machine-readable JSON and writes no report artifacts. Its fixtures cover a
-standard page, element screenshots, interactions, and multi-page work. The harness uses
+standard page, element screenshots, and interactions. The harness uses
 aggressive timing to expose implementation overhead; it is not a recommended audit
 profile.
 
@@ -68,7 +60,6 @@ order-of-magnitude regressions against conservative ceilings:
 | Standard            |      15 s |       256 MB |          512 KB |           n/a |
 | Element screenshots |      30 s |       512 MB |          512 KB |         50 MB |
 | Interactions        |      30 s |       256 MB |            1 MB |           n/a |
-| Multi-page          |      30 s |       512 MB |            1 MB |           n/a |
 
 These are regression alarms, not product performance guarantees. Runtime configuration
 limits remain the authoritative per-audit bounds.

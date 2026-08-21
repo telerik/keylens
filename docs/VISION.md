@@ -54,16 +54,9 @@ A CLI tool that uses Playwright under the hood to:
 
 ### 3. Report Outputs
 
-- **CLI:** colored terminal output with pass/fail/warning per rule, multi-page aggregate summary
+- **CLI:** colored terminal output with pass/fail/warning per rule
 - **JSON:** machine-readable for CI integration; binary assets omitted. CLI exit codes distinguish accessibility failures (`1`) from incomplete audits (`2`)
-- **HTML:** interactive visual focus order map — page screenshot as background with numbered circle markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red. Multi-page reports use tabbed UI with per-page focus maps
-
-### 4. Multi-Page Scanning
-
-- Audit multiple URLs in a single run via config file `urls` array or `auditMultiple()` API
-- CLI URL argument is optional — reads from config when omitted
-- Aggregate summary across all pages (total errors, warnings, pages with errors)
-- Each reporter has single and multi-page variants
+- **HTML:** interactive visual focus order map — page screenshot as background with numbered circle markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red
 
 ---
 
@@ -79,7 +72,7 @@ npx keylens https://example.com \
   --interactions \
   --wait-for "#app-loaded"
 
-# Config file for multi-page
+# Config file
 npx keylens --config keylens.config.json
 ```
 
@@ -133,12 +126,12 @@ keylens/
 │   │   ├── focus-not-obscured.ts  # WCAG 2.4.11 - focused element not hidden by overlays
 │   │   └── focus-after-interaction.ts  # WCAG 2.4.3/2.4.7 - focus not lost after clicking
 │   ├── reporters/
-│   │   ├── cli-reporter.ts        # Terminal output, single + multi-page
-│   │   ├── json-reporter.ts       # JSON for CI, single + multi-page
-│   │   ├── html-reporter.ts       # Interactive HTML with focus map overlay + tabbed multi-page
-│   │   └── index.ts               # Dispatcher: runReporters + runMultiReporters
+│   │   ├── cli-reporter.ts        # Terminal output
+│   │   ├── json-reporter.ts       # JSON for CI
+│   │   ├── html-reporter.ts       # Interactive HTML with focus map overlay
+│   │   └── index.ts               # Dispatcher: runReporters
 │   ├── ai/index.ts          # Optional AI analysis layer (Anthropic Claude)
-│   ├── types/index.ts       # All core types (AuditReport, MultiPageReport, etc.)
+│   ├── types/index.ts       # All core types (AuditReport, etc.)
 │   ├── errors.ts            # Custom error hierarchy
 │   └── utils/
 │       ├── config.ts        # Config loading and deep merging
@@ -160,7 +153,6 @@ keylens/
 - **Skip link functional testing** — crawler tabs through first 5 elements, identifies skip links by regex pattern, presses Enter, and records the resulting focus target; current pass logic only checks that focus remains on a non-document element
 - **Per-element focused/unfocused screenshots** — during tab crawl, captures focused state of current element + unfocused state of previous element (which just lost focus); used only by the AI focus-indicator-quality feature (contrast/visibility scoring), not for presence detection
 - **HTML focus order overlay** — `buildFocusMapHTML()` renders page screenshot as background with numbered markers at each focused element, SVG connecting lines showing tab flow. Percentage-based positioning via `pageRect` / `pageDimensions`. Violation markers colored red
-- **Multi-page scanning** — `auditMultiple()` reuses one browser with bounded concurrency and aggregates results into `MultiPageReport`. CLI URL is optional; reads from config `urls` when omitted. Tabbed HTML report with per-page focus maps
 - **HTML escaping throughout** — all user-supplied strings escaped in HTML output to prevent XSS
 - **Use tabbable npm package as a reference** — compare its computed tabbable list against what actually receives focus to find discrepancies
 
@@ -174,7 +166,6 @@ keylens/
 | Focus order visualization    | No               | Manual only            | Yes, HTML overlay with numbered markers + SVG lines |
 | Focus indicator detection    | No               | No                     | Yes, computed-style diff (focused vs unfocused)     |
 | Skip link functional testing | No               | No                     | Yes, verifies Enter + focus target                  |
-| Multi-page scanning          | Yes              | No                     | Yes, aggregate report with tabbed HTML              |
 | Scriptable / configurable    | Yes              | No                     | Yes, JSON config + CLI flags                        |
 | Cross-browser                | Varies           | Chrome only            | Yes, via Playwright                                 |
 | Post-click interaction test  | No               | No                     | Yes, `--interactions` flag                          |
@@ -291,18 +282,9 @@ contact form. Estimated fix effort: 2-4 hours for a frontend
 developer."
 ```
 
-### 7. Cross-Page Pattern Detection
+### 7. Cross-Page Pattern Detection (Removed)
 
-Across a multi-page scan, use AI to identify inconsistent keyboard patterns. If the nav bar has one focus order on the homepage but a different order on the pricing page, that's a problem humans would catch but automated geometric checks would miss.
-
-```
-⚠ INCONSISTENT PATTERN DETECTED
-  Navigation bar focus order differs across pages:
-  Homepage:  Logo → Search → Products → Pricing → Login
-  /pricing:  Logo → Products → Search → Pricing → Login
-  AI Note: "Search and Products are swapped on /pricing,
-  likely due to a conditional render that changes DOM order."
-```
+An earlier iteration explored using AI to identify inconsistent keyboard patterns across a multi-page scan (e.g. a nav bar with a different focus order on the homepage vs. the pricing page). Multi-page auditing was removed, so this feature no longer exists.
 
 ---
 
@@ -371,7 +353,6 @@ npx keylens https://example.com
 - Per-element screenshot capture — `--screenshots` flag, focused/unfocused pairs
 - Focus indicator screenshot diffing — pixelmatch comparison, severity "error" when confirmed
 - HTML visual report with focus overlay — numbered markers on page screenshot with SVG connecting lines, violation markers colored red
-- Multi-page scanning — `auditMultiple()`, CLI reads URLs from config when URL omitted, tabbed HTML report with per-page focus maps
 - HTML output XSS protection — all user-supplied content escaped
 
 ### Phase 3 (Complete)
@@ -390,8 +371,8 @@ npx keylens https://example.com
 ### Phase 6 (AI Medium-Impact — Complete)
 
 - Focus indicator quality scoring — `scoreFocusIndicatorQuality()` sends focused/unfocused screenshot pairs to vision model, returns `FocusIndicatorScore` with score (1-10), contrast assessment, visibility assessment, and improvement recommendations. Only scores elements with confirmed focus indicators (`hasFocusIndicator === true`) and both screenshots present. Limited to 10 per audit
-- Enhanced structured report summaries — `generateSummary()` returns structured `AIReportSummary` with overview, critical issues, prioritized fixes (with effort/impact), an AI severity rating (1-100), and recommendation. Falls back to plain string for backward compatibility. New `generateMultiPageSummary()` for multi-page audits
-- Cross-page pattern detection — `detectCrossPagePatterns()` uses heuristic pre-filtering (`findSharedSelectors`, `findSkipLinkInconsistencies`) to minimize AI calls, then enriches findings via AI. Detects inconsistent tab order, missing components, inconsistent focus styles, and skip link inconsistencies across pages. Falls back to heuristic-only patterns if AI call fails
+- Enhanced structured report summaries — `generateSummary()` returns structured `AIReportSummary` with overview, critical issues, prioritized fixes (with effort/impact), an AI severity rating (1-100), and recommendation. Falls back to plain string for backward compatibility
+- Cross-page pattern detection (removed) — an earlier `detectCrossPagePatterns()` feature used heuristic pre-filtering (`findSharedSelectors`, `findSkipLinkInconsistencies`) plus AI to detect inconsistent tab order, missing components, inconsistent focus styles, and skip link inconsistencies across pages. Removed along with multi-page auditing
 
 ### Phase 4 (Ecosystem)
 

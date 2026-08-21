@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
-  "urls": ["https://example.com"],
+  "url": "https://example.com",
   "viewport": { "width": 1280, "height": 720 },
   "rules": {
     "keyboardTrap": true,
@@ -25,8 +25,7 @@
       "widgetClassification": false,
       "reportSummary": true,
       "focusIndicatorQuality": false,
-      "accessibleNameInference": false,
-      "crossPagePatterns": true
+      "accessibleNameInference": false
     }
   }
 }

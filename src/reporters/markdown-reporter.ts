@@ -1,6 +1,5 @@
 import type {
   AuditReport,
-  MultiPageReport,
   FixSuggestion,
   AIFocusOrderResult,
   AIReportSummary,
@@ -427,79 +426,6 @@ export function renderMarkdown(report: AuditReport): string {
   return sections.filter(Boolean).join("\n");
 }
 
-// ─── Build multi-page markdown ───────────────────────────────────
-
-export function renderMultiMarkdown(report: MultiPageReport): string {
-  const lines: string[] = [];
-
-  // Header
-  lines.push("# Keylens Multi-Page Keyboard Navigation Report");
-  lines.push("");
-  lines.push(`- **Version:** ${report.version}`);
-  lines.push(`- **Timestamp:** ${report.timestamp}`);
-  lines.push(`- **URLs:** ${report.urls.length}`);
-  lines.push("");
-
-  // Aggregate Summary
-  const s = report.summary;
-  lines.push("## Aggregate Summary");
-  lines.push("");
-  lines.push(
-    "| Total Pages | Errors | Warnings | Info | Rule Errors | Pages with Errors | Score |",
-  );
-  lines.push(
-    "| ----------- | ------ | -------- | ---- | ----------- | ----------------- | ----- |",
-  );
-  lines.push(
-    `| ${s.totalPages} | ${s.totalErrors} | ${s.totalWarnings} | ${s.totalInfo} | ${s.ruleErrors ?? 0} | ${s.pagesWithErrors} | ${s.score}/100${s.scoreComplete === false ? " (incomplete)" : ""} |`,
-  );
-  lines.push("");
-
-  // Individual pages
-  for (const page of report.pages) {
-    lines.push(`## Page: ${page.url}`);
-    lines.push("");
-    lines.push(renderSummary(page));
-    lines.push(renderCrawl(page));
-    lines.push(renderFocusSequence(page));
-    lines.push(renderSkipLink(page));
-    lines.push(renderRules(page));
-    lines.push(renderAIAnalysis(page));
-  }
-
-  // Cross-Page Patterns
-  if (report.crossPagePatterns && report.crossPagePatterns.length > 0) {
-    lines.push("## Cross-Page Patterns");
-    lines.push("");
-    lines.push(
-      "| Type | Severity | Description | Affected Pages | Suggestion |",
-    );
-    lines.push("| --- | --- | --- | --- | --- |");
-    for (const p of report.crossPagePatterns) {
-      const pages = p.affectedPages.map((u) => `\`${esc(u)}\``).join(", ");
-      lines.push(
-        `| ${esc(p.type)} | ${p.severity} | ${esc(p.description)} | ${pages} | ${esc(p.suggestion)} |`,
-      );
-    }
-    lines.push("");
-  }
-
-  // AI Summary
-  if (report.aiSummary) {
-    lines.push("## AI Summary");
-    lines.push("");
-    const summaryLines: string[] = [];
-    renderAISummary(summaryLines, report.aiSummary);
-    lines.push(summaryLines.join("\n"));
-    lines.push("");
-  }
-
-  // Footer
-  lines.push(renderFooter(report.version, report.timestamp));
-
-  return lines.join("\n");
-}
-
 // ─── Public API ──────────────────────────────────────────────────
 
 /**
@@ -517,22 +443,5 @@ export async function reportMarkdown(
     "Markdown",
     signal,
     report.url,
-  );
-}
-
-/**
- * Output multi-page audit results as a single Markdown file.
- */
-export async function reportMultiMarkdown(
-  report: MultiPageReport,
-  outputDir: string,
-  signal?: AbortSignal,
-): Promise<void> {
-  await writeReportFile(
-    outputDir,
-    "keylens-report-multi.md",
-    renderMultiMarkdown(report),
-    "Markdown",
-    signal,
   );
 }

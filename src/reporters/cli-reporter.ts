@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import type {
   AuditReport,
-  MultiPageReport,
   AIFocusOrderResult,
   FixSuggestion,
   AIReportSummary,
@@ -341,94 +340,6 @@ export function reportCLI(report: AuditReport): void {
   }
 
   // AI summary (structured or plain text)
-  if (report.aiSummary) {
-    logger.blank();
-    renderAISummary(report.aiSummary);
-  }
-
-  logger.blank();
-}
-
-/**
- * Output multi-page audit results to the terminal.
- * Each page gets its own section, with an aggregate summary at the end.
- */
-export function reportMultiCLI(report: MultiPageReport): void {
-  for (const page of report.pages) {
-    reportCLI(page);
-  }
-
-  // Aggregate summary
-  logger.blank();
-  logger.divider();
-  console.log(chalk.bold.cyan("Multi-Page Summary"));
-  logger.divider();
-  console.log(chalk.bold("Pages audited:"), report.summary.totalPages);
-  console.log(
-    chalk.bold("Pages with errors:"),
-    report.summary.pagesWithErrors > 0
-      ? chalk.red(report.summary.pagesWithErrors.toString())
-      : chalk.green("0"),
-  );
-  console.log(
-    chalk.bold("Rule evaluation errors:"),
-    report.summary.ruleErrors > 0
-      ? chalk.red(report.summary.ruleErrors.toString())
-      : chalk.green("0"),
-  );
-  console.log(
-    chalk.bold("Total errors:"),
-    report.summary.totalErrors > 0
-      ? chalk.red(report.summary.totalErrors.toString())
-      : chalk.green("0"),
-  );
-  console.log(
-    chalk.bold("Total warnings:"),
-    report.summary.totalWarnings > 0
-      ? chalk.yellow(report.summary.totalWarnings.toString())
-      : chalk.green("0"),
-  );
-
-  const multiScoreColor =
-    report.summary.score >= 70
-      ? chalk.green
-      : report.summary.score >= 50
-        ? chalk.yellow
-        : chalk.red;
-  console.log(
-    chalk.bold("Average score:"),
-    multiScoreColor(
-      `${report.summary.score}/100${report.summary.scoreComplete === false ? " (incomplete)" : ""}`,
-    ),
-  );
-
-  // Cross-page patterns
-  if (report.crossPagePatterns && report.crossPagePatterns.length > 0) {
-    logger.blank();
-    logger.divider();
-    console.log(chalk.bold("Cross-Page Patterns:"));
-    logger.blank();
-
-    for (const cp of report.crossPagePatterns) {
-      const sevIcon =
-        cp.severity === "error"
-          ? chalk.red("  ●")
-          : cp.severity === "warning"
-            ? chalk.yellow("  ●")
-            : chalk.blue("  ●");
-      console.log(
-        `${sevIcon} ${chalk.white(`[${cp.type}]`)} ${chalk.white(cp.description)}`,
-      );
-      console.log(
-        chalk.gray(
-          `    Pages: ${cp.affectedPages.map((u) => new URL(u).pathname).join(", ")}`,
-        ),
-      );
-      console.log(chalk.cyan(`    ${cp.suggestion}`));
-    }
-  }
-
-  // Multi-page AI summary
   if (report.aiSummary) {
     logger.blank();
     renderAISummary(report.aiSummary);

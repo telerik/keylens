@@ -4,7 +4,6 @@ import type {
   InteractiveElement,
   CrawlResult,
   AuditReport,
-  MultiPageReport,
   AuditAsset,
 } from "@/types/index.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "@/types/index.js";
@@ -177,33 +176,6 @@ export function makeAuditReport(
       scoreComplete: true,
     },
     assets: [],
-    ...overrides,
-  };
-}
-
-export function makeMultiPageReport(
-  overrides: Partial<MultiPageReport> = {},
-): MultiPageReport {
-  return {
-    schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
-    version: "0.1.0",
-    timestamp: new Date().toISOString(),
-    urls: ["https://example.com"],
-    pages: [makeAuditReport()],
-    timings: {
-      pages: 1000,
-      total: 1000,
-    },
-    summary: {
-      totalPages: 1,
-      totalErrors: 0,
-      totalWarnings: 0,
-      totalInfo: 0,
-      ruleErrors: 0,
-      pagesWithErrors: 0,
-      score: 100,
-      scoreComplete: true,
-    },
     ...overrides,
   };
 }

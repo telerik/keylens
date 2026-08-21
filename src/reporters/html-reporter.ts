@@ -1,14 +1,12 @@
 import type {
   AuditReport,
   FocusedElement,
-  MultiPageReport,
   WidgetClassification,
   AIFocusOrderResult,
   FixSuggestion,
   AccessibleNameSuggestion,
   FocusIndicatorScore,
   AIReportSummary,
-  CrossPagePattern,
   RovingTabindexGroupResult,
   InteractiveElement,
   BoundingRect,
@@ -32,23 +30,6 @@ export async function reportHTML(
     "HTML",
     signal,
     report.url,
-  );
-}
-
-/**
- * Output a multi-page HTML report with tabbed per-page sections.
- */
-export async function reportMultiHTML(
-  report: MultiPageReport,
-  outputDir: string,
-  signal?: AbortSignal,
-): Promise<void> {
-  await writeReportFile(
-    outputDir,
-    "keylens-report.html",
-    renderMultiHTML(report),
-    "HTML",
-    signal,
   );
 }
 
@@ -541,144 +522,6 @@ export function renderHTML(input: AuditReport): string {
 </html>`;
 }
 
-// ─── Multi-Page HTML ──────────────────────────────────────────────
-
-export function renderMultiHTML(input: MultiPageReport): string {
-  const report = input;
-  const statusKind = buildStatusKind(
-    report.summary.totalErrors,
-    report.summary.totalWarnings,
-  );
-
-  const tabs = report.pages
-    .map((page, i) => {
-      let label: string;
-      try {
-        label = new URL(page.url).pathname || page.url;
-      } catch {
-        label = page.url;
-      }
-      return `<button class="tab-btn${i === 0 ? " active" : ""}" data-tab="page-${i}">${escapeHTML(label)}</button>`;
-    })
-    .join("\n      ");
-
-  const panels = report.pages
-    .map((page, i) => {
-      const violationsBySelector = new Map<
-        string,
-        Array<{ ruleName: string; severity: Severity }>
-      >();
-      for (const rule of page.rules) {
-        for (const v of rule.violations) {
-          for (const el of v.elements) {
-            const list = violationsBySelector.get(el.selector) ?? [];
-            list.push({ ruleName: v.ruleName, severity: v.severity });
-            violationsBySelector.set(el.selector, list);
-          }
-        }
-      }
-
-      const idPrefix = `page-${i}-`;
-      const focusMap = buildFocusMapHTML(
-        page.focusSequence ?? [],
-        pageScreenshotForMap(page),
-        page.pageDimensions,
-        violationsBySelector,
-        idPrefix,
-        page.rovingTabindexGroups,
-        page.interactiveElements,
-      );
-
-      return `
-      <div class="tab-panel${i === 0 ? " active" : ""}" id="page-${i}">
-        <h3 style="color: var(--klr-accent-on-bg); margin-bottom: 1rem;">${escapeHTML(page.url)}</h3>
-        ${buildMetaCards(page.crawl, page.summary)}
-        ${buildPrepareNote(page.crawl)}
-        ${focusMap}
-        <h4 style="margin: 1.5rem 0 1rem; font-size: 1rem;">Rules</h4>
-        ${buildRulesHTML(page.rules, idPrefix)}
-        ${page.aiFocusOrderAnalysis ? buildFocusOrderAnalysisHTML(page.aiFocusOrderAnalysis) : ""}
-        ${buildWidgetClassificationsHTML(page.widgetClassifications)}
-        ${buildAccessibleNameSuggestionsHTML(page.accessibleNameSuggestions)}
-        ${buildFocusIndicatorScoresHTML(page.focusIndicatorScores)}
-        ${page.aiSummary ? buildAISummaryHTML(page.aiSummary) : ""}
-      </div>`;
-    })
-    .join("");
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Keylens Multi-Page Report</title>
-  ${COMMON_STYLES(statusKind)}
-</head>
-<body>
-  <div class="container">
-    <header>
-      ${THEME_TOGGLE_HTML}
-      <h1>Keylens Multi-Page Report <span>v${escapeHTML(report.version)} ${escapeHTML(report.timestamp)}</span></h1>
-      <p style="color: var(--klr-text-subtle); margin-top: 0.5rem;">${report.urls.length} page(s) audited</p>
-      <p style="color: var(--klr-text-muted); font-size: 0.8rem;">${escapeHTML(report.timestamp)}</p>
-    </header>
-
-    <div class="meta">
-      <div class="meta-card">
-        <div class="label">Pages</div>
-        <div class="value">${report.summary.totalPages}</div>
-      </div>
-      <div class="meta-card">
-        <div class="label">Pages with Errors</div>
-        <div class="value" style="color: ${report.summary.pagesWithErrors > 0 ? onBgVar("error") : onBgVar("success")}">${report.summary.pagesWithErrors}</div>
-      </div>
-      <div class="meta-card">
-        <div class="label">Total Errors</div>
-        <div class="value" style="color: ${report.summary.totalErrors > 0 ? onBgVar("error") : onBgVar("success")}">${report.summary.totalErrors}</div>
-      </div>
-      <div class="meta-card">
-        <div class="label">Total Warnings</div>
-        <div class="value" style="color: ${report.summary.totalWarnings > 0 ? onBgVar("warning") : onBgVar("success")}">${report.summary.totalWarnings}</div>
-      </div>
-      <div class="meta-card">
-        <div class="label">Rule Errors</div>
-        <div class="value" style="color: ${(report.summary.ruleErrors ?? 0) > 0 ? onBgVar("warning") : onBgVar("success")}">${report.summary.ruleErrors ?? 0}</div>
-      </div>
-      <div class="meta-card">
-        <div class="label">Avg Score</div>
-        <div class="value" style="color: ${report.summary.score >= 70 ? onBgVar("success") : report.summary.score >= 50 ? onBgVar("warning") : onBgVar("error")}">${report.summary.score}/100${report.summary.scoreComplete === false ? " (incomplete)" : ""}</div>
-      </div>
-    </div>
-
-    <div class="tabs">
-      ${tabs}
-    </div>
-    ${panels}
-
-    ${buildCrossPagePatternsHTML(report.crossPagePatterns)}
-
-    ${report.aiSummary ? buildAISummaryHTML(report.aiSummary) : ""}
-
-    <footer>
-      Generated by Keylens v${escapeHTML(report.version)} &bull; ${escapeHTML(report.timestamp)}
-    </footer>
-  </div>
-
-  <script>
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.tab).classList.add('active');
-      });
-    });
-    ${RULES_SCRIPT}
-  </script>
-</body>
-</html>`;
-}
-
 // ─── Shared Fragments ─────────────────────────────────────────────
 
 function buildFixSuggestionHTML(fix: string | FixSuggestion): string {
@@ -912,49 +755,6 @@ function buildAISummaryHTML(aiSummary: string | AIReportSummary): string {
       ${fixesHTML}
       <p style="margin-top: 1rem; color: ${onBgVar("accent")}; font-size: 0.875rem;">${escapeHTML(aiSummary.recommendation)}</p>
     </div>`;
-}
-
-function buildCrossPagePatternsHTML(patterns?: CrossPagePattern[]): string {
-  if (!patterns || patterns.length === 0) return "";
-
-  const items = patterns
-    .map((cp) => {
-      const sevKind: Kind =
-        cp.severity === "error"
-          ? "error"
-          : cp.severity === "warning"
-            ? "warning"
-            : "accent";
-      const status =
-        cp.severity === "error"
-          ? "failed"
-          : cp.severity === "warning"
-            ? "warning"
-            : "passed";
-      const pages = cp.affectedPages
-        .map((u) => {
-          try {
-            return escapeHTML(new URL(u).pathname);
-          } catch {
-            return escapeHTML(u);
-          }
-        })
-        .join(", ");
-      return `
-        <div class="rule ${status}">
-          <div class="rule-header">
-            <span class="rule-name">${escapeHTML(cp.description)}</span>
-            <span class="status-badge" style="${badgeStyle(sevKind)}">${escapeHTML(cp.type)}</span>
-          </div>
-          <p style="margin-top: 0.5rem; color: var(--klr-text-subtle); font-size: 0.875rem;">Pages: ${pages}</p>
-          <p style="margin-top: 0.1rem; color: ${onBgVar("accent")}; font-size: 0.875rem;">${escapeHTML(cp.suggestion)}</p>
-        </div>`;
-    })
-    .join("");
-
-  return `
-    <h2 style="margin: 1.5rem 0 1rem; font-size: 1.125rem;">Cross-Page Patterns</h2>
-    ${items}`;
 }
 
 /** Light/dark toggle button, pinned to the top-right corner of the header. */

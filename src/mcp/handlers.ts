@@ -1,18 +1,10 @@
 import { join } from "path";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import {
-  audit,
-  auditMultiple,
-  crawlOnly,
-  renderAuditReport,
-  renderMultiPageReport,
-  AIAnalyzer,
-} from "../index.js";
+import { audit, crawlOnly, renderAuditReport, AIAnalyzer } from "../index.js";
 import type {
   KeylensConfig,
   KeylensConfigInput,
   AuditReport,
-  MultiPageReport,
   FocusedElement,
   ReporterType,
   RuleResult,
@@ -238,33 +230,6 @@ export function compactReport(report: AuditReport) {
   };
 }
 
-/**
- * Produce a compact multi-page report for MCP consumption.
- * Per-page: only url, summary, violations (no full focusSequence),
- * skip link result, and AI summary.
- * Top-level: aggregate summary, AI fields, cross-page patterns.
- */
-export function compactMultiPageReport(report: MultiPageReport) {
-  return {
-    schemaVersion: report.schemaVersion,
-    version: report.version,
-    timestamp: report.timestamp,
-    urls: report.urls,
-    summary: report.summary,
-    pages: report.pages.map((page) => ({
-      url: page.url,
-      summary: page.summary,
-      crawl: page.crawl,
-      rules: compactRules(page.rules).filter(
-        (r) => !r.passed || r.violations.length > 0,
-      ),
-      aiSummary: page.aiSummary,
-    })),
-    aiSummary: report.aiSummary,
-    crossPagePatterns: report.crossPagePatterns,
-  };
-}
-
 // ─── Tool Handlers ──────────────────────────────────────────────
 
 export async function handleAudit(
@@ -299,41 +264,6 @@ export async function handleAudit(
   }
 }
 
-export async function handleAuditMultiple(
-  params: { urls: string[]; options?: AuditOptions },
-  server?: Server,
-): Promise<McpToolResponse> {
-  setLogLevel("silent");
-
-  try {
-    const config = buildConfig(params.options);
-    injectSampling(config, server);
-    const report = await auditMultiple(params.urls, config);
-    if (config.reporters.length > 0) {
-      await renderMultiPageReport(
-        report,
-        config.reporters,
-        config.outputDir,
-        "silent",
-      );
-    }
-    const clean = compactMultiPageReport(report);
-    return {
-      content: [{ type: "text", text: JSON.stringify(clean) }],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Multi-page audit failed: ${(error as Error).message}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-}
-
 export async function handleClassifyWidgets(
   params: { url: string },
   server?: Server,
@@ -351,7 +281,6 @@ export async function handleClassifyWidgets(
       reportSummary: false,
       focusIndicatorQuality: false,
       accessibleNameInference: false,
-      crossPagePatterns: false,
     };
 
     // Use lightweight crawl-only path — skip rules, reporters, and other AI features
@@ -430,7 +359,6 @@ export async function handleValidateFocusOrder(
       reportSummary: false,
       focusIndicatorQuality: false,
       accessibleNameInference: false,
-      crossPagePatterns: false,
     };
 
     // Use lightweight crawl-only path — skip rules, reporters, and other AI features

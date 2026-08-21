@@ -4,7 +4,6 @@ import {
   makeAuditReport,
   makeFocusedElement,
   makeInteractiveElement,
-  makeMultiPageReport,
   makeInlineAsset,
 } from "@tests/helpers/factories.js";
 
@@ -41,7 +40,6 @@ function makeAIConfig(overrides: Partial<AIConfig> = {}): AIConfig {
       reportSummary: true,
       focusIndicatorQuality: false,
       accessibleNameInference: false,
-      crossPagePatterns: true,
     },
     ...overrides,
   };
@@ -346,7 +344,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -391,7 +388,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -438,7 +434,6 @@ describe("AIAnalyzer", () => {
             reportSummary: false,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -472,7 +467,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -496,7 +490,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -536,7 +529,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -561,7 +553,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: true,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -619,7 +610,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -648,7 +638,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: true,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -673,7 +662,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: true,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -694,145 +682,6 @@ describe("AIAnalyzer", () => {
             "unfocused-element-screenshot",
           ),
         ],
-      );
-
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe("generateMultiPageSummary", () => {
-    it("should return null when not available", async () => {
-      const ai = await createAnalyzer(makeAIConfig({ enabled: false }));
-
-      const result = await ai.generateMultiPageSummary(makeMultiPageReport());
-
-      expect(result).toBeNull();
-    });
-
-    it("should return null when reportSummary feature is disabled", async () => {
-      const ai = await createAnalyzer(
-        makeAIConfig({
-          enabled: true,
-          apiKey: "sk-test",
-          features: {
-            focusOrderValidation: true,
-            fixSuggestions: true,
-            widgetClassification: false,
-            reportSummary: false,
-            focusIndicatorQuality: false,
-            accessibleNameInference: false,
-            crossPagePatterns: true,
-          },
-        }),
-      );
-
-      const result = await ai.generateMultiPageSummary(makeMultiPageReport());
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("detectCrossPagePatterns", () => {
-    it("should return empty array when not available", async () => {
-      const ai = await createAnalyzer(makeAIConfig({ enabled: false }));
-
-      const result = await ai.detectCrossPagePatterns(
-        makeMultiPageReport({
-          pages: [makeAuditReport(), makeAuditReport()],
-        }),
-      );
-
-      expect(result).toEqual([]);
-    });
-
-    it("should return empty array when crossPagePatterns feature is disabled", async () => {
-      const ai = await createAnalyzer(
-        makeAIConfig({
-          enabled: true,
-          apiKey: "sk-test",
-          features: {
-            focusOrderValidation: true,
-            fixSuggestions: true,
-            widgetClassification: false,
-            reportSummary: true,
-            focusIndicatorQuality: false,
-            accessibleNameInference: false,
-            crossPagePatterns: false,
-          },
-        }),
-      );
-
-      const result = await ai.detectCrossPagePatterns(
-        makeMultiPageReport({
-          pages: [makeAuditReport(), makeAuditReport()],
-        }),
-      );
-
-      expect(result).toEqual([]);
-    });
-
-    it("should return empty array with single page", async () => {
-      const ai = await createAnalyzer(
-        makeAIConfig({
-          enabled: true,
-          apiKey: "sk-test",
-          features: {
-            focusOrderValidation: true,
-            fixSuggestions: true,
-            widgetClassification: false,
-            reportSummary: true,
-            focusIndicatorQuality: false,
-            accessibleNameInference: false,
-            crossPagePatterns: true,
-          },
-        }),
-      );
-
-      const result = await ai.detectCrossPagePatterns(
-        makeMultiPageReport({
-          pages: [makeAuditReport()],
-        }),
-      );
-
-      expect(result).toEqual([]);
-    });
-
-    it("does not treat a skip-link evaluator error as a missing skip link", async () => {
-      const transport = {
-        query: vi.fn().mockResolvedValue("[]"),
-        queryVision: vi.fn(),
-      };
-      const ai = await createAnalyzer(
-        makeAIConfig({ enabled: true, transport }),
-      );
-      const passingPage = makeAuditReport({
-        url: "https://example.com/a",
-        rules: [
-          {
-            ruleId: "skip-link",
-            passed: true,
-            status: "passed",
-            violations: [],
-            duration: 1,
-          },
-        ],
-      });
-      const erroredPage = makeAuditReport({
-        url: "https://example.com/b",
-        rules: [
-          {
-            ruleId: "skip-link",
-            passed: false,
-            status: "error",
-            violations: [],
-            duration: 1,
-            error: { code: "RULE_ERROR", message: "evaluation failed" },
-          },
-        ],
-      });
-
-      const result = await ai.detectCrossPagePatterns(
-        makeMultiPageReport({ pages: [passingPage, erroredPage] }),
       );
 
       expect(result).toEqual([]);
@@ -1065,7 +914,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -1098,7 +946,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -1136,7 +983,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: false,
             accessibleNameInference: true,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -1176,7 +1022,6 @@ describe("AIAnalyzer", () => {
             reportSummary: true,
             focusIndicatorQuality: true,
             accessibleNameInference: false,
-            crossPagePatterns: true,
           },
         }),
       );
@@ -1206,111 +1051,6 @@ describe("AIAnalyzer", () => {
       expect(result).toHaveLength(1);
       expect(result[0].score).toBe(9);
       expect(result[0].contrast).toBe("sufficient");
-    });
-  });
-
-  describe("detectCrossPagePatterns (happy path)", () => {
-    it("should return typed CrossPagePattern[] via transport", async () => {
-      const response = JSON.stringify([
-        {
-          findingIndex: 1,
-          type: "inconsistent-order",
-          description: "Nav tabs in different order",
-          severity: "warning",
-          suggestion: "Standardize navigation tab order",
-        },
-      ]);
-      const transport = {
-        query: vi.fn().mockResolvedValue(response),
-        queryVision: vi.fn(),
-      };
-      const ai = await createAnalyzer(
-        makeAIConfig({
-          enabled: true,
-          transport,
-          features: {
-            focusOrderValidation: true,
-            fixSuggestions: true,
-            widgetClassification: false,
-            reportSummary: true,
-            focusIndicatorQuality: false,
-            accessibleNameInference: false,
-            crossPagePatterns: true,
-          },
-        }),
-      );
-
-      // Need 2 pages with shared elements at different tab positions to trigger heuristic
-      const report = makeMultiPageReport({
-        pages: [
-          makeAuditReport({
-            url: "https://example.com/page1",
-            focusSequence: [
-              makeFocusedElement({ selector: "nav a.home", tabIndex: 1 }),
-              makeFocusedElement({ selector: "nav a.about", tabIndex: 2 }),
-            ],
-          }),
-          makeAuditReport({
-            url: "https://example.com/page2",
-            focusSequence: [
-              makeFocusedElement({ selector: "nav a.about", tabIndex: 1 }),
-              makeFocusedElement({ selector: "nav a.home", tabIndex: 2 }),
-            ],
-          }),
-        ],
-      });
-
-      const result = await ai.detectCrossPagePatterns(report);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].type).toBe("inconsistent-order");
-    });
-
-    it("should fall back to heuristic-only patterns when AI returns invalid JSON", async () => {
-      const transport = {
-        query: vi.fn().mockResolvedValue("not valid json"),
-        queryVision: vi.fn(),
-      };
-      const ai = await createAnalyzer(
-        makeAIConfig({
-          enabled: true,
-          transport,
-          features: {
-            focusOrderValidation: true,
-            fixSuggestions: true,
-            widgetClassification: false,
-            reportSummary: true,
-            focusIndicatorQuality: false,
-            accessibleNameInference: false,
-            crossPagePatterns: true,
-          },
-        }),
-      );
-
-      const report = makeMultiPageReport({
-        pages: [
-          makeAuditReport({
-            url: "https://example.com/page1",
-            focusSequence: [
-              makeFocusedElement({ selector: "nav a.home", tabIndex: 1 }),
-              makeFocusedElement({ selector: "nav a.about", tabIndex: 2 }),
-            ],
-          }),
-          makeAuditReport({
-            url: "https://example.com/page2",
-            focusSequence: [
-              makeFocusedElement({ selector: "nav a.about", tabIndex: 1 }),
-              makeFocusedElement({ selector: "nav a.home", tabIndex: 2 }),
-            ],
-          }),
-        ],
-      });
-
-      const result = await ai.detectCrossPagePatterns(report);
-
-      // Should still produce heuristic-based patterns despite AI failure
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0].type).toBe("inconsistent-order");
     });
   });
 

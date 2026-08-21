@@ -29,11 +29,11 @@ src/
     focus-after-interaction.ts  # WCAG 2.4.3/2.4.7 - focus not lost after clicking buttons
     roving-tabindex-broken.ts  # WCAG 2.1.1 - composite widget members unreachable via arrow keys despite roving-tabindex markup
   reporters/             # CLI (chalk), JSON (CI-friendly), HTML (visual focus map overlay), Markdown (LLM-friendly)
-    cli-reporter.ts      # Terminal output, single + multi-page (reportCLI + reportMultiCLI)
-    json-reporter.ts     # JSON for CI, single + multi-page (screenshots stripped)
-    html-reporter.ts     # Interactive HTML with focus order map overlay, tabbed multi-page
+    cli-reporter.ts      # Terminal output (reportCLI)
+    json-reporter.ts     # JSON for CI (screenshots stripped)
+    html-reporter.ts     # Interactive HTML with focus order map overlay
     markdown-reporter.ts # Markdown for LLM piping, token-efficient text-only reports
-    index.ts             # Dispatcher: runReporters (single) + runMultiReporters (multi)
+    index.ts             # Dispatcher: runReporters
   mcp/
     server.ts            # MCP server entry point (stdio transport, tool registration)
     handlers.ts          # Tool handler functions + helpers (buildConfig, compactReport)
@@ -47,7 +47,7 @@ src/
     screenshot-annotator.ts  # Annotate page screenshots with numbered focus order markers (pngjs)
     aria-orientation.ts  # Per-role arrow-key direction (Left/Right vs Up/Down) for verifying roving-tabindex composite widgets
   errors.ts              # Custom error hierarchy (KeylensError, CrawlError, etc.)
-index.ts                 # Programmatic API: audit() + auditMultiple() -> AuditReport / MultiPageReport
+index.ts                 # Programmatic API: audit() -> AuditReport
 skill/
   SKILL.md               # Agent skill definition (YAML frontmatter + instructions)
   references/
@@ -86,14 +86,12 @@ npm run keylens        # run CLI from source via tsx
 - **Skip link functional testing** - crawler tabs through first 5 elements, identifies skip links by pattern, presses Enter, verifies focus actually moves to main content region
 - **Per-element screenshots** - during tab crawl, captures focused state of current element + unfocused state of previous element, enabling before/after comparison
 - **HTML focus order overlay** - `buildFocusMapHTML()` renders page screenshot as background with percentage-positioned numbered markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red. Uses `pageRect` for absolute positioning within `pageDimensions`
-- **Multi-page scanning** - `auditMultiple()` audits URLs sequentially, returns `MultiPageReport` with per-page results and aggregate summary. Each reporter has single + multi variants (e.g. `reportHTML` + `reportMultiHTML`)
 - **Post-click interaction testing** - `--interactions` flag enables `crawlInteractions()` which clicks buttons and `role="button"` elements after the tab crawl, verifies focus isn't lost to `<body>`. Skips links (to avoid navigation) and `type="submit"` inputs
 - **AI widget classification** - `classifyWidgets()` filters interactive elements to complex ARIA roles, sends to Claude to identify APG patterns (dialog, menu, tabs, accordion, combobox, disclosure, tooltip), returns confidence scores and expected keyboard behaviors
 - **Vision-based AI analysis** - `queryVision()` sends annotated screenshots + text prompts to Anthropic vision API for focus order validation and accessible name inference. Screenshot annotator draws numbered markers on page screenshots using pngjs bitmap rendering
 - **Structured AI outputs** - fix suggestions, focus order analysis, and name suggestions return structured JSON (e.g. `FixSuggestion`, `AIFocusOrderResult`) with fallback to plain strings for backward compatibility
 - **Focus style snapshots** - crawler captures a `FocusStyleSnapshot` (outline, box-shadow, border, background, color, pseudo-elements, parent) for every element while focused and once unfocused, always - not gated behind `--screenshots`. Used by `missing-focus-indicator`; also enriches AI fix suggestion prompts
 - **HTML escaping** - all user-supplied strings (selectors, messages, URLs) are escaped in HTML output via `escapeHTML()` helper to prevent XSS
-- **Tabbed multi-page HTML** - multi-page reports use CSS tabs with JS switching, each page gets its own focus map and rules section
 - **AI is optional** - tool is fully useful without an API key. AI is a premium layer on top
 - **Browser scripts as template strings** - selectors.ts contains JS strings evaluated via `page.evaluate()`, not typed as Node code
 - **Exit code 1** on errors for CI/CD integration
@@ -148,8 +146,7 @@ When enabled, the crawler captures per-element screenshots during the tab crawl:
 ### Medium-Impact (all implemented)
 
 5. **Focus indicator quality scoring** - Vision-based scoring of focus indicators 1-10 with contrast/visibility assessment. Sends focused/unfocused screenshot pairs to vision model. Only scores elements with confirmed focus indicators and both screenshots. Limited to 10 per audit. Implemented via `scoreFocusIndicatorQuality()` on `AIAnalyzer`
-6. **Natural language report summaries** - Structured `AIReportSummary` with overview, critical issues, prioritized fixes (effort/impact), overall score (1-100), and recommendation. Falls back to plain string. Multi-page variant via `generateMultiPageSummary()`. Implemented via refactored `generateSummary()` on `AIAnalyzer`
-7. **Cross-page pattern detection** - Heuristic pre-filter (`findSharedSelectors`, `findSkipLinkInconsistencies`) + AI enrichment. Detects inconsistent tab order, missing components, inconsistent focus styles, skip link inconsistencies. Falls back to heuristic-only on AI failure. Implemented via `detectCrossPagePatterns()` on `AIAnalyzer`
+6. **Natural language report summaries** - Structured `AIReportSummary` with overview, critical issues, prioritized fixes (effort/impact), overall score (1-100), and recommendation. Falls back to plain string. Implemented via refactored `generateSummary()` on `AIAnalyzer`
 
 ### AI Config
 
@@ -164,8 +161,7 @@ When enabled, the crawler captures per-element screenshots during the tab crawl:
       "widgetClassification": true,
       "reportSummary": true,
       "focusIndicatorQuality": false,
-      "accessibleNameInference": false,
-      "crossPagePatterns": true
+      "accessibleNameInference": false
     }
   }
 }

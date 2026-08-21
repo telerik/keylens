@@ -1,8 +1,4 @@
-import type {
-  AuditReport,
-  MultiPageReport,
-  AIReportSummary,
-} from "../../types/index.js";
+import type { AuditReport, AIReportSummary } from "../../types/index.js";
 import { logger } from "../../utils/logger.js";
 import { throwIfAborted } from "../../utils/execution.js";
 import { safeParseJSON, reportSummarySchema } from "../schemas.js";
@@ -80,72 +76,6 @@ If you cannot produce valid JSON, provide a concise 3-4 sentence summary as plai
   } catch (error) {
     throwIfAborted(ctx.signal, "ai");
     logger.debug(`AI summary generation failed: ${(error as Error).message}`);
-    return null;
-  }
-}
-
-/**
- * Generate a cross-page executive summary for multi-page audits.
- * Aggregates per-page results and identifies cross-page themes.
- */
-export async function generateMultiPageSummary(
-  ctx: AIFeatureContext,
-  report: MultiPageReport,
-): Promise<string | AIReportSummary | null> {
-  logger.info("Generating AI multi-page summary...");
-
-  const pageOverviews = report.pages
-    .map(
-      (p) =>
-        `- ${p.url}: ${p.summary.totalErrors} errors, ${p.summary.totalWarnings} warnings, ${p.crawl.totalFocusableElements} focusable elements`,
-    )
-    .join("\n");
-
-  const crossPageIssues = report.crossPagePatterns
-    ? report.crossPagePatterns
-        .map((cp) => `- [${cp.type}] ${cp.description}`)
-        .join("\n")
-    : "";
-
-  const prompt = `You are an accessibility consultant producing a structured summary of a multi-page keyboard navigation audit.
-
-Pages audited: ${report.summary.totalPages}
-Total errors: ${report.summary.totalErrors}
-Total warnings: ${report.summary.totalWarnings}
-Rule evaluation errors: ${report.summary.ruleErrors ?? 0}
-Score complete: ${report.summary.scoreComplete !== false}
-Pages with errors: ${report.summary.pagesWithErrors}
-
-Per-page breakdown:
-${pageOverviews}
-${crossPageIssues ? `\nCross-page issues detected:\n${crossPageIssues}` : ""}
-
-Respond with ONLY a JSON object matching this schema:
-{
-  "overview": "2-3 sentence overall assessment across all pages",
-  "criticalIssues": ["site-wide critical issue 1", "critical issue 2"],
-  "prioritizedFixes": [
-    { "fix": "what to do site-wide", "effort": "low"|"medium"|"high", "impact": "high"|"medium"|"low" }
-  ],
-  "aiSeverityRating": <1-100 integer>,
-  "recommendation": "one-sentence next step recommendation for the entire site"
-}
-
-Score guide: 90-100 excellent, 70-89 good, 50-69 needs work, below 50 critical issues.
-If you cannot produce valid JSON, provide a concise 3-4 sentence summary as plain text.`;
-
-  try {
-    const response = await ctx.provider.query(prompt);
-
-    const parsed = safeParseJSON(response, reportSummarySchema);
-    if (parsed) {
-      return parsed;
-    }
-
-    return response;
-  } catch (error) {
-    throwIfAborted(ctx.signal, "ai");
-    logger.debug(`AI multi-page summary failed: ${(error as Error).message}`);
     return null;
   }
 }
