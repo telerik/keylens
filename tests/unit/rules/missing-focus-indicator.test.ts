@@ -18,7 +18,7 @@ describe("MissingFocusIndicatorRule", () => {
         focusSequence: [
           makeFocusedElement({
             focusedStyleSnapshot: makeFocusStyleSnapshot({
-              self: { outline: "rgb(0, 0, 255) solid 2px" },
+              self: { "outline-style": "solid", "outline-width": "2px" },
             }),
             unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
           }),
@@ -56,7 +56,6 @@ describe("MissingFocusIndicatorRule", () => {
           makeFocusedElement({
             focusedStyleSnapshot: makeFocusStyleSnapshot({
               self: {
-                outline: "rgb(0, 0, 0) none 0px",
                 "box-shadow": "0 0 0 3px rgba(66, 153, 225, 0.5)",
               },
             }),
@@ -121,7 +120,7 @@ describe("MissingFocusIndicatorRule", () => {
           makeFocusedElement({
             selector: "a.clean",
             focusedStyleSnapshot: makeFocusStyleSnapshot({
-              self: { outline: "rgb(0, 0, 255) solid 2px" },
+              self: { "outline-style": "solid", "outline-width": "2px" },
             }),
             unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
           }),
@@ -190,6 +189,52 @@ describe("MissingFocusIndicatorRule", () => {
       });
       const unfocused = makeFocusStyleSnapshot();
       expect(hasVisibleFocusChange(focused, unfocused)).toBe(true);
+    });
+
+    it("ignores outline-offset changing while outline-style stays none (regression: real-world false positive)", () => {
+      const focused = makeFocusStyleSnapshot({
+        self: { "outline-offset": "1px" },
+      });
+      const unfocused = makeFocusStyleSnapshot({
+        self: { "outline-offset": "0px" },
+      });
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
+    });
+
+    it("still detects outline-offset changes once outline-style is actually rendered", () => {
+      const focused = makeFocusStyleSnapshot({
+        self: { "outline-style": "solid", "outline-offset": "2px" },
+      });
+      const unfocused = makeFocusStyleSnapshot({
+        self: { "outline-style": "solid", "outline-offset": "0px" },
+      });
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(true);
+    });
+
+    it("ignores border-top-color changing while border-top-width stays 0px", () => {
+      const focused = makeFocusStyleSnapshot({
+        self: { "border-top-color": "rgb(255, 0, 0)" },
+      });
+      const unfocused = makeFocusStyleSnapshot();
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
+    });
+
+    it("ignores background-position changing while background-image stays none", () => {
+      const focused = makeFocusStyleSnapshot({
+        self: { "background-position": "10px 10px" },
+      });
+      const unfocused = makeFocusStyleSnapshot({
+        self: { "background-position": "0px 0px" },
+      });
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
+    });
+
+    it("ignores animation-duration changing while animation-name stays none", () => {
+      const focused = makeFocusStyleSnapshot({
+        self: { "animation-duration": "0.3s" },
+      });
+      const unfocused = makeFocusStyleSnapshot();
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
     });
   });
 });

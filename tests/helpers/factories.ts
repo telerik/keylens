@@ -36,15 +36,22 @@ export function makeFocusStyleSnapshot(
   } = {},
 ): FocusStyleSnapshot {
   const baseSelf = {
-    outline: "rgb(0, 0, 0) none 0px",
+    "outline-style": "none",
+    "outline-width": "0px",
+    "outline-color": "rgb(0, 0, 0)",
     "outline-offset": "0px",
     "box-shadow": "none",
-    border: "0px none rgb(0, 0, 0)",
+    "border-top-style": "none",
+    "border-top-width": "0px",
+    "border-top-color": "rgb(0, 0, 0)",
     "background-color": "rgba(0, 0, 0, 0)",
     color: "rgb(0, 0, 0)",
     "text-decoration-line": "none",
+    "text-decoration-color": "rgb(0, 0, 0)",
     filter: "none",
     "background-image": "none",
+    "animation-name": "none",
+    "animation-duration": "0s",
   };
   const basePseudo = {
     content: "none",
@@ -58,7 +65,7 @@ export function makeFocusStyleSnapshot(
   const baseParent = {
     "box-shadow": "none",
     "background-color": "rgba(0, 0, 0, 0)",
-    outline: "rgb(0, 0, 0) none 0px",
+    "outline-style": "none",
   };
 
   return {
