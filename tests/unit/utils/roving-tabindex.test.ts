@@ -117,4 +117,59 @@ describe("getUnreachedInteractiveElements", () => {
 
     expect(result.map((el) => el.selector)).toEqual(["#cell-1"]);
   });
+
+  it("excludes a composite-container element itself when one of its own members was reached", () => {
+    // Mirrors a Kendo chip-list: <div role="listbox"> is discovered as its
+    // own interactive element (matches the role-based selector) but is a
+    // purely semantic wrapper - each <div role="option" tabindex="0"> chip is
+    // independently Tab-reachable, the container itself never takes focus.
+    const result = getUnreachedInteractiveElements([
+      makeInteractiveElement({
+        selector: "#tagslist",
+        role: "listbox",
+        reached: false,
+        tabindexAttr: null,
+        rovingContainerSelector: null,
+      }),
+      makeInteractiveElement({
+        selector: "#chip-1",
+        role: "option",
+        reached: true,
+        tabindexAttr: 0,
+        rovingContainerSelector: "#tagslist",
+      }),
+      makeInteractiveElement({
+        selector: "#chip-2",
+        role: "option",
+        reached: true,
+        tabindexAttr: 0,
+        rovingContainerSelector: "#tagslist",
+      }),
+    ]);
+
+    expect(result).toHaveLength(0);
+  });
+
+  it("still flags a composite-container element when none of its members were reached", () => {
+    // A genuinely broken listbox (no chip ever received focus) must still
+    // surface - the container-exclusion above must not silence real breaks.
+    const result = getUnreachedInteractiveElements([
+      makeInteractiveElement({
+        selector: "#tagslist",
+        role: "listbox",
+        reached: false,
+        tabindexAttr: null,
+        rovingContainerSelector: null,
+      }),
+      makeInteractiveElement({
+        selector: "#chip-1",
+        role: "option",
+        reached: false,
+        tabindexAttr: -1,
+        rovingContainerSelector: "#tagslist",
+      }),
+    ]);
+
+    expect(result.map((el) => el.selector)).toEqual(["#tagslist", "#chip-1"]);
+  });
 });
