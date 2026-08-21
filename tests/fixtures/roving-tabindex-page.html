@@ -65,6 +65,39 @@
       <label for="radio-3">HEV</label>
     </div>
 
+    <!--
+      Container-retains-focus pattern with NO tabindex attribute at all on
+      any member (not even "-1") - real DOM focus stays on the tree itself;
+      arrow keys would move a CSS "current" class without ever calling
+      .focus() on an item. Regression fixture: a null tabindexAttr must be
+      treated the same as -1 (not a real tab stop), otherwise
+      verifyRovingTabindexGroups force-focuses a non-focusable item and
+      reports every member as unreachable via arrow keys.
+    -->
+    <div
+      role="tree"
+      aria-label="Container-focus tree"
+      id="container-focus-tree"
+      tabindex="0"
+    >
+      <div role="treeitem" id="cf-item-1">Item 1</div>
+      <div role="treeitem" id="cf-item-2">Item 2</div>
+      <div role="treeitem" id="cf-item-3">Item 3</div>
+    </div>
+
+    <!--
+      Every member is already its own independent Tab stop (tabindex="0" on
+      ALL siblings) rather than the "one active, rest -1" roving pattern -
+      e.g. a drawer nav or chip list. Regression fixture: a group with no
+      tabindex="-1" member at all must be skipped entirely, since arrow-key
+      support was never required for full keyboard reachability here.
+    -->
+    <div role="menu" aria-label="Independently tabbable menu" id="flat-menu">
+      <div role="menuitem" tabindex="0" id="flat-item-1">Flat 1</div>
+      <div role="menuitem" tabindex="0" id="flat-item-2">Flat 2</div>
+      <div role="menuitem" tabindex="0" id="flat-item-3">Flat 3</div>
+    </div>
+
     <script>
       (function () {
         var cells = Array.from(

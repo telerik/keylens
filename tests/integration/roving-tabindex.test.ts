@@ -106,7 +106,43 @@ describe("Integration: roving-tabindex verification", () => {
     expect(radioElement?.rovingContainerSelector).toBe("#native-radiogroup");
   });
 
-  it("passes the roving-tabindex-broken rule for all three widgets", async () => {
+  it("skips a container-retains-focus widget whose members carry no tabindex attribute at all", async () => {
+    const report = await audit(url, makeConfig());
+
+    // A null tabindexAttr must not be treated as a real tab stop - otherwise
+    // verifyRovingTabindexGroups force-focuses a non-focusable <div> and
+    // reports every member unreachable, even though the container itself
+    // (the real Tab stop) is fully keyboard-operable.
+    const group = report.rovingTabindexGroups?.find((g) =>
+      g.reachedViaArrowKeys
+        .concat(
+          g.unreachedViaArrowKeys.map((selector) => ({
+            selector,
+            pageRect: { x: 0, y: 0, width: 0, height: 0 },
+          })),
+        )
+        .some((m) => m.selector.startsWith("#cf-item")),
+    );
+    expect(group).toBeUndefined();
+  });
+
+  it("skips a group where every member already has tabindex=0 (no roving-tabindex pattern at all)", async () => {
+    const report = await audit(url, makeConfig());
+
+    const group = report.rovingTabindexGroups?.find((g) =>
+      g.reachedViaArrowKeys
+        .concat(
+          g.unreachedViaArrowKeys.map((selector) => ({
+            selector,
+            pageRect: { x: 0, y: 0, width: 0, height: 0 },
+          })),
+        )
+        .some((m) => m.selector.startsWith("#flat-item")),
+    );
+    expect(group).toBeUndefined();
+  });
+
+  it("passes the roving-tabindex-broken rule for all widgets", async () => {
     const report = await audit(url, makeConfig());
 
     const rule = report.rules.find(

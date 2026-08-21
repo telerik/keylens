@@ -279,5 +279,45 @@ describe("Integration: browser selector scripts", () => {
       expect(byLabel("Text area")?.role).toBe("textbox");
       expect(byLabel("Text input")?.role).toBe("textbox");
     });
+
+    it("should exclude an element with aria-hidden=true", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).not.toContain("#aria-hidden-btn");
+    });
+
+    it("should exclude an element whose ancestor has aria-hidden=true", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).not.toContain("#aria-hidden-descendant-btn");
+    });
+
+    it("should exclude an empty structural filler gridcell with no tabindex/name/content", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).not.toContain("#empty-gridcell");
+    });
+
+    it("should keep a gridcell with real text content", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).toContain("#filled-gridcell");
+    });
+
+    it("should keep an empty gridcell that has an explicit tabindex", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).toContain("#tabbable-empty-gridcell");
+    });
   });
 });
