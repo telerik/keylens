@@ -4,7 +4,6 @@ import { z } from "zod";
 import { setLogLevel } from "../utils/logger.js";
 import {
   handleAudit,
-  handleAuditMultiple,
   handleClassifyWidgets,
   handleValidateFocusOrder,
 } from "./handlers.js";
@@ -83,21 +82,6 @@ server.registerTool(
     },
   },
   async ({ url, options }) => handleAudit({ url, options }, server.server),
-);
-
-server.registerTool(
-  "keylens_audit_multiple",
-  {
-    description:
-      "Run keyboard navigation audits on multiple URLs and produce an aggregate report " +
-      "with cross-page pattern detection.",
-    inputSchema: {
-      urls: z.array(z.string().url()).min(1).describe("URLs to audit"),
-      options: auditOptionsSchema,
-    },
-  },
-  async ({ urls, options }) =>
-    handleAuditMultiple({ urls, options }, server.server),
 );
 
 server.registerTool(

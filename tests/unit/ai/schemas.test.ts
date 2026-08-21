@@ -7,7 +7,6 @@ import {
   widgetClassificationBatchSchema,
   accessibleNameBatchSchema,
   focusIndicatorScoreBatchSchema,
-  crossPagePatternBatchSchema,
 } from "@/ai/schemas.js";
 
 describe("safeParseJSON", () => {
@@ -274,45 +273,5 @@ describe("focusIndicatorScoreBatchSchema", () => {
       focusIndicatorScoreBatchSchema,
     );
     expect(result![0].recommendation).toBe("Increase outline width");
-  });
-});
-
-describe("crossPagePatternBatchSchema", () => {
-  it("validates pattern items", () => {
-    const data = [
-      {
-        findingIndex: 1,
-        type: "inconsistent-order",
-        description: "Tab order differs",
-        severity: "warning",
-        suggestion: "Align tab order",
-      },
-    ];
-    const result = safeParseJSON(
-      JSON.stringify(data),
-      crossPagePatternBatchSchema,
-    );
-    expect(result).not.toBeNull();
-    expect(result![0].type).toBe("inconsistent-order");
-  });
-
-  it("rejects invalid type", () => {
-    const data = [
-      {
-        findingIndex: 1,
-        type: "bad-layout",
-        description: "...",
-        severity: "error",
-        suggestion: "...",
-      },
-    ];
-    expect(
-      safeParseJSON(JSON.stringify(data), crossPagePatternBatchSchema),
-    ).toBeNull();
-  });
-
-  it("validates empty array as valid", () => {
-    const result = safeParseJSON("[]", crossPagePatternBatchSchema);
-    expect(result).toEqual([]);
   });
 });

@@ -120,11 +120,9 @@ const report = await auditBase("https://example.com", {
 await renderAuditReport(report, ["json"], "./keylens-report");
 ```
 
-Use `auditBase()` / `auditMultipleBase()` for deterministic analysis,
-`enrichAudit()` / `enrichMultiPageAudit()` for experimental AI, and
-`renderAuditReport()` / `renderMultiPageReport()` for output. The convenience
-`audit()` and `auditMultiple()` functions still return in-memory reports and only
-enrich when AI is enabled.
+Use `auditBase()` for deterministic analysis, `enrichAudit()` for experimental AI, and
+`renderAuditReport()` for output. The convenience `audit()` function still returns an
+in-memory report and only enriches when AI is enabled.
 
 The browser-safe `@telerik/keylens/guidance` subpath exposes rule remediation and WCAG
 references without importing Playwright:

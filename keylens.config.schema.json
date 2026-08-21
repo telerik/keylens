@@ -12,10 +12,10 @@
       "default": "balanced",
       "description": "Execution preset applied before explicit option overrides."
     },
-    "urls": {
-      "type": "array",
-      "items": { "type": "string", "format": "uri" },
-      "description": "URLs to audit."
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to audit (used only when no URL argument is passed on the CLI)."
     },
     "viewport": {
       "type": "object",
@@ -163,14 +163,6 @@
         "excludeDestructive": { "type": "boolean", "default": true }
       }
     },
-    "multiPage": {
-      "type": "object",
-      "additionalProperties": false,
-      "description": "Browser reuse and bounded concurrency for multi-page audits.",
-      "properties": {
-        "concurrency": { "type": "integer", "minimum": 1, "default": 2 }
-      }
-    },
     "ai": {
       "type": "object",
       "additionalProperties": false,
@@ -198,8 +190,7 @@
             "widgetClassification": { "type": "boolean", "default": false },
             "reportSummary": { "type": "boolean", "default": true },
             "focusIndicatorQuality": { "type": "boolean", "default": false },
-            "accessibleNameInference": { "type": "boolean", "default": false },
-            "crossPagePatterns": { "type": "boolean", "default": true }
+            "accessibleNameInference": { "type": "boolean", "default": false }
           }
         },
         "limits": {

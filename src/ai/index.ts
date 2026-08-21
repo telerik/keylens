@@ -1,7 +1,6 @@
 import type {
   AIConfig,
   AuditReport,
-  MultiPageReport,
   RuleViolation,
   FocusedElement,
   InteractiveElement,
@@ -10,7 +9,6 @@ import type {
   FocusIndicatorScore,
   AIFocusOrderResult,
   AIReportSummary,
-  CrossPagePattern,
   AuditAsset,
 } from "../types/index.js";
 import { logger } from "../utils/logger.js";
@@ -18,14 +16,10 @@ import { resolveAIAPIKey } from "../utils/config.js";
 import { AIProvider, type AIFeatureContext } from "./provider.js";
 import { generateFixSuggestions as runFixSuggestions } from "./features/fix-suggestions.js";
 import { validateFocusOrder as runFocusOrderValidation } from "./features/focus-order-validation.js";
-import {
-  generateSummary as runSummary,
-  generateMultiPageSummary as runMultiPageSummary,
-} from "./features/report-summary.js";
+import { generateSummary as runSummary } from "./features/report-summary.js";
 import { classifyWidgets as runWidgetClassification } from "./features/widget-classification.js";
 import { inferAccessibleNames as runAccessibleNameInference } from "./features/accessible-names.js";
 import { scoreFocusIndicatorQuality as runFocusIndicatorQuality } from "./features/focus-indicator-quality.js";
-import { detectCrossPagePatterns as runCrossPagePatternDetection } from "./features/cross-page-patterns.js";
 
 /**
  * AI-powered analysis layer for Keylens.
@@ -116,19 +110,6 @@ export class AIAnalyzer {
   }
 
   /**
-   * Generate a cross-page executive summary for multi-page audits.
-   * Aggregates per-page results and identifies cross-page themes.
-   */
-  async generateMultiPageSummary(
-    report: MultiPageReport,
-  ): Promise<string | AIReportSummary | null> {
-    if (!this.isAvailable() || !this.config.features.reportSummary) {
-      return null;
-    }
-    return runMultiPageSummary(this.ctx, report);
-  }
-
-  /**
    * Classify interactive elements by WAI-ARIA APG pattern.
    * Identifies dialogs, menus, tabs, disclosures, etc. and returns
    * expected keyboard interactions for each.
@@ -176,19 +157,5 @@ export class AIAnalyzer {
       return [];
     }
     return runFocusIndicatorQuality(this.ctx, focusSequence, assets);
-  }
-
-  /**
-   * Detect inconsistent keyboard navigation patterns across multiple pages.
-   * Uses heuristic pre-filtering to minimize AI calls.
-   * Only invokes AI when heuristics find potential issues.
-   */
-  async detectCrossPagePatterns(
-    report: MultiPageReport,
-  ): Promise<CrossPagePattern[]> {
-    if (!this.isAvailable() || !this.config.features.crossPagePatterns) {
-      return [];
-    }
-    return runCrossPagePatternDetection(this.ctx, report);
   }
 }

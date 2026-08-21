@@ -2,7 +2,6 @@ import type {
   AssetProjectionOptions,
   AuditAsset,
   AuditReport,
-  MultiPageReport,
 } from "../types/index.js";
 import { ConfigError } from "../errors.js";
 
@@ -31,14 +30,6 @@ export function cloneAuditReport(report: AuditReport): AuditReport {
     storage: { ...asset.storage },
   }));
   return cloned;
-}
-
-export function cloneMultiPageReport(report: MultiPageReport): MultiPageReport {
-  const { pages, ...summary } = report;
-  return {
-    ...structuredClone(summary),
-    pages: pages.map(cloneAuditReport),
-  };
 }
 
 export function projectAuditReport(
@@ -89,20 +80,4 @@ function projectAuditReportWithoutInlineData(
   }
 
   return projected;
-}
-
-export function projectMultiPageReport(
-  report: MultiPageReport,
-  options: AssetProjectionOptions,
-): MultiPageReport {
-  const { pages: _pages, ...summary } = report;
-  void _pages;
-  return {
-    ...structuredClone(summary),
-    pages: report.pages.map((page, index) =>
-      options.assets === "inline"
-        ? projectAuditReport(page, options)
-        : projectAuditReportWithoutInlineData(page, options, index),
-    ),
-  };
 }

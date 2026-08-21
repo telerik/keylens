@@ -1,12 +1,7 @@
 import { Command } from "commander";
 import ora from "ora";
 import chalk from "chalk";
-import {
-  audit,
-  auditMultiple,
-  renderAuditReport,
-  renderMultiPageReport,
-} from "../index.js";
+import { audit, renderAuditReport } from "../index.js";
 import {
   loadConfigInput,
   DEFAULT_CONFIG,
@@ -108,7 +103,7 @@ program
 program
   .command("audit")
   .alias("scan")
-  .description("Run a keyboard navigation audit on one or more URLs")
+  .description("Run a keyboard navigation audit on a URL")
   .argument("[url]", "URL to audit (reads from config if omitted)")
   .option("-c, --config <path>", "path to keylens.config.json")
   .option("--profile <profile>", "execution profile (fast, balanced, thorough)")
@@ -202,15 +197,11 @@ program
         ? (options.output.split(",") as ReporterType[])
         : [...(fileConfig.reporters ?? DEFAULT_CONFIG.reporters)];
 
-      const urls: string[] = url
-        ? [url]
-        : fileConfig.urls && fileConfig.urls.length > 0
-          ? fileConfig.urls
-          : [];
+      const targetUrl = url ?? fileConfig.url;
 
-      if (urls.length === 0) {
+      if (!targetUrl) {
         throw new ConfigError(
-          "No URL provided. Pass a URL argument or set urls in config file.",
+          "No URL provided. Pass a URL argument or set url in config file.",
         );
       }
 
@@ -240,7 +231,7 @@ program
       const config: KeylensConfig = normalizeConfig({
         ...fileConfig,
         ...(options.profile ? { profile: options.profile } : {}),
-        urls,
+        url: targetUrl,
         ...(viewport ? { viewport } : {}),
         rules: {
           ...fileConfig.rules,
@@ -269,9 +260,6 @@ program
             ...(fileConfig.interactions?.actions ??
               DEFAULT_CONFIG.interactions.actions),
           ],
-        },
-        multiPage: {
-          ...fileConfig.multiPage,
         },
         timeouts: {
           ...fileConfig.timeouts,
@@ -339,45 +327,22 @@ program
         updateProgress(spinner!, event, state);
       };
 
-      if (urls.length === 1) {
-        const report = await audit(urls[0]!, {
-          ...config,
-          logLevel,
-          signal: totalScope.signal,
-          onEvent,
-        });
-        spinner.stop();
-        await renderAuditReport(report, config.reporters, config.outputDir, {
-          logLevel,
-          signal: totalScope.signal,
-        });
+      const report = await audit(targetUrl, {
+        ...config,
+        logLevel,
+        signal: totalScope.signal,
+        onEvent,
+      });
+      spinner.stop();
+      await renderAuditReport(report, config.reporters, config.outputDir, {
+        logLevel,
+        signal: totalScope.signal,
+      });
 
-        if (report.summary.errors > 0) {
-          process.exitCode = 2;
-        } else if (report.summary.totalErrors > 0) {
-          process.exitCode = 1;
-        }
-      } else {
-        // Multi-page audit
-        const multiReport = await auditMultiple(urls, {
-          ...config,
-          logLevel,
-          signal: totalScope.signal,
-          onEvent,
-        });
-        spinner.stop();
-        await renderMultiPageReport(
-          multiReport,
-          config.reporters,
-          config.outputDir,
-          { logLevel, signal: totalScope.signal },
-        );
-
-        if (multiReport.summary.ruleErrors > 0) {
-          process.exitCode = 2;
-        } else if (multiReport.summary.totalErrors > 0) {
-          process.exitCode = 1;
-        }
+      if (report.summary.errors > 0) {
+        process.exitCode = 2;
+      } else if (report.summary.totalErrors > 0) {
+        process.exitCode = 1;
       }
     } catch (error) {
       spinner?.fail(chalk.red(`Audit failed: ${(error as Error).message}`));
@@ -414,7 +379,7 @@ program
       $schema:
         "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
       profile: "balanced",
-      urls: ["https://example.com"],
+      url: "https://example.com",
       viewport: { width: 1280, height: 720 },
       tabDelay: 250,
       rules: DEFAULT_CONFIG.rules,

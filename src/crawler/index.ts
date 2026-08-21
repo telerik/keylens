@@ -507,12 +507,12 @@ export async function launchAuditBrowser(
     ) {
       throw new CrawlError(
         `Playwright ${config.browser} browser is not installed. Run: npx playwright install ${config.browser}`,
-        url ?? config.urls[0] ?? "",
+        url ?? config.url ?? "",
       );
     }
     throw new CrawlError(
       `Failed to launch browser: ${message}`,
-      url ?? config.urls[0] ?? "",
+      url ?? config.url ?? "",
     );
   }
 }

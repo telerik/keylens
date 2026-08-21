@@ -4,7 +4,6 @@ import type {
   AuditOptions,
   KeylensConfig,
   LogLevel,
-  MultiPageReport,
   CrawlResult,
   EffectiveKeylensConfig,
   ReporterType,
@@ -12,18 +11,13 @@ import type {
   RuleResult,
   AuditEvent,
 } from "./types/index.js";
-import type { Browser } from "playwright";
-import { crawlPage, launchAuditBrowser } from "./crawler/index.js";
+import { crawlPage } from "./crawler/index.js";
 import { runRules } from "./rules/index.js";
-import { runMultiReporters, runReporters } from "./reporters/index.js";
+import { runReporters } from "./reporters/index.js";
 import { AIAnalyzer } from "./ai/index.js";
 import { logger, withLogLevel } from "./utils/logger.js";
 import { computeScore } from "./utils/score.js";
-import {
-  cloneAuditReport,
-  cloneMultiPageReport,
-  getInlineAssetData,
-} from "./utils/assets.js";
+import { cloneAuditReport, getInlineAssetData } from "./utils/assets.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
 import { hasConfiguredAIAPIKey, normalizeConfig } from "./utils/config.js";
 import { createExecutionScope, throwIfAborted } from "./utils/execution.js";
@@ -218,7 +212,6 @@ async function auditBaseWithConfig(
   url: string,
   config: KeylensConfig,
   controls: ExecutionControls,
-  sharedBrowser?: Browser,
 ): Promise<AuditReport> {
   const startedAt = Date.now();
   logger.info(`Starting deterministic Keylens audit for ${url}`);
@@ -235,7 +228,7 @@ async function auditBaseWithConfig(
       url,
       config,
       crawlScope.signal,
-      sharedBrowser,
+      undefined,
       controls.onEvent,
       controls.startedAt,
     );
@@ -425,217 +418,6 @@ export async function renderAuditReport(
   });
 }
 
-/** Explicitly render or write configured multi-page report formats. */
-export async function renderMultiPageReport(
-  report: MultiPageReport,
-  reporters: ReporterType[],
-  outputDir: string,
-  options: LogLevel | RenderOptions = "silent",
-): Promise<void> {
-  const resolved =
-    typeof options === "string" ? { logLevel: options } : options;
-  await withLogLevel(resolved.logLevel ?? "silent", async () => {
-    const scope = createExecutionScope({
-      parentSignal: resolved.signal,
-      timeout: resolved.timeout ?? report.pages[0]?.config.timeouts.reporters,
-      phase: "reporters",
-    });
-    try {
-      await runMultiReporters(report, reporters, outputDir, scope.signal);
-    } finally {
-      scope.dispose();
-    }
-  });
-}
-
-function buildMultiPageReport(
-  urls: string[],
-  pages: AuditReport[],
-  startedAt: number,
-): MultiPageReport {
-  const pagesDuration = pages.reduce(
-    (total, page) => total + page.timings.total,
-    0,
-  );
-  return {
-    schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
-    version: VERSION,
-    timestamp: new Date().toISOString(),
-    urls,
-    pages,
-    timings: {
-      pages: pagesDuration,
-      total: Date.now() - startedAt,
-    },
-    summary: {
-      totalPages: pages.length,
-      totalErrors: pages.reduce(
-        (total, page) => total + page.summary.totalErrors,
-        0,
-      ),
-      totalWarnings: pages.reduce(
-        (total, page) => total + page.summary.totalWarnings,
-        0,
-      ),
-      totalInfo: pages.reduce(
-        (total, page) => total + page.summary.totalInfo,
-        0,
-      ),
-      ruleErrors: pages.reduce(
-        (total, page) => total + (page.summary.errors ?? 0),
-        0,
-      ),
-      pagesWithErrors: pages.filter((page) => page.summary.totalErrors > 0)
-        .length,
-      score:
-        pages.length > 0
-          ? Math.round(
-              pages.reduce((total, page) => total + page.summary.score, 0) /
-                pages.length,
-            )
-          : 0,
-      scoreComplete: pages.every(
-        (page) => page.summary.scoreComplete !== false,
-      ),
-    },
-  };
-}
-
-async function auditMultipleBaseWithConfig(
-  urls: string[],
-  config: KeylensConfig,
-  controls: ExecutionControls,
-): Promise<MultiPageReport> {
-  const startedAt = Date.now();
-  if (urls.length === 0) return buildMultiPageReport(urls, [], startedAt);
-
-  const browser = await launchAuditBrowser(config, controls.signal);
-  const pages = new Array<AuditReport>(urls.length);
-  let nextIndex = 0;
-  let firstError: unknown;
-
-  const worker = async () => {
-    while (firstError === undefined) {
-      const index = nextIndex++;
-      if (index >= urls.length) return;
-      try {
-        pages[index] = await auditBaseWithConfig(
-          urls[index]!,
-          config,
-          controls,
-          browser,
-        );
-      } catch (error) {
-        if (firstError === undefined) firstError = error;
-      }
-    }
-  };
-
-  try {
-    const workerCount = Math.min(config.multiPage.concurrency, urls.length);
-    await Promise.all(Array.from({ length: workerCount }, () => worker()));
-    if (firstError !== undefined) throw firstError;
-    return buildMultiPageReport(urls, pages, startedAt);
-  } finally {
-    await browser.close().catch(() => undefined);
-  }
-}
-
-async function enrichMultiPageAuditWithConfig(
-  baseReport: MultiPageReport,
-  config: KeylensConfig,
-  controls: ExecutionControls,
-): Promise<MultiPageReport> {
-  const report = cloneMultiPageReport(baseReport);
-  const aiScope = createExecutionScope({
-    parentSignal: controls.signal,
-    timeout: config.timeouts.ai,
-    phase: "ai",
-  });
-  const scopedControls = { ...controls, signal: aiScope.signal };
-  const ai = new AIAnalyzer(config.ai, aiScope.signal);
-  if (!ai.isAvailable()) {
-    aiScope.dispose();
-    return report;
-  }
-
-  const startedAt = Date.now();
-  try {
-    const pages: AuditReport[] = [];
-    for (const page of report.pages) {
-      pages.push(await enrichAuditWithConfig(page, config, scopedControls));
-    }
-    report.pages = pages;
-
-    const crossPagePatterns = await ai.detectCrossPagePatterns(report);
-    throwIfAborted(aiScope.signal, "ai");
-    report.crossPagePatterns =
-      crossPagePatterns.length > 0 ? crossPagePatterns : undefined;
-    report.aiSummary = (await ai.generateMultiPageSummary(report)) ?? undefined;
-    throwIfAborted(aiScope.signal, "ai");
-    report.timings.ai = Date.now() - startedAt;
-    report.timings.total = baseReport.timings.total + report.timings.ai;
-    return report;
-  } finally {
-    aiScope.dispose();
-  }
-}
-
-/** Run deterministic audits for multiple URLs without enrichment or output. */
-export async function auditMultipleBase(
-  urls: string[],
-  options: AuditOptions | KeylensConfig = {},
-): Promise<MultiPageReport> {
-  const resolved = resolveAuditOptions(options);
-  return withLogLevel(resolved.logLevel, () =>
-    withTotalBudget(resolved.config, resolved, undefined, (controls) =>
-      auditMultipleBaseWithConfig(urls, resolved.config, controls),
-    ),
-  );
-}
-
-/** Add per-page and cross-page AI enrichment without mutating the base report. */
-export async function enrichMultiPageAudit(
-  baseReport: MultiPageReport,
-  options: AIEnrichmentOptions = {},
-): Promise<MultiPageReport> {
-  const firstPageConfig = baseReport.pages[0]?.config;
-  if (!firstPageConfig) return cloneMultiPageReport(baseReport);
-  const resolved = resolveEnrichmentOptions(firstPageConfig, options);
-  return withLogLevel(resolved.logLevel, () =>
-    withTotalBudget(resolved.config, resolved, undefined, (controls) =>
-      enrichMultiPageAuditWithConfig(baseReport, resolved.config, controls),
-    ),
-  );
-}
-
-/** Run multiple in-memory audits. Output remains an explicit caller action. */
-export async function auditMultiple(
-  urls: string[],
-  options: AuditOptions | KeylensConfig = {},
-): Promise<MultiPageReport> {
-  const resolved = resolveAuditOptions(options);
-  return withLogLevel(resolved.logLevel, async () => {
-    return withTotalBudget(
-      resolved.config,
-      resolved,
-      undefined,
-      async (controls) => {
-        const baseReport = await auditMultipleBaseWithConfig(
-          urls,
-          resolved.config,
-          controls,
-        );
-        return enrichMultiPageAuditWithConfig(
-          baseReport,
-          resolved.config,
-          controls,
-        );
-      },
-    );
-  });
-}
-
 /** Lightweight crawl-only path used by specialized experimental adapters. */
 export async function crawlOnly(
   url: string,
@@ -669,7 +451,6 @@ export async function crawlOnly(
 // Re-export types and utilities for programmatic use
 export type {
   AuditReport,
-  MultiPageReport,
   KeylensConfig,
   KeylensConfigInput,
   AIConfigInput,
@@ -693,7 +474,6 @@ export type {
   EffectiveAIConfig,
   EffectiveKeylensConfig,
   AuditTimings,
-  MultiPageAuditTimings,
   LogLevel,
   RuleConfig,
   AIConfig,
@@ -713,7 +493,6 @@ export type {
   InteractionAction,
   InteractionIsolation,
   InteractionNavigationPolicy,
-  MultiPageConfig,
   SkipLinkResult,
   WidgetClassification,
   APGPattern,
@@ -723,8 +502,6 @@ export type {
   AccessibleNameSuggestion,
   FocusIndicatorScore,
   AIReportSummary,
-  CrossPagePattern,
-  CrossPagePatternType,
   RuleRemediation,
   WcagReference,
 } from "./types/index.js";
@@ -746,11 +523,8 @@ export {
 export { AIAnalyzer } from "./ai/index.js";
 export {
   renderHTML,
-  renderMultiHTML,
   renderMarkdown,
-  renderMultiMarkdown,
   serializeJSON,
-  serializeMultiJSON,
 } from "./reporters/index.js";
 export {
   KeylensError,
@@ -761,5 +535,5 @@ export {
   AuditTimeoutError,
   ReporterError,
 } from "./errors.js";
-export { projectAuditReport, projectMultiPageReport } from "./utils/assets.js";
+export { projectAuditReport } from "./utils/assets.js";
 export type { KeylensErrorCode, KeylensErrorOptions } from "./errors.js";

@@ -1,14 +1,9 @@
 import { describe, expect, it } from "vitest";
-import {
-  cloneAuditReport,
-  projectAuditReport,
-  projectMultiPageReport,
-} from "@/utils/assets.js";
+import { cloneAuditReport, projectAuditReport } from "@/utils/assets.js";
 import {
   makeAuditReport,
   makeFocusedElement,
   makeInlineAsset,
-  makeMultiPageReport,
 } from "@tests/helpers/factories.js";
 
 function makeReportWithAssets() {
@@ -99,40 +94,5 @@ describe("report asset projections", () => {
       }),
     ]);
     expect(JSON.stringify(projected)).not.toContain("cGFnZQ==");
-  });
-
-  it("projects every page in a multi-page report", () => {
-    const report = makeMultiPageReport({
-      pages: [makeReportWithAssets(), makeReportWithAssets()],
-    });
-
-    const projected = projectMultiPageReport(report, { assets: "omit" });
-
-    expect(projected.pages.every((page) => page.assets.length === 0)).toBe(
-      true,
-    );
-  });
-
-  it("provides page context for collision-free multi-page references", () => {
-    const report = makeMultiPageReport({
-      pages: [makeReportWithAssets(), makeReportWithAssets()],
-    });
-
-    const projected = projectMultiPageReport(report, {
-      assets: "references",
-      reference: (asset, context) => ({
-        kind: "file",
-        path: `${context.pageIndex}-${asset.id}.png`,
-      }),
-    });
-
-    expect(projected.pages[0]?.assets[0]?.storage).toEqual({
-      kind: "file",
-      path: "0-page.png",
-    });
-    expect(projected.pages[1]?.assets[0]?.storage).toEqual({
-      kind: "file",
-      path: "1-page.png",
-    });
   });
 });

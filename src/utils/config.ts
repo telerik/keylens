@@ -11,7 +11,6 @@ import { z } from "zod";
 
 export const DEFAULT_CONFIG: KeylensConfig = {
   profile: "balanced",
-  urls: [],
   viewport: { width: 1280, height: 720 },
   maxTabs: 500,
   tabTimeout: 3000,
@@ -41,7 +40,6 @@ export const DEFAULT_CONFIG: KeylensConfig = {
       reportSummary: true,
       focusIndicatorQuality: false,
       accessibleNameInference: false,
-      crossPagePatterns: true,
     },
     limits: {
       batchSize: 10,
@@ -59,9 +57,6 @@ export const DEFAULT_CONFIG: KeylensConfig = {
     isolation: "reload",
     navigation: "block",
     excludeDestructive: true,
-  },
-  multiPage: {
-    concurrency: 2,
   },
   capture: {
     page: "none",
@@ -117,7 +112,7 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
   .object({
     $schema: z.string().optional(),
     profile: z.enum(["fast", "balanced", "thorough"]).optional(),
-    urls: z.array(z.url()).optional(),
+    url: z.url().optional(),
     viewport: z
       .object({
         width: positiveNumber.optional(),
@@ -161,10 +156,6 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
         navigation: z.enum(["block", "allow"]).optional(),
         excludeDestructive: z.boolean().optional(),
       })
-      .strict()
-      .optional(),
-    multiPage: z
-      .object({ concurrency: positiveInteger.optional() })
       .strict()
       .optional(),
     capture: z
@@ -274,7 +265,6 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
             reportSummary: z.boolean().optional(),
             focusIndicatorQuality: z.boolean().optional(),
             accessibleNameInference: z.boolean().optional(),
-            crossPagePatterns: z.boolean().optional(),
           })
           .strict()
           .optional(),
@@ -375,14 +365,11 @@ export function normalizeConfig(
     200;
   const maxCases =
     input.interactions?.maxCases ?? DEFAULT_CONFIG.interactions.maxCases;
-  const concurrency =
-    input.multiPage?.concurrency ?? DEFAULT_CONFIG.multiPage.concurrency;
 
   return {
     ...DEFAULT_CONFIG,
     ...input,
     profile,
-    urls: [...(input.urls ?? DEFAULT_CONFIG.urls)],
     viewport: { ...DEFAULT_CONFIG.viewport, ...input.viewport },
     rules: { ...DEFAULT_CONFIG.rules, ...input.rules },
     reporters: [...(input.reporters ?? DEFAULT_CONFIG.reporters)],
@@ -421,11 +408,6 @@ export function normalizeConfig(
       exclude: input.interactions?.exclude
         ? [...input.interactions.exclude]
         : undefined,
-    },
-    multiPage: {
-      ...DEFAULT_CONFIG.multiPage,
-      ...input.multiPage,
-      concurrency,
     },
     timeouts: {
       ...DEFAULT_CONFIG.timeouts,

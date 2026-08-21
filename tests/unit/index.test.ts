@@ -22,7 +22,6 @@ vi.mock("@/rules/index.js", () => ({
 
 vi.mock("@/reporters/index.js", () => ({
   runReporters: vi.fn().mockResolvedValue(undefined),
-  runMultiReporters: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/utils/logger.js", () => ({
@@ -49,8 +48,6 @@ const mockAIInstance = {
   classifyWidgets: vi.fn().mockResolvedValue([]),
   inferAccessibleNames: vi.fn().mockResolvedValue([]),
   scoreFocusIndicatorQuality: vi.fn().mockResolvedValue([]),
-  generateMultiPageSummary: vi.fn().mockResolvedValue(null),
-  detectCrossPagePatterns: vi.fn().mockResolvedValue([]),
 };
 
 vi.mock("@/ai/index.js", () => ({
@@ -62,8 +59,6 @@ vi.mock("@/ai/index.js", () => ({
     classifyWidgets = mockAIInstance.classifyWidgets;
     inferAccessibleNames = mockAIInstance.inferAccessibleNames;
     scoreFocusIndicatorQuality = mockAIInstance.scoreFocusIndicatorQuality;
-    generateMultiPageSummary = mockAIInstance.generateMultiPageSummary;
-    detectCrossPagePatterns = mockAIInstance.detectCrossPagePatterns;
   },
 }));
 
@@ -88,8 +83,6 @@ beforeEach(() => {
   mockAIInstance.classifyWidgets.mockResolvedValue([]);
   mockAIInstance.inferAccessibleNames.mockResolvedValue([]);
   mockAIInstance.scoreFocusIndicatorQuality.mockResolvedValue([]);
-  mockAIInstance.generateMultiPageSummary.mockResolvedValue(null);
-  mockAIInstance.detectCrossPagePatterns.mockResolvedValue([]);
   mockSharedBrowserClose.mockClear();
   mockLaunchAuditBrowser.mockResolvedValue({
     close: mockSharedBrowserClose,
@@ -687,252 +680,5 @@ describe("audit", () => {
     const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
 
     expect(report.pageDimensions).toEqual({ width: 1280, height: 2000 });
-  });
-});
-
-describe("auditMultiple", () => {
-  async function getAuditMultiple() {
-    const mod = await import("@/index.js");
-    return mod.auditMultiple;
-  }
-
-  const defaultCrawlResult: CrawlResult = makeCrawlResult({
-    focusSequence: [makeFocusedElement({ tabIndex: 1, selector: "button.a" })],
-    interactiveElements: [
-      makeInteractiveElement({ selector: "button.a", reached: true }),
-    ],
-    pageScreenshotAssetId: "page-screenshot",
-    assets: [makeInlineAsset("page-screenshot", "data")],
-  });
-
-  const passingRules: RuleResult[] = [
-    { ruleId: "rule-1", passed: true, violations: [], duration: 5 },
-  ];
-
-  const failingRules: RuleResult[] = [
-    {
-      ruleId: "rule-1",
-      passed: false,
-      violations: [
-        {
-          ruleId: "rule-1",
-          ruleName: "Rule 1",
-          severity: "error",
-          message: "Fail",
-          elements: [],
-          impact: "High",
-        },
-      ],
-      duration: 5,
-    },
-  ];
-
-  it("should return a multi-page report with correct summary", async () => {
-    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
-    mockRunRules.mockResolvedValue(passingRules);
-    const auditMultiple = await getAuditMultiple();
-
-    const report = await auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-    });
-
-    expect(report.pages).toHaveLength(2);
-    expect(report.urls).toEqual(["https://a.com", "https://b.com"]);
-    expect(report.summary.totalPages).toBe(2);
-    expect(report.summary.totalErrors).toBe(0);
-    expect(report.summary.pagesWithErrors).toBe(0);
-    expect(report.schemaVersion).toBe("1.0");
-  });
-
-  it("should aggregate errors across pages", async () => {
-    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
-    // First page passes, second fails
-    mockRunRules
-      .mockResolvedValueOnce(passingRules)
-      .mockResolvedValueOnce(failingRules);
-    const auditMultiple = await getAuditMultiple();
-
-    const report = await auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-    });
-
-    expect(report.summary.totalErrors).toBe(1);
-    expect(report.summary.pagesWithErrors).toBe(1);
-  });
-
-  it("should call crawlPage for each URL", async () => {
-    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
-    mockRunRules.mockResolvedValue(passingRules);
-    const auditMultiple = await getAuditMultiple();
-
-    await auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-    });
-
-    expect(mockCrawlPage).toHaveBeenCalledTimes(2);
-    expect(mockCrawlPage).toHaveBeenCalledWith(
-      "https://a.com",
-      expect.anything(),
-      expect.any(AbortSignal),
-      expect.anything(),
-      undefined,
-      expect.any(Number),
-    );
-    expect(mockCrawlPage).toHaveBeenCalledWith(
-      "https://b.com",
-      expect.anything(),
-      expect.any(AbortSignal),
-      expect.anything(),
-      undefined,
-      expect.any(Number),
-    );
-  });
-
-  it("reuses one browser and respects bounded multi-page concurrency", async () => {
-    let active = 0;
-    let peak = 0;
-    mockCrawlPage.mockImplementation(async () => {
-      active++;
-      peak = Math.max(peak, active);
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      active--;
-      return defaultCrawlResult;
-    });
-    mockRunRules.mockResolvedValue(passingRules);
-    const auditMultiple = await getAuditMultiple();
-
-    const report = await auditMultiple(
-      ["https://a.com", "https://b.com", "https://c.com"],
-      {
-        ...DEFAULT_CONFIG,
-        multiPage: { concurrency: 2 },
-      },
-    );
-
-    expect(report.pages).toHaveLength(3);
-    expect(peak).toBe(2);
-    expect(mockLaunchAuditBrowser).toHaveBeenCalledTimes(1);
-    expect(mockSharedBrowserClose).toHaveBeenCalledTimes(1);
-    const browsers = mockCrawlPage.mock.calls.map((call) => call[3]);
-    expect(new Set(browsers).size).toBe(1);
-  });
-
-  it("waits for in-flight pages to settle before closing after a failure", async () => {
-    let releaseSecond!: () => void;
-    let secondSettled = false;
-    mockCrawlPage.mockImplementation(async (url) => {
-      if (url === "https://a.com") {
-        await new Promise((resolve) => setTimeout(resolve, 5));
-        throw new Error("page failed");
-      }
-      await new Promise<void>((resolve) => {
-        releaseSecond = resolve;
-      });
-      secondSettled = true;
-      return defaultCrawlResult;
-    });
-    mockRunRules.mockResolvedValue(passingRules);
-    const auditMultiple = await getAuditMultiple();
-
-    const pending = auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-      multiPage: { concurrency: 2 },
-    });
-    await new Promise((resolve) => setTimeout(resolve, 20));
-
-    expect(mockSharedBrowserClose).not.toHaveBeenCalled();
-    releaseSecond();
-    await expect(pending).rejects.toThrow("page failed");
-    expect(secondSettled).toBe(true);
-    expect(mockSharedBrowserClose).toHaveBeenCalledTimes(1);
-  });
-
-  it("reports the first multi-page failure when workers fail concurrently", async () => {
-    mockCrawlPage.mockImplementation(async (url) => {
-      if (url === "https://a.com") {
-        await new Promise((resolve) => setTimeout(resolve, 5));
-        throw new Error("first failure");
-      }
-      await new Promise((resolve) => setTimeout(resolve, 15));
-      throw new Error("later failure");
-    });
-    const auditMultiple = await getAuditMultiple();
-
-    await expect(
-      auditMultiple(["https://a.com", "https://b.com"], {
-        ...DEFAULT_CONFIG,
-        multiPage: { concurrency: 2 },
-      }),
-    ).rejects.toThrow("first failure");
-    expect(mockSharedBrowserClose).toHaveBeenCalledTimes(1);
-  });
-
-  it("should call detectCrossPagePatterns and generateMultiPageSummary when AI is available", async () => {
-    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
-    mockRunRules.mockResolvedValue(passingRules);
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    const auditMultiple = await getAuditMultiple();
-
-    await auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-    });
-
-    expect(mockAIInstance.detectCrossPagePatterns).toHaveBeenCalled();
-    expect(mockAIInstance.generateMultiPageSummary).toHaveBeenCalled();
-  });
-
-  it("should include crossPagePatterns in multi-page report", async () => {
-    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
-    mockRunRules.mockResolvedValue(passingRules);
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    const mockPatterns = [
-      {
-        type: "inconsistent-order",
-        description: "Nav element at different positions",
-        affectedPages: ["https://a.com", "https://b.com"],
-        severity: "warning",
-        suggestion: "Ensure consistent tab order",
-      },
-    ];
-    mockAIInstance.detectCrossPagePatterns.mockResolvedValue(mockPatterns);
-    const auditMultiple = await getAuditMultiple();
-
-    const report = await auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-    });
-
-    expect(report.crossPagePatterns).toEqual(mockPatterns);
-  });
-
-  it("should include AI summary in multi-page report", async () => {
-    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
-    mockRunRules.mockResolvedValue(passingRules);
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    mockAIInstance.generateMultiPageSummary.mockResolvedValue(
-      "Multi-page AI summary",
-    );
-    const auditMultiple = await getAuditMultiple();
-
-    const report = await auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-    });
-
-    expect(report.aiSummary).toBe("Multi-page AI summary");
-  });
-
-  it("should skip AI in auditMultiple when not available", async () => {
-    mockCrawlPage.mockResolvedValue(defaultCrawlResult);
-    mockRunRules.mockResolvedValue(passingRules);
-    mockAIInstance.isAvailable.mockReturnValue(false);
-    const auditMultiple = await getAuditMultiple();
-
-    const report = await auditMultiple(["https://a.com", "https://b.com"], {
-      ...DEFAULT_CONFIG,
-    });
-
-    expect(mockAIInstance.detectCrossPagePatterns).not.toHaveBeenCalled();
-    expect(mockAIInstance.generateMultiPageSummary).not.toHaveBeenCalled();
-    expect(report.crossPagePatterns).toBeUndefined();
-    expect(report.aiSummary).toBeUndefined();
   });
 });

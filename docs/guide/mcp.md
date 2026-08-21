@@ -42,11 +42,10 @@ Do not place API keys directly in a checked-in MCP configuration.
 | Tool                           | Purpose                                    |
 | ------------------------------ | ------------------------------------------ |
 | `keylens_audit`                | Single-page audit and compact report       |
-| `keylens_audit_multiple`       | Multi-page audit and compact aggregate     |
 | `keylens_classify_widgets`     | AI widget classification                   |
 | `keylens_validate_focus_order` | AI analysis or raw focus sequence fallback |
 
-The two audit tools accept:
+The audit tool accepts:
 
 | Option             | Type                                                         |
 | ------------------ | ------------------------------------------------------------ |
@@ -73,8 +72,8 @@ over MCP — use the CLI or library config for those. See
 [Configuration](./configuration#prepare).
 
 MCP does not currently expose the complete stable config surface, including capture
-limits, phase timeouts, interaction policy, page capture mode, or multi-page
-concurrency. Use the CLI or library when those controls are required.
+limits, phase timeouts, interaction policy, or page capture mode. Use the CLI or
+library when those controls are required.
 
 By default, MCP returns a compact semantic response and writes nothing. Passing
 `reporters` opts into reporter side effects; `outputDir` defaults to

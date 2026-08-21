@@ -63,7 +63,7 @@ npx keylens audit <URL> --screenshots --output cli,json
 npx keylens audit <URL> --interactions --output cli,json
 ```
 
-### Multi-page audit from config
+### Audit from config file
 
 ```bash
 npx keylens audit --config keylens.config.json --output cli,json,html

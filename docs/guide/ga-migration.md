@@ -44,10 +44,10 @@ Use string renderers when no filesystem side effect is desired.
 
 ## Staged pipeline
 
-- `auditBase()` / `auditMultipleBase()`: deterministic crawl and rules.
-- `enrichAudit()` / `enrichMultiPageAudit()`: immutable experimental AI enrichment.
-- `renderAuditReport()` / `renderMultiPageReport()`: explicit output.
-- `audit()` / `auditMultiple()`: in-memory convenience pipeline.
+- `auditBase()`: deterministic crawl and rules.
+- `enrichAudit()`: immutable experimental AI enrichment.
+- `renderAuditReport()`: explicit output.
+- `audit()`: in-memory convenience pipeline.
 
 Programmatic logging defaults to `silent`; pass `logLevel` explicitly for diagnostics.
 
@@ -59,7 +59,7 @@ interaction detail. Treat `schemaVersion`, not package version, as the serialize
 contract version.
 
 Screenshots are `AuditAsset` records referenced by IDs. JSON serializers project assets
-with `omit`; use `projectAuditReport()` or `projectMultiPageReport()` to request
+with `omit`; use `projectAuditReport()` to request
 `inline` or caller-supplied `references`.
 
 ## Failures, cancellation, and progress
@@ -69,7 +69,7 @@ are not violations: they use rule `status: "error"`, increment `summary.errors`,
 the score incomplete, and produce CLI exit code `2`.
 
 Pass `signal`, `timeouts`, and `onEvent` through `AuditOptions`. Rendering has separate
-`RenderOptions`. Multi-page work reuses a browser with bounded concurrency.
+`RenderOptions`.
 
 ## Screenshots and interactions
 

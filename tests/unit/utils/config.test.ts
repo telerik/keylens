@@ -41,7 +41,6 @@ describe("normalizeConfig", () => {
         maxCases: 3,
         actions: ["enter"],
       },
-      multiPage: { concurrency: 3 },
     });
 
     expect(config.viewport).toEqual({ width: 800, height: 720 });
@@ -62,11 +61,8 @@ describe("normalizeConfig", () => {
         isolation: "reload",
       }),
     );
-    expect(config.multiPage.concurrency).toBe(3);
 
-    config.urls.push("https://example.com");
     config.reporters.push("json");
-    expect(DEFAULT_CONFIG.urls).toEqual([]);
     expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
   });
 
@@ -76,7 +72,7 @@ describe("normalizeConfig", () => {
     ).toThrow("capture.limits.maxElements");
   });
 
-  it("rejects invalid interaction and multi-page limits", () => {
+  it("rejects invalid interaction limits", () => {
     expect(() => normalizeConfig({ interactions: { maxCases: -1 } })).toThrow(
       "interactions.maxCases",
     );
@@ -86,9 +82,6 @@ describe("normalizeConfig", () => {
     expect(() =>
       normalizeConfig({ interactions: { timeout: Number.NaN } }),
     ).toThrow("interactions.timeout");
-    expect(() => normalizeConfig({ multiPage: { concurrency: 0 } })).toThrow(
-      "multiPage.concurrency",
-    );
   });
 
   it("applies execution profiles before explicit overrides", () => {
@@ -185,9 +178,7 @@ describe("normalizeConfig", () => {
 
 describe("loadConfig", () => {
   it("preserves omitted fields when loading raw CLI input", async () => {
-    mockReadFile.mockResolvedValue(
-      JSON.stringify({ urls: ["https://x.test"] }),
-    );
+    mockReadFile.mockResolvedValue(JSON.stringify({ url: "https://x.test" }));
 
     const input = await loadConfigInput("minimal.json");
 
@@ -244,17 +235,13 @@ describe("loadConfig", () => {
   it("should not share nested mutable values with defaults", async () => {
     const config = await loadConfig();
 
-    config.urls.push("https://example.com");
     config.reporters.push("json");
     config.rules.keyboardTrap = false;
     config.interactions.actions.push("space");
-    config.multiPage.concurrency = 8;
 
-    expect(DEFAULT_CONFIG.urls).toEqual([]);
     expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
     expect(DEFAULT_CONFIG.rules.keyboardTrap).toBe(true);
     expect(DEFAULT_CONFIG.interactions.actions).toEqual(["click"]);
-    expect(DEFAULT_CONFIG.multiPage.concurrency).toBe(2);
   });
 
   it("should throw ConfigError when file is not found", async () => {

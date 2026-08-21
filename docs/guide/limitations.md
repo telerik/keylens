@@ -147,8 +147,8 @@ sequences. Treat findings as review prompts.
 
 ## Bounded and incomplete audits
 
-`maxTabs`, Tab timeouts, capture budgets, interaction limits, phase deadlines, aborts,
-and multi-page failures intentionally bound work. An incomplete Tab cycle may indicate
+`maxTabs`, Tab timeouts, capture budgets, interaction limits, phase deadlines, and
+aborts intentionally bound work. An incomplete Tab cycle may indicate
 a trap, a large page, unstable focus, or simply an insufficient limit. Skipped captures
 reduce visual-rule coverage.
 

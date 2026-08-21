@@ -5,8 +5,8 @@
 ### `keylens audit [url]`
 
 Alias: `keylens scan [url]`. An HTTP(S) URL can also be passed directly as shorthand.
-The URL argument overrides `urls` from the config file. Without an argument, all
-configured URLs are audited.
+The URL argument overrides `url` from the config file. Without an argument, the
+configured `url` is audited.
 
 | Option                          | Default                | Description                                               |
 | ------------------------------- | ---------------------- | --------------------------------------------------------- |

@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { reportCLI, reportMultiCLI } from "@/reporters/cli-reporter.js";
+import { reportCLI } from "@/reporters/cli-reporter.js";
 import {
   makeAuditReport,
   makeFocusedElement,
-  makeMultiPageReport,
 } from "@tests/helpers/factories.js";
 import { setLogLevel } from "@/utils/logger.js";
 import type {
@@ -464,6 +463,102 @@ describe("CLI Reporter", () => {
     expect(allOutput).toContain("div.parallax (900px -> 5198px)");
   });
 
+  it("should show dismissed overlays and prepare warnings when present", () => {
+    const report = makeAuditReport({
+      crawl: {
+        totalFocusableElements: 0,
+        totalInteractiveElements: 0,
+        unreachedElements: 0,
+        cycleCompleted: true,
+        duration: 1000,
+        capture: {
+          attempted: 0,
+          captured: 0,
+          skipped: 0,
+          failed: 0,
+          byteLength: 0,
+          decodedPixels: 0,
+        },
+        prepare: {
+          attempted: true,
+          dismissals: [
+            { provider: "onetrust", action: "reject", verified: true },
+          ],
+          warnings: ["Consent banner selector matched but click timed out"],
+          duration: 50,
+        },
+      },
+    });
+
+    reportCLI(report);
+
+    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(allOutput).toContain("Overlays dismissed:");
+    expect(allOutput).toContain("onetrust (reject)");
+    expect(allOutput).toContain("Prepare warnings:");
+    expect(allOutput).toContain(
+      "Consent banner selector matched but click timed out",
+    );
+  });
+
+  it("formats byte counts below 1 KB and at MB scale", () => {
+    const smallReport = makeAuditReport();
+    smallReport.config.capture.elements = true;
+    smallReport.crawl.capture = {
+      attempted: 1,
+      captured: 1,
+      skipped: 0,
+      failed: 0,
+      byteLength: 300,
+      decodedPixels: 10,
+    };
+    smallReport.assets = [
+      {
+        id: "focused",
+        type: "focused-element-screenshot",
+        mediaType: "image/png",
+        byteLength: 300,
+        storage: { kind: "inline", data: "a", encoding: "base64" },
+      },
+    ];
+    smallReport.focusSequence = [
+      makeFocusedElement({ focusedScreenshotAssetId: "focused" }),
+    ];
+
+    reportCLI(smallReport);
+    const smallOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(smallOutput).toContain("300 B");
+
+    logSpy.mockClear();
+
+    const largeReport = makeAuditReport();
+    largeReport.config.capture.elements = true;
+    largeReport.crawl.capture = {
+      attempted: 1,
+      captured: 1,
+      skipped: 0,
+      failed: 0,
+      byteLength: 2 * 1024 * 1024,
+      decodedPixels: 10,
+    };
+    largeReport.assets = [
+      {
+        id: "focused",
+        type: "focused-element-screenshot",
+        mediaType: "image/png",
+        byteLength: 2 * 1024 * 1024,
+        storage: { kind: "inline", data: "b", encoding: "base64" },
+      },
+    ];
+    largeReport.focusSequence = [
+      makeFocusedElement({ focusedScreenshotAssetId: "focused" }),
+    ];
+
+    reportCLI(largeReport);
+    const largeOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(largeOutput).toContain("2.0 MB");
+  });
+
   it("should render focus indicator quality scores", () => {
     const report = makeAuditReport({
       focusIndicatorScores: [
@@ -490,112 +585,5 @@ describe("CLI Reporter", () => {
     expect(allOutput).toContain("very-low");
     expect(allOutput).toContain("nearly-invisible");
     expect(allOutput).toContain("Use a thicker, higher-contrast outline.");
-  });
-});
-
-describe("reportMultiCLI", () => {
-  const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
-  afterEach(() => {
-    logSpy.mockClear();
-  });
-
-  it("should output all page URLs", () => {
-    const report = makeMultiPageReport({
-      urls: ["https://a.com", "https://b.com"],
-      pages: [
-        makeAuditReport({ url: "https://a.com" }),
-        makeAuditReport({ url: "https://b.com" }),
-      ],
-      summary: {
-        totalPages: 2,
-        totalErrors: 0,
-        totalWarnings: 0,
-        totalInfo: 0,
-        pagesWithErrors: 0,
-      },
-    });
-
-    reportMultiCLI(report);
-
-    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(allOutput).toContain("https://a.com");
-    expect(allOutput).toContain("https://b.com");
-  });
-
-  it("should show aggregate summary", () => {
-    const report = makeMultiPageReport({
-      summary: {
-        totalPages: 3,
-        totalErrors: 5,
-        totalWarnings: 2,
-        totalInfo: 0,
-        pagesWithErrors: 2,
-      },
-    });
-
-    reportMultiCLI(report);
-
-    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(allOutput).toContain("Multi-Page Summary");
-    expect(allOutput).toContain("3");
-    expect(allOutput).toContain("5");
-    expect(allOutput).toContain("2");
-  });
-
-  it("should show cross-page patterns", () => {
-    const report = makeMultiPageReport({
-      crossPagePatterns: [
-        {
-          type: "inconsistent-order",
-          description: "Navigation order differs between pages",
-          affectedPages: ["https://a.com/page1", "https://a.com/page2"],
-          severity: "warning",
-          suggestion: "Ensure consistent tab order across pages.",
-        },
-      ],
-    });
-
-    reportMultiCLI(report);
-
-    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(allOutput).toContain("Cross-Page Patterns");
-    expect(allOutput).toContain("inconsistent-order");
-    expect(allOutput).toContain("Navigation order differs between pages");
-    expect(allOutput).toContain("Ensure consistent tab order across pages.");
-  });
-
-  it("should show multi-page AI summary", () => {
-    const report = makeMultiPageReport({
-      aiSummary: "Overall the site has good keyboard support.",
-    });
-
-    reportMultiCLI(report);
-
-    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(allOutput).toContain("Overall the site has good keyboard support.");
-  });
-
-  it("should render structured AI summary in multi-page report", () => {
-    const aiSummary: AIReportSummary = {
-      overview: "Multi-page assessment shows inconsistent patterns.",
-      criticalIssues: ["Skip link missing on 2 of 3 pages"],
-      prioritizedFixes: [
-        { fix: "Add skip links everywhere", effort: "low", impact: "high" },
-      ],
-      aiSeverityRating: 62,
-      recommendation: "Standardize skip links across all pages.",
-    };
-    const report = makeMultiPageReport({ aiSummary });
-
-    reportMultiCLI(report);
-
-    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(allOutput).toContain(
-      "Multi-page assessment shows inconsistent patterns.",
-    );
-    expect(allOutput).toContain("Skip link missing on 2 of 3 pages");
-    expect(allOutput).toContain("62");
-    expect(allOutput).toContain("Standardize skip links across all pages.");
   });
 });

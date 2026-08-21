@@ -12,7 +12,7 @@ the audit. Partial nested objects are accepted and merged with defaults.
 ```json
 {
   "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
-  "urls": ["https://example.com"],
+  "url": "https://example.com",
   "profile": "balanced",
   "capture": { "page": "none", "elements": false },
   "reporters": ["cli", "json"]
@@ -43,7 +43,7 @@ or timeout limits.
 ```json
 {
   "profile": "balanced",
-  "urls": ["https://example.com"],
+  "url": "https://example.com",
   "viewport": { "width": 1280, "height": 720 },
   "maxTabs": 500,
   "tabTimeout": 3000,
@@ -88,7 +88,6 @@ or timeout limits.
     "navigation": "block",
     "excludeDestructive": true
   },
-  "multiPage": { "concurrency": 2 },
   "timeouts": {
     "total": 120000,
     "crawl": 90000,
@@ -119,8 +118,7 @@ or timeout limits.
       "widgetClassification": false,
       "reportSummary": true,
       "focusIndicatorQuality": false,
-      "accessibleNameInference": false,
-      "crossPagePatterns": true
+      "accessibleNameInference": false
     },
     "limits": { "batchSize": 10, "maxWidgets": 20, "maxElements": 10 }
   }
@@ -209,11 +207,6 @@ limits each image; `maxPixels` and `maxBytes` limit cumulative decoded pixels an
 encoded bytes. `maxElements` limits focus-state pairs. Exceeding a limit skips capture
 rather than failing the audit. `crawl.capture` reports attempted, captured, skipped,
 failed, byte, and pixel totals.
-
-## Multi-page execution
-
-`multiPage.concurrency` controls isolated contexts in one reused browser. The default is 2. The first page failure stops new work and rejects the multi-page operation; it does
-not return a partial multi-page report.
 
 ## AI configuration
 

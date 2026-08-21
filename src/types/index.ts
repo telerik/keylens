@@ -8,8 +8,8 @@ export interface KeylensConfig {
   /** Execution accuracy/speed preset applied before explicit overrides */
   profile: ExecutionProfile;
 
-  /** URL(s) to audit */
-  urls: string[];
+  /** URL to audit (used only as a config-file fallback; audit()/auditBase() take the URL as an explicit argument) */
+  url?: string;
 
   /** Viewport dimensions */
   viewport: {
@@ -55,9 +55,6 @@ export interface KeylensConfig {
 
   /** Bounded post-activation focus testing */
   interactions: InteractionConfig;
-
-  /** Multi-page browser reuse and concurrency policy */
-  multiPage: MultiPageConfig;
 
   /** Bounded screenshot capture policy */
   capture: CaptureConfig;
@@ -124,11 +121,6 @@ export interface InteractionConfig {
   navigation: InteractionNavigationPolicy;
   /** Skip controls whose accessible name indicates a destructive action */
   excludeDestructive: boolean;
-}
-
-export interface MultiPageConfig {
-  /** Maximum isolated browser contexts audited concurrently */
-  concurrency: number;
 }
 
 // ─── Prepare Phase (overlay/consent-banner dismissal) ────────────
@@ -235,7 +227,6 @@ export interface KeylensConfigInput extends Omit<
   | "ai"
   | "capture"
   | "interactions"
-  | "multiPage"
   | "timeouts"
   | "prepare"
 > {
@@ -246,7 +237,6 @@ export interface KeylensConfigInput extends Omit<
     limits?: Partial<CaptureLimits>;
   };
   interactions?: Partial<InteractionConfig>;
-  multiPage?: Partial<MultiPageConfig>;
   timeouts?: Partial<PhaseTimeoutConfig>;
   prepare?: Partial<PrepareConfig>;
 }
@@ -343,7 +333,6 @@ export interface AIConfig {
     reportSummary: boolean;
     focusIndicatorQuality: boolean;
     accessibleNameInference: boolean;
-    crossPagePatterns: boolean;
   };
   /** Batch/element limits for AI features */
   limits?: {
@@ -351,7 +340,7 @@ export interface AIConfig {
     batchSize?: number;
     /** Max widgets for classification (default: 20) */
     maxWidgets?: number;
-    /** Max elements per AI feature call — name inference, focus scoring, cross-page (default: 10) */
+    /** Max elements per AI feature call — name inference, focus scoring (default: 10) */
     maxElements?: number;
   };
 }
@@ -472,12 +461,6 @@ export interface EffectiveKeylensConfig extends Omit<KeylensConfig, "ai"> {
 export interface AuditTimings {
   crawl: number;
   rules: number;
-  ai?: number;
-  total: number;
-}
-
-export interface MultiPageAuditTimings {
-  pages: number;
   ai?: number;
   total: number;
 }
@@ -943,48 +926,6 @@ export interface AuditReport {
   pageDimensions?: { width: number; height: number };
 }
 
-// ─── Multi-Page Report ───────────────────────────────────────────
-
-export interface MultiPageReport {
-  /** Version of the serialized report contract */
-  schemaVersion: AuditReportSchemaVersion;
-
-  /** Tool version */
-  version: string;
-
-  /** Timestamp of the audit */
-  timestamp: string;
-
-  /** URLs audited */
-  urls: string[];
-
-  /** Individual page reports */
-  pages: AuditReport[];
-
-  /** Wall-clock duration for page work and optional enrichment */
-  timings: MultiPageAuditTimings;
-
-  /** Aggregate summary across all pages */
-  summary: {
-    totalPages: number;
-    totalErrors: number;
-    totalWarnings: number;
-    totalInfo: number;
-    ruleErrors: number;
-    pagesWithErrors: number;
-    /** Average deterministic score across all pages (0–100) */
-    score: number;
-    /** False when any page has an incomplete deterministic score */
-    scoreComplete: boolean;
-  };
-
-  /** AI-generated cross-page summary (if enabled) — string or structured */
-  aiSummary?: string | AIReportSummary;
-
-  /** AI-detected cross-page patterns (if multi-page audit with AI) */
-  crossPagePatterns?: CrossPagePattern[];
-}
-
 // ─── AI Types ────────────────────────────────────────────────────
 
 // ─── Structured AI Results (Stage 5) ─────────────────────────────
@@ -1077,23 +1018,4 @@ export interface AIReportSummary {
   aiSeverityRating: number;
   /** One-sentence recommendation for next steps */
   recommendation: string;
-}
-
-export type CrossPagePatternType =
-  | "inconsistent-order"
-  | "missing-component"
-  | "inconsistent-focus-style"
-  | "inconsistent-skip-link";
-
-export interface CrossPagePattern {
-  /** The type of cross-page inconsistency */
-  type: CrossPagePatternType;
-  /** Human-readable description of the pattern */
-  description: string;
-  /** URLs of affected pages */
-  affectedPages: string[];
-  /** Severity of this inconsistency */
-  severity: Severity;
-  /** AI-generated suggestion for fixing */
-  suggestion: string;
 }

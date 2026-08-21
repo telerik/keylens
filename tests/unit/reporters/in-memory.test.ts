@@ -3,13 +3,11 @@ import {
   renderHTML,
   renderMarkdown,
   serializeJSON,
-  serializeMultiJSON,
 } from "@/reporters/index.js";
 import { projectAuditReport } from "@/utils/assets.js";
 import {
   makeAuditReport,
   makeFocusedElement,
-  makeMultiPageReport,
 } from "@tests/helpers/factories.js";
 
 describe("in-memory reporters", () => {
@@ -97,13 +95,5 @@ describe("in-memory reporters", () => {
 
     expect(serialized).not.toContain("cGFnZQ==");
     expect(JSON.parse(serialized).assets).toEqual([]);
-  });
-
-  it("serializes a compact multi-page report without asset bytes", () => {
-    const report = makeMultiPageReport();
-
-    const serialized = serializeMultiJSON(report, false);
-
-    expect(JSON.parse(serialized).pages).toBeDefined();
   });
 });

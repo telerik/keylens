@@ -4,38 +4,27 @@ import {
   buildConfig,
   injectSampling,
   compactReport,
-  compactMultiPageReport,
   handleAudit,
-  handleAuditMultiple,
   handleClassifyWidgets,
   handleValidateFocusOrder,
 } from "@/mcp/handlers.js";
 import {
   makeAuditReport,
-  makeMultiPageReport,
   makeFocusedElement,
   makeCrawlResult,
   makeInteractiveElement,
   makeInlineAsset,
   makeFocusStyleSnapshot,
 } from "@tests/helpers/factories.js";
-import type {
-  AuditReport,
-  MultiPageReport,
-  CrawlResult,
-  RuleResult,
-} from "@/types/index.js";
+import type { AuditReport, CrawlResult } from "@/types/index.js";
 
 // ─── Mocks ──────────────────────────────────────────────────────
 
 const mockAudit =
   vi.fn<(url: string, config: unknown) => Promise<AuditReport>>();
-const mockAuditMultiple =
-  vi.fn<(urls: string[], config: unknown) => Promise<MultiPageReport>>();
 const mockCrawlOnly =
   vi.fn<(url: string, config: unknown) => Promise<CrawlResult>>();
 const mockRenderAuditReport = vi.fn().mockResolvedValue(undefined);
-const mockRenderMultiPageReport = vi.fn().mockResolvedValue(undefined);
 
 const mockAIInstance = {
   isAvailable: vi.fn().mockReturnValue(false),
@@ -45,20 +34,16 @@ const mockAIInstance = {
 
 vi.mock("@/index.js", () => ({
   audit: (...args: unknown[]) => mockAudit(...(args as [string, unknown])),
-  auditMultiple: (...args: unknown[]) =>
-    mockAuditMultiple(...(args as [string[], unknown])),
   crawlOnly: (...args: unknown[]) =>
     mockCrawlOnly(...(args as [string, unknown])),
   renderAuditReport: (...args: unknown[]) => mockRenderAuditReport(...args),
-  renderMultiPageReport: (...args: unknown[]) =>
-    mockRenderMultiPageReport(...args),
   AIAnalyzer: class MockAIAnalyzer {
     isAvailable = mockAIInstance.isAvailable;
     classifyWidgets = mockAIInstance.classifyWidgets;
     validateFocusOrder = mockAIInstance.validateFocusOrder;
   },
   DEFAULT_CONFIG: {
-    urls: [],
+    url: undefined,
     viewport: { width: 1280, height: 720 },
     maxTabs: 500,
     tabTimeout: 3000,
@@ -86,7 +71,6 @@ vi.mock("@/index.js", () => ({
         reportSummary: true,
         focusIndicatorQuality: false,
         accessibleNameInference: false,
-        crossPagePatterns: true,
       },
     },
     headed: false,
@@ -110,7 +94,6 @@ vi.mock("@/index.js", () => ({
       navigation: "block",
       excludeDestructive: true,
     },
-    multiPage: { concurrency: 2 },
   },
 }));
 
@@ -444,141 +427,9 @@ describe("compactReport", () => {
   });
 });
 
-describe("compactMultiPageReport", () => {
-  it("preserves the report schema version", () => {
-    const report = makeMultiPageReport();
-
-    expect(compactMultiPageReport(report).schemaVersion).toBe(
-      report.schemaVersion,
-    );
-  });
-
-  it("drops focusSequence from individual pages", () => {
-    const report = makeMultiPageReport({
-      pages: [
-        makeAuditReport({
-          url: "https://a.com",
-          focusSequence: [makeFocusedElement()],
-        }),
-      ],
-    });
-
-    const compact = compactMultiPageReport(report);
-
-    expect(
-      (compact.pages[0] as Record<string, unknown>).focusSequence,
-    ).toBeUndefined();
-  });
-
-  it("keeps per-page url, summary, and violations", () => {
-    const rules: RuleResult[] = [
-      {
-        ruleId: "keyboard-trap",
-        passed: false,
-        violations: [
-          {
-            ruleId: "keyboard-trap",
-            ruleName: "Keyboard Trap",
-            severity: "error" as const,
-            message: "Focus trapped",
-            elements: [{ selector: "div.modal", outerHTML: "<div>" }],
-            impact: "Critical",
-          },
-        ],
-        duration: 3,
-      },
-    ];
-
-    const report = makeMultiPageReport({
-      pages: [
-        makeAuditReport({
-          url: "https://a.com",
-          rules,
-          summary: {
-            totalErrors: 1,
-            totalWarnings: 0,
-            totalInfo: 0,
-            passed: 6,
-            failed: 1,
-          },
-        }),
-      ],
-    });
-
-    const compact = compactMultiPageReport(report);
-
-    expect(compact.pages[0]!.url).toBe("https://a.com");
-    expect(compact.pages[0]!.summary.totalErrors).toBe(1);
-    expect(compact.pages[0]!.rules.length).toBeGreaterThan(0);
-  });
-
-  it("strips outerHTML from per-page violations", () => {
-    const report = makeMultiPageReport({
-      pages: [
-        makeAuditReport({
-          rules: [
-            {
-              ruleId: "tabindex-abuse",
-              passed: false,
-              violations: [
-                {
-                  ruleId: "tabindex-abuse",
-                  ruleName: "Tabindex Abuse",
-                  severity: "warning" as const,
-                  message: "Positive tabindex",
-                  elements: [
-                    { selector: "input", outerHTML: '<input tabindex="5">' },
-                  ],
-                  impact: "Medium",
-                },
-              ],
-              duration: 2,
-            },
-          ],
-        }),
-      ],
-    });
-
-    const compact = compactMultiPageReport(report);
-    const el = compact.pages[0]!.rules[0]!.violations[0]!.elements[0]!;
-
-    expect(el.outerHTML).toBe("");
-    expect(el.selector).toBe("input");
-  });
-
-  it("preserves top-level aggregate summary and AI fields", () => {
-    const report = makeMultiPageReport({
-      summary: {
-        totalPages: 2,
-        totalErrors: 3,
-        totalWarnings: 1,
-        totalInfo: 0,
-        pagesWithErrors: 2,
-      },
-      aiSummary: "Cross-page summary",
-      crossPagePatterns: [
-        {
-          type: "inconsistent-order" as const,
-          description: "Tab order differs",
-          affectedPages: ["https://a.com", "https://b.com"],
-          severity: "warning" as const,
-          suggestion: "Standardize nav order",
-        },
-      ],
-    });
-
-    const compact = compactMultiPageReport(report);
-
-    expect(compact.summary.totalErrors).toBe(3);
-    expect(compact.aiSummary).toBe("Cross-page summary");
-    expect(compact.crossPagePatterns).toHaveLength(1);
-  });
-});
-
 describe("handleAudit", () => {
   beforeEach(() => {
     mockAudit.mockReset();
-    mockAuditMultiple.mockReset();
     mockRenderAuditReport.mockReset().mockResolvedValue(undefined);
   });
 
@@ -738,69 +589,9 @@ describe("handleAudit", () => {
   });
 });
 
-describe("handleAuditMultiple", () => {
-  beforeEach(() => {
-    mockAudit.mockReset();
-    mockAuditMultiple.mockReset();
-    mockRenderMultiPageReport.mockReset().mockResolvedValue(undefined);
-  });
-
-  it("calls auditMultiple with correct URLs", async () => {
-    const report = makeMultiPageReport({
-      urls: ["https://a.com", "https://b.com"],
-    });
-    mockAuditMultiple.mockResolvedValue(report);
-
-    const result = await handleAuditMultiple({
-      urls: ["https://a.com", "https://b.com"],
-    });
-
-    expect(mockAuditMultiple).toHaveBeenCalledOnce();
-    expect(mockAuditMultiple.mock.calls[0]![0]).toEqual([
-      "https://a.com",
-      "https://b.com",
-    ]);
-    expect(result.isError).toBeUndefined();
-  });
-
-  it("does not render multi-page output when no reporters are configured", async () => {
-    mockAuditMultiple.mockResolvedValue(makeMultiPageReport());
-
-    await handleAuditMultiple({ urls: ["https://a.com"] });
-
-    expect(mockRenderMultiPageReport).not.toHaveBeenCalled();
-  });
-
-  it("renders multi-page output with reporter deadlines", async () => {
-    const report = makeMultiPageReport();
-    mockAuditMultiple.mockResolvedValue(report);
-
-    await handleAuditMultiple({
-      urls: ["https://a.com"],
-      options: { reporters: ["html", "json"], outputDir: "./out" },
-    });
-
-    expect(mockRenderMultiPageReport).toHaveBeenCalledOnce();
-    const [calledReport, calledReporters, calledDir, options] =
-      mockRenderMultiPageReport.mock.calls[0]!;
-    expect(calledReporters).toEqual(["html", "json"]);
-    expect(calledDir).toBe("./out");
-    expect(calledReport).toBe(report);
-    expect(options).toBe("silent");
-  });
-
-  it("returns isError on failure", async () => {
-    mockAuditMultiple.mockRejectedValue(new Error("Timeout"));
-
-    const result = await handleAuditMultiple({ urls: ["https://a.com"] });
-
-    expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Timeout");
-  });
-});
-
 describe("handleClassifyWidgets", () => {
   beforeEach(() => {
+    mockAudit.mockReset();
     mockCrawlOnly.mockReset();
     mockAIInstance.isAvailable.mockReturnValue(true);
     mockAIInstance.classifyWidgets.mockResolvedValue([]);
@@ -873,6 +664,7 @@ describe("handleClassifyWidgets", () => {
 
 describe("handleValidateFocusOrder", () => {
   beforeEach(() => {
+    mockAudit.mockReset();
     mockCrawlOnly.mockReset();
     mockAIInstance.isAvailable.mockReturnValue(true);
     mockAIInstance.validateFocusOrder.mockResolvedValue(null);
@@ -1022,25 +814,6 @@ describe("handlers pass server for sampling", () => {
     expect(mockServer.getClientCapabilities).toHaveBeenCalled();
     // Config should have AI enabled via sampling
     const calledConfig = mockAudit.mock.calls[0]![1] as {
-      ai: { enabled: boolean };
-    };
-    expect(calledConfig.ai.enabled).toBe(true);
-    expect(result.isError).toBeUndefined();
-  });
-
-  it("handleAuditMultiple checks client sampling capability", async () => {
-    const mockServer = {
-      getClientCapabilities: vi.fn().mockReturnValue({ sampling: {} }),
-    };
-    mockAuditMultiple.mockResolvedValue(makeMultiPageReport());
-
-    const result = await handleAuditMultiple(
-      { urls: ["https://test.com"] },
-      mockServer as never,
-    );
-
-    expect(mockServer.getClientCapabilities).toHaveBeenCalled();
-    const calledConfig = mockAuditMultiple.mock.calls[0]![1] as {
       ai: { enabled: boolean };
     };
     expect(calledConfig.ai.enabled).toBe(true);

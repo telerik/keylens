@@ -108,23 +108,6 @@ export const focusIndicatorScoreBatchSchema = z.array(
   focusIndicatorScoreItemSchema,
 );
 
-// ─── Cross-Page Patterns ─────────────────────────────────────────
-
-export const crossPagePatternItemSchema = z.object({
-  findingIndex: z.number(),
-  type: z.enum([
-    "inconsistent-order",
-    "missing-component",
-    "inconsistent-focus-style",
-    "inconsistent-skip-link",
-  ]),
-  description: z.string(),
-  severity: severitySchema,
-  suggestion: z.string(),
-});
-
-export const crossPagePatternBatchSchema = z.array(crossPagePatternItemSchema);
-
 // ─── Safe Parse Helper ───────────────────────────────────────────
 
 /**

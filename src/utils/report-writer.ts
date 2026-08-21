@@ -5,9 +5,8 @@ import { throwIfAborted } from "./execution.js";
 
 /**
  * Ensure the output directory exists, write a report file into it, and log a
- * success message. Shared by the JSON/HTML/Markdown reporters (single- and
- * multi-page variants) to avoid repeating the same mkdir/writeFile/log
- * sequence in each one.
+ * success message. Shared by the JSON/HTML/Markdown reporters to avoid
+ * repeating the same mkdir/writeFile/log sequence in each one.
  *
  * Checks `signal` for cancellation both before creating the directory and
  * before writing the file, matching the two-checkpoint pattern the reporters

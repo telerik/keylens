@@ -39,7 +39,6 @@ are controlled by the provider.
 | Fix suggestions           | On                         | Violations and element HTML/style context           |
 | Focus-order validation    | On                         | Focus sequence; annotated page image when available |
 | Report summary            | On                         | Rule and report data                                |
-| Cross-page patterns       | On                         | Multi-page heuristic candidates                     |
 | Widget classification     | Off                        | Interactive element metadata                        |
 | Focus-indicator quality   | Off                        | Complete focused/unfocused image pairs              |
 | Accessible-name inference | Off                        | Candidate metadata and page image when available    |
@@ -58,8 +57,7 @@ an operational error rather than silently changing deterministic rule results.
       "widgetClassification": false,
       "reportSummary": true,
       "focusIndicatorQuality": false,
-      "accessibleNameInference": false,
-      "crossPagePatterns": true
+      "accessibleNameInference": false
     },
     "limits": {
       "batchSize": 10,
