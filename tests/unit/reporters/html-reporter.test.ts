@@ -3,6 +3,7 @@ import {
   makeAuditReport,
   makeFocusedElement,
   makeInlineAsset,
+  makeInteractiveElement,
 } from "@tests/helpers/factories.js";
 import type {
   RuleResult,
@@ -124,7 +125,9 @@ describe("HTML Reporter", () => {
     );
 
     const html = getWrittenHTML();
-    expect(html).toContain("#ef4444");
+    expect(html).toMatch(
+      /Errors<\/div>\s*<div class="value" style="color: var\(--klr-error-on-bg\)">2<\/div>/,
+    );
   });
 
   it("should show amber status color when only warnings", async () => {
@@ -143,7 +146,9 @@ describe("HTML Reporter", () => {
     );
 
     const html = getWrittenHTML();
-    expect(html).toContain("#f59e0b");
+    expect(html).toMatch(
+      /Warnings<\/div>\s*<div class="value" style="color: var\(--klr-warning-on-bg\)">3<\/div>/,
+    );
   });
 
   it("should show green status color when all pass", async () => {
@@ -162,7 +167,9 @@ describe("HTML Reporter", () => {
     );
 
     const html = getWrittenHTML();
-    expect(html).toContain("#22c55e");
+    expect(html).toMatch(
+      /Errors<\/div>\s*<div class="value" style="color: var\(--klr-success-on-bg\)">0<\/div>/,
+    );
   });
 
   it("should render passed rules with PASS badge", async () => {
@@ -638,6 +645,52 @@ describe("HTML Reporter", () => {
     expect(html).toContain("poor");
   });
 
+  it("should render a plain-string AI focus order analysis", async () => {
+    const reportHTML = await getReportHTML();
+    await reportHTML(
+      makeAuditReport({
+        aiFocusOrderAnalysis: "Focus order looks fine overall.",
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain("AI Focus Order Analysis");
+    expect(html).toContain("Focus order looks fine overall.");
+  });
+
+  it("should mark an overlay dismissal as unverified when not confirmed hidden", async () => {
+    const reportHTML = await getReportHTML();
+    await reportHTML(
+      makeAuditReport({
+        crawl: {
+          totalFocusableElements: 0,
+          totalInteractiveElements: 0,
+          unreachedElements: 0,
+          cycleCompleted: true,
+          duration: 1000,
+          prepare: {
+            attempted: true,
+            dismissals: [
+              {
+                provider: "heuristic",
+                action: "dismiss",
+                selector: "#cookie-banner",
+                verified: false,
+              },
+            ],
+            warnings: [],
+            duration: 50,
+          },
+        },
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain("heuristic (dismiss, unverified)");
+  });
+
   it("should render widget classifications", async () => {
     const reportHTML = await getReportHTML();
     await reportHTML(
@@ -986,6 +1039,83 @@ describe("buildFocusMapHTML", () => {
     expect(result).toContain('data-selector="iframe-inner.two"');
     expect(result).toContain('data-selector="iframe-inner.three"');
   });
+
+  it("should render dashed satellite markers + tooltips for roving-tabindex members only reachable via arrow keys", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const activeEl = makeFocusedElement({
+      tabIndex: 1,
+      selector: "#tab-1",
+      boundingRect: { x: 0, y: 0, width: 50, height: 30 },
+    });
+    const satelliteMember = makeInteractiveElement({
+      selector: "#tab-2",
+      role: "tab",
+      accessibleName: "Tab Two",
+    });
+
+    const result = buildFocusMapHTML(
+      [activeEl],
+      "data",
+      { width: 1280, height: 720 },
+      undefined,
+      "",
+      [
+        {
+          containerSelector: "#tablist",
+          containerRole: "tablist",
+          totalMembers: 2,
+          reachedViaArrowKeys: [
+            {
+              selector: "#tab-1",
+              pageRect: { x: 0, y: 0, width: 50, height: 30 },
+            },
+            {
+              selector: "#tab-2",
+              pageRect: { x: 60, y: 0, width: 50, height: 30 },
+            },
+          ],
+          unreachedViaArrowKeys: [],
+        },
+      ],
+      [satelliteMember],
+    );
+
+    expect(result).toContain('class="focus-marker focus-marker--roving"');
+    expect(result).toContain('data-selector="#tab-2"');
+    expect(result).toContain("via arrow keys");
+    expect(result).toContain("Tab Two");
+    expect(result).toContain("tablist");
+    expect(result).toContain("Tab stop #1");
+  });
+
+  it("should skip a roving-tabindex group with no reached members or a single reached member", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el = makeFocusedElement({
+      tabIndex: 1,
+      selector: "#tab-1",
+      boundingRect: { x: 0, y: 0, width: 50, height: 30 },
+    });
+
+    const result = buildFocusMapHTML(
+      [el],
+      "data",
+      { width: 1280, height: 720 },
+      undefined,
+      "",
+      [
+        {
+          containerSelector: "#tablist",
+          containerRole: "tablist",
+          totalMembers: 1,
+          reachedViaArrowKeys: [],
+          unreachedViaArrowKeys: ["#tab-1"],
+        },
+      ],
+      [],
+    );
+
+    expect(result).not.toContain("focus-marker--roving");
+  });
 });
 
 describe("Multi-Page HTML Reporter", () => {
@@ -1039,6 +1169,44 @@ describe("Multi-Page HTML Reporter", () => {
     const html = getWrittenHTML();
     expect(html).toContain("https://a.com");
     expect(html).toContain("https://b.com");
+  });
+
+  it("should fall back to the raw URL as the tab label when it can't be parsed", async () => {
+    const reportMultiHTML = await getReportMultiHTML();
+    await reportMultiHTML(
+      makeMultiReport({
+        urls: ["not-a-valid-url"],
+        pages: [makeAuditReport({ url: "not-a-valid-url" })],
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain('data-tab="page-0">not-a-valid-url<');
+  });
+
+  it("should render cross-page patterns", async () => {
+    const reportMultiHTML = await getReportMultiHTML();
+    await reportMultiHTML(
+      makeMultiReport({
+        crossPagePatterns: [
+          {
+            type: "inconsistent-tab-order",
+            description: "Nav order differs between pages",
+            affectedPages: ["https://a.com", "https://b.com"],
+            severity: "warning",
+            suggestion: "Keep nav markup order consistent across pages",
+          },
+        ],
+      }),
+      "./out",
+    );
+
+    const html = getWrittenHTML();
+    expect(html).toContain("Cross-Page Patterns");
+    expect(html).toContain("Nav order differs between pages");
+    expect(html).toContain("inconsistent-tab-order");
+    expect(html).toContain("Keep nav markup order consistent across pages");
   });
 
   it("should show aggregate summary", async () => {
