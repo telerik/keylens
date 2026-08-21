@@ -100,6 +100,24 @@ function buildStatusKind(errors: number, warnings: number): Kind {
   return "success";
 }
 
+/** Map a rule violation's severity to the badge `Kind` used to color it. */
+function severityKind(severity: Severity): Kind {
+  if (severity === "error") return "error";
+  if (severity === "warning") return "warning";
+  return "accent";
+}
+
+/** Highest-priority severity across all issues flagged on one focus stop
+ * (error beats warning beats info) — drives the marker's dot color. */
+function highestSeverity(
+  issues?: Array<{ severity: Severity }>,
+): Severity | undefined {
+  if (!issues?.length) return undefined;
+  if (issues.some((i) => i.severity === "error")) return "error";
+  if (issues.some((i) => i.severity === "warning")) return "warning";
+  return "info";
+}
+
 /** Inline SVG icon, paths sourced from Progress/Kendo's kendo-svg-icons (outline set). */
 function klrIcon(paths: string, className: string): string {
   return `<svg class="klr-icon ${className}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${paths}</svg>`;
@@ -301,10 +319,15 @@ function buildFocusTooltipHTML(
   el: FocusedElement,
   index: number,
   total: number,
+  issues?: Array<{ ruleName: string; severity: Severity }>,
 ): string {
   const row = (label: string, value?: string | null, valueClass = "") =>
     value
       ? `<div class="focus-tooltip-row"><span>${label}</span><span class="focus-tooltip-value${valueClass ? ` ${valueClass}` : ""}">${escapeHTML(value)}</span></div>`
+      : "";
+  const rawRow = (label: string, html?: string) =>
+    html
+      ? `<div class="focus-tooltip-row"><span>${label}</span><span class="focus-tooltip-value focus-tooltip-value--badges">${html}</span></div>`
       : "";
 
   const ariaLabel = el.ariaAttributes?.["aria-label"];
@@ -314,9 +337,18 @@ function buildFocusTooltipHTML(
       : el.hasFocusIndicator === false
         ? "No"
         : null;
+  const issuesHTML = issues?.length
+    ? issues
+        .map(
+          (issue) =>
+            `<span class="status-badge" style="${badgeStyle(severityKind(issue.severity), "font-size: 0.7rem;")}">${escapeHTML(issue.ruleName)}</span>`,
+        )
+        .join(" ")
+    : undefined;
 
   return `<div class="focus-tooltip">
       <div class="focus-tooltip-title">&lt;${escapeHTML(el.tagName.toLowerCase())}&gt; <span>${index + 1} of ${total}</span></div>
+      ${rawRow(issues && issues.length > 1 ? "Issues" : "Issue", issuesHTML)}
       ${row("Selector", el.selector, "focus-tooltip-value--clamp")}
       ${row("Role", el.role)}
       ${row("Accessible name", el.accessibleName)}
@@ -339,7 +371,10 @@ export function buildFocusMapHTML(
   focusSequence: FocusedElement[],
   pageScreenshot: string,
   pageDimensions?: { width: number; height: number },
-  violationSeverities?: Map<string, Severity>,
+  violationsBySelector?: Map<
+    string,
+    Array<{ ruleName: string; severity: Severity }>
+  >,
   idPrefix = "",
   rovingTabindexGroups?: RovingTabindexGroupResult[],
   interactiveElements?: InteractiveElement[],
@@ -354,20 +389,21 @@ export function buildFocusMapHTML(
     .slice(1)
     .map((p2, i) => buildFocusMapSegment(points[i]!, p2));
 
-  const severityFlags = focusSequence.map((el) =>
-    violationSeverities?.get(el.selector),
+  const issuesFlags = focusSequence.map((el) =>
+    violationsBySelector?.get(el.selector),
   );
 
   const markers = focusSequence.map((el, i) => {
     const { xPct, yPct } = points[i]!;
-    const severity = severityFlags[i];
+    const issues = issuesFlags[i];
+    const severity = highestSeverity(issues);
     const cls =
       severity === "error"
         ? "focus-marker focus-marker--violation focus-marker--violation-error"
         : severity
           ? "focus-marker focus-marker--violation"
           : "focus-marker";
-    const tooltip = buildFocusTooltipHTML(el, i, focusSequence.length);
+    const tooltip = buildFocusTooltipHTML(el, i, focusSequence.length, issues);
     // Jump target for the rule panel's "Highlight" button and reverse lookup for marker clicks.
     const roleAttr = severity ? ' role="button"' : "";
 
@@ -435,15 +471,18 @@ export function renderHTML(input: AuditReport): string {
     summary.totalWarnings,
   );
 
-  // Collect selectors of elements with violations for focus map color-coding,
-  // keeping the highest severity (error beats warning) seen per selector.
-  const violationSeverities = new Map<string, Severity>();
+  // Collect selectors of elements with violations for focus map color-coding
+  // and tooltip issue listing — a stop can carry multiple issues/rules.
+  const violationsBySelector = new Map<
+    string,
+    Array<{ ruleName: string; severity: Severity }>
+  >();
   for (const rule of rules) {
     for (const v of rule.violations) {
       for (const el of v.elements) {
-        if (violationSeverities.get(el.selector) !== "error") {
-          violationSeverities.set(el.selector, v.severity);
-        }
+        const list = violationsBySelector.get(el.selector) ?? [];
+        list.push({ ruleName: v.ruleName, severity: v.severity });
+        violationsBySelector.set(el.selector, list);
       }
     }
   }
@@ -452,7 +491,7 @@ export function renderHTML(input: AuditReport): string {
     report.focusSequence ?? [],
     pageScreenshotForMap(report),
     report.pageDimensions,
-    violationSeverities,
+    violationsBySelector,
     "",
     report.rovingTabindexGroups,
     report.interactiveElements,
@@ -525,13 +564,16 @@ export function renderMultiHTML(input: MultiPageReport): string {
 
   const panels = report.pages
     .map((page, i) => {
-      const violationSeverities = new Map<string, Severity>();
+      const violationsBySelector = new Map<
+        string,
+        Array<{ ruleName: string; severity: Severity }>
+      >();
       for (const rule of page.rules) {
         for (const v of rule.violations) {
           for (const el of v.elements) {
-            if (violationSeverities.get(el.selector) !== "error") {
-              violationSeverities.set(el.selector, v.severity);
-            }
+            const list = violationsBySelector.get(el.selector) ?? [];
+            list.push({ ruleName: v.ruleName, severity: v.severity });
+            violationsBySelector.set(el.selector, list);
           }
         }
       }
@@ -541,7 +583,7 @@ export function renderMultiHTML(input: MultiPageReport): string {
         page.focusSequence ?? [],
         pageScreenshotForMap(page),
         page.pageDimensions,
-        violationSeverities,
+        violationsBySelector,
         idPrefix,
         page.rovingTabindexGroups,
         page.interactiveElements,
@@ -1170,6 +1212,8 @@ function COMMON_STYLES(statusKind: Kind): string {
     .focus-tooltip-row > span:first-child { flex-shrink: 0; color: var(--klr-text-muted); min-width: 6.5rem; }
     .focus-tooltip-value { min-width: 0; word-break: break-all; }
     .focus-tooltip-value--clamp { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .focus-tooltip-value--badges { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .focus-tooltip-value--badges .status-badge { white-space: normal; }
     .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--klr-border); margin: 1.5rem 0 0; overflow-x: auto; }
     .tab-btn { background: none; border: none; color: var(--klr-text-subtle); padding: 0.75rem 1.25rem; cursor: pointer; font-size: 0.875rem; border-bottom: 2px solid transparent; white-space: nowrap; }
     .tab-btn:hover { color: var(--klr-text); }

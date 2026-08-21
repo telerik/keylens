@@ -19,6 +19,16 @@ import type { InteractiveElement } from "../types/index.js";
  * reached via Tab, since that proves the widget is enterable by keyboard even
  * though no individual member ever receives real DOM focus.
  *
+ * Conversely, a composite-container role (e.g. role="listbox") is itself
+ * discovered as an "interactive element" (it matches the same role-based
+ * selector its members do), but many such containers are purely semantic
+ * wrappers that never receive focus themselves - each member is
+ * independently `tabindex="0"` and directly Tab-reachable (e.g. a Kendo
+ * chip-list `<div role="listbox">` whose `<div role="option" tabindex="0">`
+ * chips are each their own Tab stop). The container element is excluded here
+ * if any of ITS OWN members were reached, proving the container's contents
+ * are keyboard-accessible even though the wrapper itself never takes focus.
+ *
  * Some pages also split ONE logical widget across multiple sibling ARIA
  * containers (e.g. a `role="grid"` per visual category) that share a single
  * Tab-reachable member across the whole set. An unreached container is also
@@ -82,6 +92,10 @@ export function getUnreachedInteractiveElements(
     ) {
       return false;
     }
+    // This element IS a composite container (its selector is some other
+    // element's rovingContainerSelector) and at least one of its own members
+    // was reached - the container is a semantic wrapper, not a broken widget.
+    if (reachedRovingContainers.has(el.selector)) return false;
     return true;
   });
 }

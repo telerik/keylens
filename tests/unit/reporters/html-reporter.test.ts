@@ -854,12 +854,14 @@ describe("buildFocusMapHTML", () => {
       boundingRect: { x: 100, y: 50, width: 80, height: 30 },
     });
 
-    const violationSeverities = new Map([["button.bad", "warning" as const]]);
+    const violationsBySelector = new Map([
+      ["button.bad", [{ ruleName: "Skip Link", severity: "warning" as const }]],
+    ]);
     const result = buildFocusMapHTML(
       [el],
       "data",
       { width: 1280, height: 720 },
-      violationSeverities,
+      violationsBySelector,
     );
 
     expect(result).toContain('class="focus-marker focus-marker--violation"');
@@ -874,18 +876,75 @@ describe("buildFocusMapHTML", () => {
       boundingRect: { x: 100, y: 50, width: 80, height: 30 },
     });
 
-    const violationSeverities = new Map([["button.bad", "error" as const]]);
+    const violationsBySelector = new Map([
+      [
+        "button.bad",
+        [{ ruleName: "Keyboard Trap", severity: "error" as const }],
+      ],
+    ]);
     const result = buildFocusMapHTML(
       [el],
       "data",
       { width: 1280, height: 720 },
-      violationSeverities,
+      violationsBySelector,
     );
 
     expect(result).toContain(
       'class="focus-marker focus-marker--violation focus-marker--violation-error"',
     );
     expect(result).toContain('role="button"');
+  });
+
+  it("should list each violated rule's name as a badge in the marker's tooltip", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el = makeFocusedElement({
+      tabIndex: 1,
+      selector: "button.bad",
+      boundingRect: { x: 100, y: 50, width: 80, height: 30 },
+    });
+
+    const violationsBySelector = new Map([
+      [
+        "button.bad",
+        [
+          { ruleName: "Skip Link", severity: "warning" as const },
+          { ruleName: "Keyboard Trap", severity: "error" as const },
+        ],
+      ],
+    ]);
+    const result = buildFocusMapHTML(
+      [el],
+      "data",
+      { width: 1280, height: 720 },
+      violationsBySelector,
+    );
+
+    expect(result).toContain(">Issues<");
+    expect(result).toContain("Skip Link");
+    expect(result).toContain("Keyboard Trap");
+    expect(result).toContain("focus-tooltip-value--badges");
+  });
+
+  it("should label a single issue as 'Issue' (singular) in the tooltip", async () => {
+    const buildFocusMapHTML = await getBuildFocusMapHTML();
+    const el = makeFocusedElement({
+      tabIndex: 1,
+      selector: "button.bad",
+      boundingRect: { x: 100, y: 50, width: 80, height: 30 },
+    });
+
+    const violationsBySelector = new Map([
+      ["button.bad", [{ ruleName: "Skip Link", severity: "warning" as const }]],
+    ]);
+    const result = buildFocusMapHTML(
+      [el],
+      "data",
+      { width: 1280, height: 720 },
+      violationsBySelector,
+    );
+
+    expect(result).toContain(">Issue<");
+    expect(result).not.toContain(">Issues<");
   });
 
   it("should color only the dot (not the connectors/arrows) when a stop has a violation", async () => {
@@ -906,7 +965,9 @@ describe("buildFocusMapHTML", () => {
       [el1, el2],
       "data",
       dims,
-      new Map([["a.two", "warning" as const]]),
+      new Map([
+        ["a.two", [{ ruleName: "Skip Link", severity: "warning" as const }]],
+      ]),
     );
     const withoutViolation = buildFocusMapHTML([el1, el2], "data", dims);
 
