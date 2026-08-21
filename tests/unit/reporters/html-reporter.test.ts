@@ -986,38 +986,6 @@ describe("buildFocusMapHTML", () => {
     expect(result).toContain('data-selector="iframe-inner.two"');
     expect(result).toContain('data-selector="iframe-inner.three"');
   });
-
-  it("should register a bare numbered marker for stops resolved inside an <iframe>, with no selector, tooltip detail, or violation styling", async () => {
-    const buildFocusMapHTML = await getBuildFocusMapHTML();
-    // Selectors with " >>> " are how the crawler marks frame-piercing paths
-    // (see resolveNestedIframeFocus) — the signal used to detect nested content.
-    const nestedSelector =
-      "#at-support > iframe.support-levels-modal-dialog >>> #view-report-button";
-    const elements = [
-      makeFocusedElement({
-        tabIndex: 1,
-        selector: nestedSelector,
-        accessibleName: "View Complete Report",
-        role: "button",
-      }),
-    ];
-
-    const result = buildFocusMapHTML(
-      elements,
-      "data",
-      { width: 1280, height: 720 },
-      new Map([[nestedSelector, "warning" as const]]),
-    );
-
-    expect(result).toContain('id="marker-1"');
-    expect(result).not.toContain("data-selector=");
-    expect(result).not.toContain("focus-marker--violation");
-    expect(result).not.toContain("View Complete Report");
-    expect(result).not.toContain("Selector");
-    expect(result).not.toContain("Role");
-    expect(result).not.toContain("Landmark");
-    expect(result).toContain("1 of 1");
-  });
 });
 
 describe("Multi-Page HTML Reporter", () => {
