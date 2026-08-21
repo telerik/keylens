@@ -202,6 +202,13 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
       '[role="radio"]',
       '[role="tab"]',
       '[role="menuitem"]',
+      '[role="menuitemradio"]',
+      '[role="menuitemcheckbox"]',
+      '[role="option"]',
+      '[role="gridcell"]',
+      '[role="treeitem"]',
+      '[role="columnheader"]',
+      '[role="rowheader"]',
       '[role="combobox"]',
       '[role="listbox"]',
       '[role="slider"]',
@@ -227,12 +234,44 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
       'tablist', 'menu', 'menubar', 'listbox', 'radiogroup', 'tree', 'treegrid',
       'grid', 'toolbar',
     ];
+    // Native HTML elements carry an ARIA role implicitly (HTML-AAM spec) even
+    // with no explicit role attribute - e.g. <input type="radio"> is "radio",
+    // <a href> is "link". Checking getAttribute('role') alone misses every
+    // native element relying on that implicit mapping, silently breaking
+    // roving-tabindex detection for any widget built from real form controls
+    // instead of role-bearing <div>/<span> elements. This table is fixed by
+    // the HTML/ARIA spec, not a per-case guess, so it doesn't need
+    // per-widget patches as new pages are discovered.
+    const INPUT_TYPE_ROLES = {
+      button: 'button', submit: 'button', reset: 'button', image: 'button',
+      checkbox: 'checkbox', radio: 'radio', range: 'slider', number: 'spinbutton',
+      email: 'textbox', tel: 'textbox', text: 'textbox', url: 'textbox',
+      password: 'textbox', search: 'searchbox',
+    };
+    const getImplicitRole = (el) => {
+      const tag = el.tagName;
+      if (tag === 'INPUT') {
+        const type = (el.getAttribute('type') || 'text').toLowerCase();
+        if (el.hasAttribute('list') && (type === 'text' || type === 'search')) {
+          return 'combobox';
+        }
+        return INPUT_TYPE_ROLES[type] || null;
+      }
+      if (tag === 'BUTTON' || tag === 'SUMMARY') return 'button';
+      if (tag === 'A' && el.hasAttribute('href')) return 'link';
+      if (tag === 'SELECT') return el.multiple || el.size > 1 ? 'listbox' : 'combobox';
+      if (tag === 'OPTION') return 'option';
+      if (tag === 'TEXTAREA') return 'textbox';
+      return null;
+    };
+    const getEffectiveRole = (el) =>
+      el.getAttribute('role') || getImplicitRole(el);
     const getRovingContainerSelector = (el) => {
-      const role = el.getAttribute('role');
+      const role = getEffectiveRole(el);
       if (!role || rovingWidgetMemberRoles.indexOf(role) === -1) return null;
       let parent = el.parentElement;
       while (parent && parent !== document.body) {
-        const parentRole = parent.getAttribute('role');
+        const parentRole = getEffectiveRole(parent);
         if (parentRole && rovingContainerRoles.indexOf(parentRole) !== -1) {
           return getSelector(parent);
         }
@@ -276,7 +315,7 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
         return {
           selector: getSelector(el),
           tagName: el.tagName.toLowerCase(),
-          role: el.getAttribute('role') || el.tagName.toLowerCase(),
+          role: getEffectiveRole(el) || el.tagName.toLowerCase(),
           accessibleName: el.getAttribute('aria-label')
             || el.getAttribute('aria-labelledby')
             || el.getAttribute('alt')

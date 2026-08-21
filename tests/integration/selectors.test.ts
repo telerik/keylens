@@ -236,5 +236,48 @@ describe("Integration: browser selector scripts", () => {
       expect(first.boundingRect).toHaveProperty("width");
       expect(first.boundingRect).toHaveProperty("height");
     });
+
+    it("should assign the implicit role of a native <a href> element (no role attribute)", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const link = elements.find(
+        (el: { selector: string }) => el.selector === "#titled-link",
+      );
+      expect(link?.role).toBe("link");
+    });
+
+    it("should assign the implicit 'radio' role to a native input[type=radio] with no role attribute", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const radio = elements.find(
+        (el: { selector: string }) => el.selector === "#native-radio-2",
+      );
+      expect(radio?.role).toBe("radio");
+    });
+
+    it("should compute rovingContainerSelector for a native radio input via its implicit role", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const radio = elements.find(
+        (el: { selector: string }) => el.selector === "#native-radio-2",
+      );
+      expect(radio?.rovingContainerSelector).toBe("#native-radiogroup");
+    });
+
+    it("should assign implicit roles for other native form controls", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const byLabel = (label: string) =>
+        elements.find(
+          (el: { accessibleName: string }) => el.accessibleName === label,
+        );
+      expect(byLabel("Select box")?.role).toBe("combobox");
+      expect(byLabel("Text area")?.role).toBe("textbox");
+      expect(byLabel("Text input")?.role).toBe("textbox");
+    });
   });
 });

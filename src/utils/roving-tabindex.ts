@@ -18,6 +18,13 @@ import type { InteractiveElement } from "../types/index.js";
  * An element is also excluded here if its composite container was itself
  * reached via Tab, since that proves the widget is enterable by keyboard even
  * though no individual member ever receives real DOM focus.
+ *
+ * Some pages also split ONE logical widget across multiple sibling ARIA
+ * containers (e.g. a `role="grid"` per visual category) that share a single
+ * Tab-reachable member across the whole set. An unreached container is also
+ * excluded here if it shares its members' role with exactly one OTHER
+ * container that WAS reached - that's the same shared-domain signal used by
+ * the crawler's arrow-key verification.
  */
 export function getUnreachedInteractiveElements(
   interactiveElements: InteractiveElement[],
@@ -39,12 +46,39 @@ export function getUnreachedInteractiveElements(
       .map((el) => el.selector),
   );
 
+  // Some pages split ONE logical roving-tabindex widget across multiple
+  // sibling ARIA containers (e.g. a `role="grid"` per visual category) that
+  // share a single Tab-reachable member across the whole set. A container
+  // whose own members were never reached can't be judged wired-up in
+  // isolation; if exactly one OTHER container sharing the same member role
+  // WAS reached, treat this one as part of the same verified domain instead
+  // of flagging its members as unreachable.
+  const containersByMemberRole = new Map<string, Set<string>>();
+  for (const el of interactiveElements) {
+    if (!el.rovingContainerSelector) continue;
+    const set = containersByMemberRole.get(el.role) ?? new Set();
+    set.add(el.rovingContainerSelector);
+    containersByMemberRole.set(el.role, set);
+  }
+  const isContainerReached = (selector: string) =>
+    reachedRovingContainers.has(selector) ||
+    reachedContainerElements.has(selector);
+  const sharedDomainContainers = new Set<string>();
+  for (const containers of containersByMemberRole.values()) {
+    const reached = [...containers].filter(isContainerReached);
+    const unreached = [...containers].filter((c) => !isContainerReached(c));
+    if (reached.length === 1 && unreached.length > 0) {
+      for (const selector of unreached) sharedDomainContainers.add(selector);
+    }
+  }
+
   return interactiveElements.filter((el) => {
     if (el.reached) return false;
     if (
       el.rovingContainerSelector &&
       (reachedRovingContainers.has(el.rovingContainerSelector) ||
-        reachedContainerElements.has(el.rovingContainerSelector))
+        reachedContainerElements.has(el.rovingContainerSelector) ||
+        sharedDomainContainers.has(el.rovingContainerSelector))
     ) {
       return false;
     }

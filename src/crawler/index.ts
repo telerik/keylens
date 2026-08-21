@@ -1460,8 +1460,13 @@ export function markReachedElements(
   }
 }
 
-/** Max arrow-key presses attempted per direction when verifying a single roving-tabindex group. */
-const ROVING_TABINDEX_MAX_PRESSES = 50;
+/**
+ * Floor for arrow-key presses attempted per key when verifying a single
+ * roving-tabindex group. The effective cap scales up to the group's member
+ * count so a single-key sweep can traverse every member from any starting
+ * position, however far the active member is from either end.
+ */
+const ROVING_TABINDEX_MIN_PRESSES = 50;
 
 /**
  * Verifies that every member of each roving-tabindex composite widget (e.g. a
@@ -1485,6 +1490,38 @@ async function verifyRovingTabindexGroups(
     const members = groups.get(el.rovingContainerSelector) ?? [];
     members.push(el);
     groups.set(el.rovingContainerSelector, members);
+  }
+
+  // Some pages split ONE logical roving-tabindex widget across multiple
+  // sibling ARIA containers (e.g. a `role="grid"` per visual category) that
+  // share a single active/Tab-reachable member across the whole set - arrow
+  // keys flow seamlessly from the last member of one container into the
+  // first member of the next. A container with no active member of its own
+  // can't be verified independently (no entry point to focus first); if
+  // exactly one OTHER container sharing the same member role DOES have one,
+  // merge them so the whole shared domain is verified together instead of
+  // silently skipping the orphaned containers.
+  const containersByMemberRole = new Map<string, string[]>();
+  for (const [containerSelector, members] of groups) {
+    const role = members[0]?.role ?? "";
+    const selectors = containersByMemberRole.get(role) ?? [];
+    selectors.push(containerSelector);
+    containersByMemberRole.set(role, selectors);
+  }
+  for (const containerSelectors of containersByMemberRole.values()) {
+    const hosts = containerSelectors.filter((sel) =>
+      groups.get(sel)!.some((el) => el.tabindexAttr !== -1),
+    );
+    const orphans = containerSelectors.filter(
+      (sel) => !groups.get(sel)!.some((el) => el.tabindexAttr !== -1),
+    );
+    if (hosts.length === 1 && orphans.length > 0) {
+      const hostMembers = groups.get(hosts[0]!)!;
+      for (const orphanSelector of orphans) {
+        hostMembers.push(...groups.get(orphanSelector)!);
+        groups.delete(orphanSelector);
+      }
+    }
   }
 
   const results: RovingTabindexGroupResult[] = [];
@@ -1514,6 +1551,7 @@ async function verifyRovingTabindexGroups(
       await activeLocator.focus();
 
       const memberSelectors = new Set(members.map((el) => el.selector));
+      const maxPresses = Math.max(members.length, ROVING_TABINDEX_MIN_PRESSES);
       // Capture each reached member's live page-relative rect (not the
       // viewport-relative rect from initial discovery) so reports can plot
       // these as focus-map markers regardless of scroll position.
@@ -1527,25 +1565,27 @@ async function verifyRovingTabindexGroups(
 
       const primary = getRovingArrowKeys(containerRole, ariaOrientation);
       const fallback = getFallbackArrowKeys(primary);
+      // Each key is tried as its own complete sweep from the active member,
+      // never combined with another key in the same press: a 2D widget (e.g.
+      // a grid that responds to both ArrowRight AND ArrowDown) would otherwise
+      // move along both axes on every iteration, overshooting and skipping
+      // members that a real user pressing just one arrow key would reach.
       const keyAttempts = [
-        primary.forward,
-        primary.backward,
-        fallback.forward,
-        fallback.backward,
-      ].filter((keys) => keys.length > 0);
+        ...primary.forward,
+        ...primary.backward,
+        ...fallback.forward,
+        ...fallback.backward,
+      ];
 
-      for (const keys of keyAttempts) {
+      for (const key of keyAttempts) {
         if (reached.size === memberSelectors.size) break;
         await activeLocator.focus();
         for (
           let i = 0;
-          i < ROVING_TABINDEX_MAX_PRESSES &&
-          reached.size < memberSelectors.size;
+          i < maxPresses && reached.size < memberSelectors.size;
           i++
         ) {
-          for (const key of keys) {
-            await page.keyboard.press(key);
-          }
+          await page.keyboard.press(key);
           const info = (await page.evaluate(
             `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
           )) as FocusedElementInfo | null;

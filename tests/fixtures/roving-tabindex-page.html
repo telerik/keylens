@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Keylens Roving Tabindex Fixture</title>
+  </head>
+  <body>
+    <!--
+      2D grid where ArrowDown jumps a full row (+5) instead of +1. A
+      combined-key sweep (pressing ArrowDown and ArrowRight together every
+      iteration, step 5+1=6) only visits 5 of the 10 cells before cycling
+      back to the start (gcd(6,10)=2) - proving the single-key-sweep fix is
+      required. Pure ArrowRight alone reaches all 10 cells in order.
+    -->
+    <div role="grid" aria-label="Sweep grid" id="sweep-grid">
+      <div role="row">
+        <div role="gridcell" tabindex="0" id="cell-0">0</div>
+        <div role="gridcell" tabindex="-1" id="cell-1">1</div>
+        <div role="gridcell" tabindex="-1" id="cell-2">2</div>
+        <div role="gridcell" tabindex="-1" id="cell-3">3</div>
+        <div role="gridcell" tabindex="-1" id="cell-4">4</div>
+      </div>
+      <div role="row">
+        <div role="gridcell" tabindex="-1" id="cell-5">5</div>
+        <div role="gridcell" tabindex="-1" id="cell-6">6</div>
+        <div role="gridcell" tabindex="-1" id="cell-7">7</div>
+        <div role="gridcell" tabindex="-1" id="cell-8">8</div>
+        <div role="gridcell" tabindex="-1" id="cell-9">9</div>
+      </div>
+    </div>
+
+    <!--
+      Two sibling tablists sharing ONE flat keyboard domain: only tablist-a's
+      first tab is a Tab stop, tablist-b has no active member of its own.
+      ArrowRight from the last tab of group A moves into the first tab of
+      group B, mirroring a real page that splits one widget's markup across
+      multiple ARIA containers.
+    -->
+    <div role="tablist" aria-label="Group A" id="tablist-a">
+      <button role="tab" tabindex="0" id="tab-a1">A1</button>
+      <button role="tab" tabindex="-1" id="tab-a2">A2</button>
+    </div>
+    <div role="tablist" aria-label="Group B" id="tablist-b">
+      <button role="tab" tabindex="-1" id="tab-b1">B1</button>
+      <button role="tab" tabindex="-1" id="tab-b2">B2</button>
+    </div>
+
+    <!--
+      Native radio inputs carry the "radio" role implicitly (HTML-AAM), with
+      no explicit role="radio" attribute - relies on the browser's built-in
+      same-name radio-group arrow-key handling, no JS required.
+    -->
+    <div role="radiogroup" aria-label="Vehicle type" id="native-radiogroup">
+      <input
+        type="radio"
+        name="vehicle-type"
+        id="radio-1"
+        checked
+        tabindex="0"
+      />
+      <label for="radio-1">BEV</label>
+      <input type="radio" name="vehicle-type" id="radio-2" tabindex="-1" />
+      <label for="radio-2">PHEV</label>
+      <input type="radio" name="vehicle-type" id="radio-3" tabindex="-1" />
+      <label for="radio-3">HEV</label>
+    </div>
+
+    <script>
+      (function () {
+        var cells = Array.from(
+          document.querySelectorAll('#sweep-grid [role="gridcell"]'),
+        );
+        document
+          .getElementById("sweep-grid")
+          .addEventListener("keydown", function (e) {
+            var idx = cells.indexOf(document.activeElement);
+            if (idx === -1) return;
+            var next = idx;
+            if (e.key === "ArrowRight")
+              next = Math.min(idx + 1, cells.length - 1);
+            else if (e.key === "ArrowLeft") next = Math.max(idx - 1, 0);
+            else if (e.key === "ArrowDown")
+              next = Math.min(idx + 5, cells.length - 1);
+            else if (e.key === "ArrowUp") next = Math.max(idx - 5, 0);
+            else return;
+            e.preventDefault();
+            if (next === idx) return;
+            cells[idx].setAttribute("tabindex", "-1");
+            cells[next].setAttribute("tabindex", "0");
+            cells[next].focus();
+          });
+      })();
+
+      (function () {
+        var tabs = Array.from(
+          document.querySelectorAll(
+            '#tablist-a [role="tab"], #tablist-b [role="tab"]',
+          ),
+        );
+        tabs.forEach(function (tab) {
+          tab.addEventListener("keydown", function (e) {
+            var idx = tabs.indexOf(document.activeElement);
+            if (idx === -1) return;
+            var next = idx;
+            if (e.key === "ArrowRight") next = (idx + 1) % tabs.length;
+            else if (e.key === "ArrowLeft")
+              next = (idx - 1 + tabs.length) % tabs.length;
+            else return;
+            e.preventDefault();
+            tabs[idx].setAttribute("tabindex", "-1");
+            tabs[next].setAttribute("tabindex", "0");
+            tabs[next].focus();
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
