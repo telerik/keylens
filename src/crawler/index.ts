@@ -1478,6 +1478,14 @@ const ROVING_TABINDEX_MIN_PRESSES = 50;
  * active tab panel in an "automatic activation" tabs widget), which would
  * otherwise corrupt subsequent phases that depend on a stable page.
  */
+// A member is a real Tab stop only with an explicit non-negative tabindex.
+// `tabindexAttr` is `null` when the attribute is absent entirely (common for
+// container-retains-focus widgets, e.g. a Kendo Calendar's day cells) -
+// treating null as "not -1" would wrongly pick such a member as focusable.
+export function isRealTabStop(tabindexAttr: number | null): boolean {
+  return tabindexAttr !== null && tabindexAttr !== -1;
+}
+
 async function verifyRovingTabindexGroups(
   page: Page,
   interactiveElements: InteractiveElement[],
@@ -1510,10 +1518,10 @@ async function verifyRovingTabindexGroups(
   }
   for (const containerSelectors of containersByMemberRole.values()) {
     const hosts = containerSelectors.filter((sel) =>
-      groups.get(sel)!.some((el) => el.tabindexAttr !== -1),
+      groups.get(sel)!.some((el) => isRealTabStop(el.tabindexAttr)),
     );
     const orphans = containerSelectors.filter(
-      (sel) => !groups.get(sel)!.some((el) => el.tabindexAttr !== -1),
+      (sel) => !groups.get(sel)!.some((el) => isRealTabStop(el.tabindexAttr)),
     );
     if (hosts.length === 1 && orphans.length > 0) {
       const hostMembers = groups.get(hosts[0]!)!;
@@ -1529,6 +1537,12 @@ async function verifyRovingTabindexGroups(
   for (const [containerSelector, members] of groups) {
     throwIfAborted(signal, "crawl", url);
     if (members.length < 2) continue;
+    // If no member has tabindex="-1", this isn't the "one active, rest -1"
+    // roving-tabindex pattern at all - it's a list where every member is
+    // already its own independent Tab stop (e.g. a Kendo drawer nav or a
+    // chip/tag list with tabindex="0" on every item). Arrow-key navigation
+    // was never required for these to be fully keyboard-reachable.
+    if (!members.some((el) => el.tabindexAttr === -1)) continue;
 
     try {
       const containerLocator = page.locator(containerSelector).first();
@@ -1537,14 +1551,14 @@ async function verifyRovingTabindexGroups(
       const ariaOrientation =
         await containerLocator.getAttribute("aria-orientation");
 
-      // The active member is the one that's a real Tab stop (tabindex !== -1);
-      // that's the entry point a keyboard user actually lands on. If NO member
-      // is a Tab stop, this isn't the per-member roving-tabindex pattern at all
-      // (e.g. some widgets keep real DOM focus on the container itself and move
-      // an internal highlight via arrow keys instead) - skip rather than force-
+      // The active member is the one that's a real Tab stop; that's the entry
+      // point a keyboard user actually lands on. If NO member is a Tab stop,
+      // this isn't the per-member roving-tabindex pattern at all (e.g. some
+      // widgets keep real DOM focus on the container itself and move an
+      // internal highlight via arrow keys instead) - skip rather than force-
       // focus an arbitrary member, which wouldn't reflect real keyboard use and
       // would produce a misleading "broken" result.
-      const activeMember = members.find((el) => el.tabindexAttr !== -1);
+      const activeMember = members.find((el) => isRealTabStop(el.tabindexAttr));
       if (!activeMember) continue;
       const activeLocator = page.locator(activeMember.selector).first();
       if ((await activeLocator.count()) === 0) continue;

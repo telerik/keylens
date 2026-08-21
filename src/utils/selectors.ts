@@ -295,6 +295,34 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
       return false;
     };
 
+    // aria-hidden="true" removes an element (and its subtree) from the
+    // accessibility tree by definition - assistive tech is told to ignore it,
+    // so it can never be a real keyboard-reachability requirement (e.g. a
+    // hidden native <select> kept only for form-semantics behind a custom
+    // combobox widget).
+    const isAriaHidden = (el) => {
+      let current = el;
+      while (current) {
+        if (current.getAttribute && current.getAttribute('aria-hidden') === 'true') return true;
+        current = current.parentElement;
+      }
+      return false;
+    };
+
+    // Some widgets (e.g. calendar grids) mark purely structural filler/padding
+    // cells with the same role as their real, functional cells (role="gridcell"
+    // on both a real day and an empty out-of-range placeholder). A cell with no
+    // tabindex, no accessible name, no text, and no element children carries no
+    // operable content - it was never meant to be keyboard-reachable.
+    const isEmptyStructuralCell = (el) => {
+      const role = getEffectiveRole(el);
+      if (['gridcell', 'columnheader', 'rowheader'].indexOf(role) === -1) return false;
+      if (el.hasAttribute('tabindex')) return false;
+      if (el.getAttribute('aria-label') || el.getAttribute('aria-labelledby')) return false;
+      if (el.children.length > 0) return false;
+      return el.textContent.trim() === '';
+    };
+
     return Array.from(elements)
       .filter((el) => {
         const style = window.getComputedStyle(el);
@@ -307,6 +335,9 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
 
         // Skip elements inside disabled fieldsets (unless inside legend)
         if (isInDisabledFieldset(el)) return false;
+
+        if (isAriaHidden(el)) return false;
+        if (isEmptyStructuralCell(el)) return false;
 
         return true;
       })

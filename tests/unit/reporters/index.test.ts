@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeAuditReport } from "@tests/helpers/factories.js";
 import type { MultiPageReport } from "@/types/index.js";
+import { ReporterError } from "@/errors.js";
 
 vi.mock("@/reporters/cli-reporter.js", () => ({
   reportCLI: vi.fn(),
@@ -147,6 +148,19 @@ describe("runReporters", () => {
       message: "Reporter failed: disk full",
     });
   });
+
+  it("re-throws a ReporterError as-is instead of re-wrapping it", async () => {
+    const runReporters = await getRunReporters();
+    const original = new ReporterError(
+      "already structured",
+      "https://example.com",
+    );
+    mockJSON.mockRejectedValueOnce(original);
+
+    await expect(
+      runReporters(makeAuditReport(), ["json"], "./output"),
+    ).rejects.toBe(original);
+  });
 });
 
 describe("runMultiReporters", () => {
@@ -226,5 +240,28 @@ describe("runMultiReporters", () => {
     expect(mockMultiJSON).toHaveBeenCalledTimes(1);
     expect(mockMultiHTML).toHaveBeenCalledTimes(1);
     expect(mockMultiMarkdown).toHaveBeenCalledTimes(1);
+  });
+
+  it("wraps multi-page reporter failures with structured diagnostics", async () => {
+    const runMultiReporters = await getRunMultiReporters();
+    mockMultiJSON.mockRejectedValueOnce(new Error("disk full"));
+
+    await expect(
+      runMultiReporters(makeMultiReport(), ["json"], "./output"),
+    ).rejects.toMatchObject({
+      code: "REPORTER_ERROR",
+      phase: "reporters",
+      message: "Reporter failed: disk full",
+    });
+  });
+
+  it("re-throws a ReporterError as-is instead of re-wrapping it", async () => {
+    const runMultiReporters = await getRunMultiReporters();
+    const original = new ReporterError("already structured");
+    mockMultiJSON.mockRejectedValueOnce(original);
+
+    await expect(
+      runMultiReporters(makeMultiReport(), ["json"], "./output"),
+    ).rejects.toBe(original);
   });
 });
