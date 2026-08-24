@@ -60,14 +60,38 @@ export const GET_UNIQUE_SELECTOR_SCRIPT = `
 `;
 
 /**
+ * How many ancestor levels (beyond the immediate parent) to capture for
+ * :focus-within diffing. :focus-within styling is commonly applied to a
+ * wrapper several levels up (e.g. a form-group/fieldset around a
+ * label+input), not just the direct parent, so checking only the immediate
+ * parent misses those patterns and produces false "missing indicator"
+ * violations. Capped (rather than walking to document.body) to bound the
+ * cost of serializing full computed-style declarations for every focused
+ * element on pages with deeply nested DOM trees.
+ */
+export const FOCUS_STYLE_ANCESTOR_DEPTH = 4;
+
+/**
+ * Max descendant elements to capture for :focus-within-style diffing in the
+ * other direction — a focusable wrapper (e.g. a switch/checkbox root) that
+ * paints its indicator on an inner decorative child via a `.wrapper:focus
+ * .child { ... }` rule, rather than on itself. Bounded (breadth-first, not a
+ * full subtree walk) so large composite widgets (grids, calendars) with
+ * hundreds of descendants don't blow up per-element capture cost.
+ */
+export const FOCUS_STYLE_DESCENDANT_LIMIT = 20;
+
+/**
  * Computes a FocusStyleSnapshot for a given element: the *entire* computed
  * style declaration (all longhand properties, not a curated subset) for the
- * element itself, its ::before/::after pseudo-elements, and its immediate
- * parent (for :focus-within container patterns). Diffing full declarations
- * avoids blind spots from hand-picking properties — any CSS-expressible
- * indicator (border-radius, background-image/position, text-shadow,
- * clip-path, letter-spacing, etc.) shows up as a value difference somewhere.
- * Runs in page context.
+ * element itself, its ::before/::after pseudo-elements, a chain of ancestors
+ * up to FOCUS_STYLE_ANCESTOR_DEPTH levels (for :focus-within container
+ * patterns), and up to FOCUS_STYLE_DESCENDANT_LIMIT descendants (for
+ * indicators painted on an inner child instead of the focusable element
+ * itself). Diffing full declarations avoids blind spots from hand-picking
+ * properties — any CSS-expressible indicator (border-radius,
+ * background-image/position, text-shadow, clip-path, letter-spacing, etc.)
+ * shows up as a value difference somewhere. Runs in page context.
  */
 export const GET_FOCUS_STYLE_SNAPSHOT_SCRIPT = `
   (el) => {
@@ -79,11 +103,28 @@ export const GET_FOCUS_STYLE_SNAPSHOT_SCRIPT = `
       }
       return out;
     };
+    const ancestors = [];
+    let cur = el.parentElement;
+    for (let depth = 0; cur && depth < ${FOCUS_STYLE_ANCESTOR_DEPTH}; depth++) {
+      ancestors.push(serialize(window.getComputedStyle(cur)));
+      cur = cur.parentElement;
+    }
+    const descendants = [];
+    const queue = [el];
+    while (queue.length && descendants.length < ${FOCUS_STYLE_DESCENDANT_LIMIT}) {
+      const node = queue.shift();
+      for (const child of node.children) {
+        if (descendants.length >= ${FOCUS_STYLE_DESCENDANT_LIMIT}) break;
+        descendants.push(serialize(window.getComputedStyle(child)));
+        queue.push(child);
+      }
+    }
     return {
       self: serialize(window.getComputedStyle(el)),
       before: serialize(window.getComputedStyle(el, '::before')),
       after: serialize(window.getComputedStyle(el, '::after')),
-      parent: el.parentElement ? serialize(window.getComputedStyle(el.parentElement)) : undefined,
+      ancestors,
+      descendants,
     };
   }
 `;

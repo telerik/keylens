@@ -32,6 +32,8 @@ import {
   getRovingArrowKeys,
   getFallbackArrowKeys,
 } from "../utils/aria-orientation.js";
+import { hasVisibleFocusChange } from "../utils/focus-style-diff.js";
+import { hasVisiblePixelDiff } from "../utils/pixel-diff.js";
 
 /** Shape returned by GET_FOCUSED_ELEMENT_INFO_SCRIPT inside the browser. */
 interface FocusedElementInfo {
@@ -410,6 +412,28 @@ export async function crawlPage(
       signal,
       url,
     );
+
+    // Runs after everything else (including roving-tabindex verification,
+    // which can itself mutate page state) since it re-focuses individual
+    // elements one at a time — nothing downstream depends on tab-order
+    // timing being pristine at this point.
+    logger.info(
+      "Confirming possible missing focus indicators via pixel diff...",
+    );
+    try {
+      await confirmMissingFocusIndicators(
+        page,
+        focusSequence,
+        config,
+        signal,
+        url,
+      );
+    } catch (error) {
+      throwIfAborted(signal, "crawl", url);
+      logger.warn(
+        `Focus indicator pixel confirmation pass failed, continuing without it: ${(error as Error).message}`,
+      );
+    }
 
     const duration = Date.now() - startTime;
     throwIfAborted(signal, "crawl", url);
@@ -1066,6 +1090,105 @@ async function captureElementScreenshot(
       `Failed to capture element screenshot at (${rect.x}, ${rect.y})`,
     );
     return undefined;
+  }
+}
+
+/** Max elements to re-verify via screenshot in the missing-focus-indicator confirmation pass. */
+const PIXEL_CONFIRMATION_MAX_ELEMENTS = 30;
+
+/** Padding (px) around the live bounding box when clipping confirmation screenshots. */
+const PIXEL_CONFIRMATION_PADDING = 20;
+
+/**
+ * Captures a screenshot of an element's *current* bounding box, scrolled into
+ * view and measured fresh at capture time (never a stale pageRect from
+ * earlier in the crawl) — so it stays correct regardless of how much the
+ * page has scrolled since the main tab crawl finished.
+ */
+async function captureLiveElementScreenshot(
+  page: Page,
+  selector: string,
+): Promise<Buffer | undefined> {
+  try {
+    const locator = page.locator(selector).first();
+    await locator.scrollIntoViewIfNeeded({ timeout: 2000 });
+    const box = await locator.boundingBox();
+    if (!box || box.width <= 0 || box.height <= 0) return undefined;
+    const clip = {
+      x: Math.max(0, box.x - PIXEL_CONFIRMATION_PADDING),
+      y: Math.max(0, box.y - PIXEL_CONFIRMATION_PADDING),
+      width: box.width + PIXEL_CONFIRMATION_PADDING * 2,
+      height: box.height + PIXEL_CONFIRMATION_PADDING * 2,
+    };
+    return await page.screenshot({ clip, type: "png" });
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Screenshot-based second opinion for missing-focus-indicator candidates:
+ * elements whose computed-style diff (self/pseudo-elements/ancestors/
+ * descendants) found no change at all. Some real indicators live outside
+ * every DOM relationship the style diff checks — a focus ring drawn inside a
+ * `<canvas>` bitmap by page JS, or styling applied via a sibling/portaled
+ * element — so a screenshot pixel-diff is the only way to see them.
+ *
+ * Re-focuses each candidate individually (by selector) and pixel-diffs a
+ * padded screenshot of its focused vs. blurred state via pixelmatch. Capped
+ * to PIXEL_CONFIRMATION_MAX_ELEMENTS since it's a targeted confirmation pass
+ * over already-suspected violations, not a blanket per-element cost.
+ */
+async function confirmMissingFocusIndicators(
+  page: Page,
+  focusSequence: CapturedFocusedElement[],
+  config: KeylensConfig,
+  signal?: AbortSignal,
+  url?: string,
+): Promise<void> {
+  const candidates = focusSequence.filter(
+    (el) =>
+      el.focusedStyleSnapshot &&
+      el.unfocusedStyleSnapshot &&
+      !hasVisibleFocusChange(
+        el.focusedStyleSnapshot,
+        el.unfocusedStyleSnapshot,
+      ),
+  );
+  if (candidates.length === 0) return;
+
+  const capped = candidates.slice(0, PIXEL_CONFIRMATION_MAX_ELEMENTS);
+  logger.debug(
+    `Confirming ${capped.length} of ${candidates.length} possible missing focus indicator(s) via screenshot diff`,
+  );
+
+  for (const el of capped) {
+    throwIfAborted(signal, "crawl", url);
+    try {
+      await page.locator(el.selector).first().focus({ timeout: 2000 });
+      const focusedShot = await captureLiveElementScreenshot(page, el.selector);
+      if (!focusedShot) continue;
+
+      await page.evaluate(
+        `(() => { const target = document.querySelector(${JSON.stringify(el.selector)}); if (target) target.blur(); })()`,
+      );
+      await page.waitForTimeout(config.tabDelay);
+      const unfocusedShot = await captureLiveElementScreenshot(
+        page,
+        el.selector,
+      );
+      if (!unfocusedShot) continue;
+
+      el.focusIndicatorPixelConfirmed = hasVisiblePixelDiff(
+        focusedShot,
+        unfocusedShot,
+      );
+    } catch {
+      throwIfAborted(signal, "crawl", url);
+      logger.debug(
+        `Focus indicator pixel confirmation failed for ${el.selector}`,
+      );
+    }
   }
 }
 

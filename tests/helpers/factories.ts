@@ -1,6 +1,7 @@
 import type {
   FocusedElement,
   FocusStyleSnapshot,
+  ComputedStyleMap,
   InteractiveElement,
   CrawlResult,
   AuditReport,
@@ -31,7 +32,8 @@ export function makeFocusStyleSnapshot(
     self?: Partial<FocusStyleSnapshot["self"]>;
     before?: Partial<FocusStyleSnapshot["before"]>;
     after?: Partial<FocusStyleSnapshot["after"]>;
-    parent?: Partial<NonNullable<FocusStyleSnapshot["parent"]>>;
+    ancestors?: Partial<ComputedStyleMap>[];
+    descendants?: Partial<ComputedStyleMap>[];
   } = {},
 ): FocusStyleSnapshot {
   const baseSelf = {
@@ -61,7 +63,7 @@ export function makeFocusStyleSnapshot(
     opacity: "1",
     transform: "none",
   };
-  const baseParent = {
+  const baseAncestor = {
     "box-shadow": "none",
     "background-color": "rgba(0, 0, 0, 0)",
     "outline-style": "none",
@@ -71,7 +73,16 @@ export function makeFocusStyleSnapshot(
     self: { ...baseSelf, ...overrides.self },
     before: { ...basePseudo, ...overrides.before },
     after: { ...basePseudo, ...overrides.after },
-    parent: { ...baseParent, ...overrides.parent },
+    ancestors: overrides.ancestors
+      ? overrides.ancestors.map((ancestor) => ({
+          ...baseAncestor,
+          ...ancestor,
+        }))
+      : [{ ...baseAncestor }],
+    descendants: overrides.descendants?.map((descendant) => ({
+      ...baseAncestor,
+      ...descendant,
+    })),
   };
 }
 

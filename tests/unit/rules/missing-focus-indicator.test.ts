@@ -74,7 +74,7 @@ describe("MissingFocusIndicatorRule", () => {
         focusSequence: [
           makeFocusedElement({
             focusedStyleSnapshot: makeFocusStyleSnapshot({
-              parent: { "box-shadow": "0 0 0 2px blue" },
+              ancestors: [{ "box-shadow": "0 0 0 2px blue" }],
             }),
             unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
           }),
@@ -83,6 +83,74 @@ describe("MissingFocusIndicatorRule", () => {
     );
 
     expect(result.passed).toBe(true);
+  });
+
+  it("should detect an indicator applied to a :focus-within ancestor several levels up (not just the immediate parent)", async () => {
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        focusSequence: [
+          makeFocusedElement({
+            focusedStyleSnapshot: makeFocusStyleSnapshot({
+              ancestors: [{}, {}, { "box-shadow": "0 0 0 2px blue" }],
+            }),
+            unfocusedStyleSnapshot: makeFocusStyleSnapshot({
+              ancestors: [{}, {}, {}],
+            }),
+          }),
+        ],
+      }),
+    );
+
+    expect(result.passed).toBe(true);
+  });
+
+  it("should detect an indicator applied to a descendant (e.g. a switch's inner track), not just self/ancestors", async () => {
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        focusSequence: [
+          makeFocusedElement({
+            focusedStyleSnapshot: makeFocusStyleSnapshot({
+              descendants: [{ "outline-style": "solid" }],
+            }),
+            unfocusedStyleSnapshot: makeFocusStyleSnapshot({
+              descendants: [{}],
+            }),
+          }),
+        ],
+      }),
+    );
+
+    expect(result.passed).toBe(true);
+  });
+
+  it("should treat a pixel-confirmed indicator as passing even when no style diff was found", async () => {
+    const el = makeFocusedElement({
+      focusedStyleSnapshot: makeFocusStyleSnapshot(),
+      unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
+      focusIndicatorPixelConfirmed: true,
+    });
+
+    const result = await rule.evaluate(
+      makeCrawlResult({ focusSequence: [el] }),
+    );
+
+    expect(result.passed).toBe(true);
+    expect(el.hasFocusIndicator).toBe(true);
+  });
+
+  it("should still fail when the pixel confirmation also found no visible change", async () => {
+    const el = makeFocusedElement({
+      focusedStyleSnapshot: makeFocusStyleSnapshot(),
+      unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
+      focusIndicatorPixelConfirmed: false,
+    });
+
+    const result = await rule.evaluate(
+      makeCrawlResult({ focusSequence: [el] }),
+    );
+
+    expect(result.passed).toBe(false);
+    expect(el.hasFocusIndicator).toBe(false);
   });
 
   it("should detect a ::before pseudo-element indicator via a non-curated property", async () => {
@@ -234,6 +302,38 @@ describe("MissingFocusIndicatorRule", () => {
         self: { "animation-duration": "0.3s" },
       });
       const unfocused = makeFocusStyleSnapshot();
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
+    });
+
+    it("returns true when a non-immediate ancestor's style differs (deep :focus-within wrapper)", () => {
+      const focused = makeFocusStyleSnapshot({
+        ancestors: [{}, { "outline-style": "solid" }],
+      });
+      const unfocused = makeFocusStyleSnapshot({
+        ancestors: [{}, {}],
+      });
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(true);
+    });
+
+    it("returns false when ancestor chains are the same length and nothing actually changed", () => {
+      const focused = makeFocusStyleSnapshot({ ancestors: [{}, {}] });
+      const unfocused = makeFocusStyleSnapshot({ ancestors: [{}, {}] });
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
+    });
+
+    it("returns true when a descendant's style differs (indicator painted on an inner child, e.g. a switch track)", () => {
+      const focused = makeFocusStyleSnapshot({
+        descendants: [{}, { "outline-style": "solid" }],
+      });
+      const unfocused = makeFocusStyleSnapshot({
+        descendants: [{}, {}],
+      });
+      expect(hasVisibleFocusChange(focused, unfocused)).toBe(true);
+    });
+
+    it("returns false when descendant chains are the same length and nothing actually changed", () => {
+      const focused = makeFocusStyleSnapshot({ descendants: [{}, {}] });
+      const unfocused = makeFocusStyleSnapshot({ descendants: [{}, {}] });
       expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
     });
   });

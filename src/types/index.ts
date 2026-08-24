@@ -474,15 +474,20 @@ export type ComputedStyleMap = Record<string, string>;
  * Computed style snapshot compared between a focused and unfocused capture of
  * the same element to detect a visible focus indicator (WCAG 2.4.7). Captures
  * the *entire* computed style declaration (not a curated property subset) for
- * the element itself, its ::before/::after pseudo-elements, and its immediate
- * parent (for :focus-within patterns) — any CSS-expressible visual change
+ * the element itself, its ::before/::after pseudo-elements, and a chain of
+ * ancestors (for :focus-within patterns, which are commonly applied several
+ * levels up — e.g. a form-group/fieldset wrapper around a label+input, not
+ * just the element's immediate parent) — any CSS-expressible visual change
  * shows up as a value difference somewhere in one of these maps.
  */
 export interface FocusStyleSnapshot {
   self: ComputedStyleMap;
   before: ComputedStyleMap;
   after: ComputedStyleMap;
-  parent?: ComputedStyleMap;
+  /** Computed styles of ancestors, nearest first (index 0 = immediate parent). */
+  ancestors?: ComputedStyleMap[];
+  /** Computed styles of descendants (bounded breadth-first walk), document order. */
+  descendants?: ComputedStyleMap[];
 }
 
 export interface FocusedElement {
@@ -527,6 +532,17 @@ export interface FocusedElement {
 
   /** Computed style snapshot captured for this same element once focus moved away */
   unfocusedStyleSnapshot?: FocusStyleSnapshot;
+
+  /**
+   * Screenshot pixel-diff second opinion, run only when the computed-style
+   * diff found no change (crawler confirmation phase, after the main tab
+   * crawl). true = pixels differ (indicator confirmed present despite no
+   * style diff — e.g. canvas-painted or portaled indicators); false =
+   * pixels also show no change (confirmed missing); undefined = not run
+   * (a style diff already existed, or confirmation capture failed/was
+   * capped).
+   */
+  focusIndicatorPixelConfirmed?: boolean;
 
   /** Raw outer HTML (truncated) */
   outerHTML: string;

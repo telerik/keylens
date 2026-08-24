@@ -81,8 +81,9 @@ npm run keylens        # run CLI from source via tsx
 
 - **Playwright over Puppeteer** - cross-browser, better API, active maintenance
 - **Rule-based architecture** - each check is a standalone module implementing `Rule` interface
-- **Computed-style diffing for focus indicators** - crawler diffs a computed-style snapshot (outline, box-shadow, border, background, color, `::before`/`::after`, and parent styles for `:focus-within`) taken while focused vs. once focus moves away. Runs by default (no flag needed) since the crawler already focuses every element for real; catches JS/attribute-driven indicators and container-level highlighting that a CSS/HTML text scan would miss
-- **Screenshots are a separate, opt-in concern** - `--screenshots` captures focused/unfocused element screenshots used only by the AI focus-indicator-quality feature (contrast/visibility scoring of indicators already confirmed present), not for presence detection
+- **Computed-style diffing for focus indicators** - crawler diffs a computed-style snapshot (outline, box-shadow, border, background, color, `::before`/`::after`, up to 4 ancestor levels for `:focus-within`, and up to 20 descendants for indicators painted on an inner child e.g. a switch's track) taken while focused vs. once focus moves away. Runs by default (no flag needed) since the crawler already focuses every element for real; catches JS/attribute-driven indicators and container-level highlighting that a CSS/HTML text scan would miss
+- **Pixel-diff confirmation for missing-focus-indicator** - always runs (no flag), after all other crawl phases: for any element whose computed-style diff found no change, the crawler re-focuses it by selector and pixelmatch-diffs a padded screenshot of its focused vs. blurred state (`confirmMissingFocusIndicators` in `src/crawler/index.ts`, capped to 30 elements). Catches indicators computed-style diffing structurally can't see (e.g. a focus ring drawn inside a `<canvas>` bitmap by page JS). Sets `FocusedElement.focusIndicatorPixelConfirmed`, which the rule treats as passing even with no style diff. This is distinct from the `--screenshots` flag below - it only fires for already-suspected violations, not every element
+- **Screenshots are otherwise a separate, opt-in concern** - `--screenshots` captures focused/unfocused element screenshots for every element, used only by the AI focus-indicator-quality feature (contrast/visibility scoring of indicators already confirmed present)
 - **Skip link functional testing** - crawler tabs through first 5 elements, identifies skip links by pattern, presses Enter, verifies focus actually moves to main content region
 - **Per-element screenshots** - during tab crawl, captures focused state of current element + unfocused state of previous element, enabling before/after comparison
 - **HTML focus order overlay** - `buildFocusMapHTML()` renders page screenshot as background with percentage-positioned numbered markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red. Uses `pageRect` for absolute positioning within `pageDimensions`
@@ -113,7 +114,8 @@ The crawler (`src/crawler/index.ts`) runs these phases in order:
 6. **Tab crawl** — press Tab in a loop (up to `maxTabs`), recording each focused element with selector, role, accessible name, bounding rect, page rect (absolute coords), a computed focus-style snapshot (always captured) and its unfocused counterpart, and optional focused/unfocused screenshots (`--screenshots`). Tab settle delay is configurable via `--tab-delay <ms>` (default 250ms, min 10ms)
 7. **Cross-reference** — mark which interactive elements were reached via tab
 8. **Interaction testing** (opt-in, `--interactions`) — click buttons and `role="button"` elements, verify focus isn't lost to `<body>`. Skips links and submit inputs. Records `InteractionResult[]` for the `focus-after-interaction` rule
-9. **Roving-tabindex verification** (always runs) — for each discovered composite widget (tablist, menu, listbox, tree, toolbar, radiogroup, grid, treegrid), simulates arrow-key presses from the active member and records which siblings actually receive focus, feeding the `roving-tabindex-broken` rule. Runs last since arrow-key navigation can visibly mutate page state
+9. **Roving-tabindex verification** (always runs) — for each discovered composite widget (tablist, menu, listbox, tree, toolbar, radiogroup, grid, treegrid), simulates arrow-key presses from the active member and records which siblings actually receive focus, feeding the `roving-tabindex-broken` rule. Runs after the tab crawl and interactions since arrow-key navigation can visibly mutate page state
+10. **Missing-focus-indicator pixel confirmation** (always runs) — runs last: for elements whose computed-style diff found no change, re-focuses each by selector and pixelmatch-diffs a padded screenshot of focused vs. blurred state (capped to 30 elements). Runs after roving-tabindex verification since it also re-focuses individual elements and doesn't need a pristine page state
 
 ### Element Screenshots (`--screenshots`)
 
@@ -122,7 +124,7 @@ When enabled, the crawler captures per-element screenshots during the tab crawl:
 - **Focused screenshot**: captured immediately after an element receives focus
 - **Unfocused screenshot**: captured from the _previous_ element (which just lost focus when Tab moved forward)
 - Uses `pageRect` (absolute page coordinates with scroll offset) for clip region
-- Used only by the AI focus-indicator-quality feature (contrast/visibility scoring) — `missing-focus-indicator` itself relies on the always-on `FocusStyleSnapshot`, not these screenshots
+- Used only by the AI focus-indicator-quality feature (contrast/visibility scoring) — `missing-focus-indicator`'s own pass/fail relies on the always-on `FocusStyleSnapshot` diff, with a separate always-on pixel-diff confirmation pass (see Key Technical Decisions) for the remaining candidates; neither depends on `--screenshots`
 
 ## Conventions
 
