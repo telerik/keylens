@@ -123,7 +123,7 @@
     "vitest": "^4.0.18"
   },
   "optionalDependencies": {
-    "@anthropic-ai/sdk": "^0.116.0",
+    "@anthropic-ai/sdk": "^0.117.1",
     "openai": "^6.0.0"
   },
   "engines": {
