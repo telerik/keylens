@@ -1,17 +1,20 @@
 import { defineConfig } from "vitepress";
 
+// Override for deploys not served under /keylens/ (e.g. root-served previews).
+const base = process.env.DOCS_BASE ?? "/keylens/";
+
 export default defineConfig({
   title: "Keylens",
   description:
     "Keyboard navigation testing with real browsers. Press Tab and record what actually happens.",
-  base: "/keylens/",
+  base,
   head: [
     [
       "link",
       {
         rel: "icon",
         type: "image/svg+xml",
-        href: "/keylens/logo.svg",
+        href: `${base}logo.svg`,
       },
     ],
     ["meta", { property: "og:type", content: "website" }],
