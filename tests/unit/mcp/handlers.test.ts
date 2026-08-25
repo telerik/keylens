@@ -7,6 +7,7 @@ import {
   handleAudit,
   handleClassifyWidgets,
   handleValidateFocusOrder,
+  handleGetRuleGuidance,
 } from "@/mcp/handlers.js";
 import {
   makeAuditReport,
@@ -32,70 +33,76 @@ const mockAIInstance = {
   validateFocusOrder: vi.fn().mockResolvedValue(null),
 };
 
-vi.mock("@/index.js", () => ({
-  audit: (...args: unknown[]) => mockAudit(...(args as [string, unknown])),
-  crawlOnly: (...args: unknown[]) =>
-    mockCrawlOnly(...(args as [string, unknown])),
-  renderAuditReport: (...args: unknown[]) => mockRenderAuditReport(...args),
-  AIAnalyzer: class MockAIAnalyzer {
-    isAvailable = mockAIInstance.isAvailable;
-    classifyWidgets = mockAIInstance.classifyWidgets;
-    validateFocusOrder = mockAIInstance.validateFocusOrder;
-  },
-  DEFAULT_CONFIG: {
-    url: undefined,
-    viewport: { width: 1280, height: 720 },
-    maxTabs: 500,
-    tabTimeout: 3000,
-    waitAfterLoad: 1000,
-    rules: {
-      keyboardTrap: true,
-      unreachableElements: true,
-      focusOrderMismatch: true,
-      tabindexAbuse: true,
-      missingFocusIndicator: true,
-      skipLink: true,
-      focusNotObscured: true,
-      focusAfterInteraction: true,
+vi.mock("@/index.js", async () => {
+  const guidance =
+    await vi.importActual<typeof import("@/guidance.js")>("@/guidance.js");
+  return {
+    audit: (...args: unknown[]) => mockAudit(...(args as [string, unknown])),
+    crawlOnly: (...args: unknown[]) =>
+      mockCrawlOnly(...(args as [string, unknown])),
+    renderAuditReport: (...args: unknown[]) => mockRenderAuditReport(...args),
+    getRuleCatalog: guidance.getRuleCatalog,
+    getRuleRemediation: guidance.getRuleRemediation,
+    AIAnalyzer: class MockAIAnalyzer {
+      isAvailable = mockAIInstance.isAvailable;
+      classifyWidgets = mockAIInstance.classifyWidgets;
+      validateFocusOrder = mockAIInstance.validateFocusOrder;
     },
-    reporters: ["cli"],
-    outputDir: "./keylens-report",
-    browser: "chromium",
-    ai: {
-      enabled: false,
-      provider: "anthropic",
-      features: {
-        focusOrderValidation: true,
-        fixSuggestions: true,
-        widgetClassification: false,
-        reportSummary: true,
-        focusIndicatorQuality: false,
-        accessibleNameInference: false,
+    DEFAULT_CONFIG: {
+      url: undefined,
+      viewport: { width: 1280, height: 720 },
+      maxTabs: 500,
+      tabTimeout: 3000,
+      waitAfterLoad: 1000,
+      rules: {
+        keyboardTrap: true,
+        unreachableElements: true,
+        focusOrderMismatch: true,
+        tabindexAbuse: true,
+        missingFocusIndicator: true,
+        skipLink: true,
+        focusNotObscured: true,
+        focusAfterInteraction: true,
+      },
+      reporters: ["cli"],
+      outputDir: "./keylens-report",
+      browser: "chromium",
+      ai: {
+        enabled: false,
+        provider: "anthropic",
+        features: {
+          focusOrderValidation: true,
+          fixSuggestions: true,
+          widgetClassification: false,
+          reportSummary: true,
+          focusIndicatorQuality: false,
+          accessibleNameInference: false,
+        },
+      },
+      headed: false,
+      capture: {
+        page: "none",
+        elements: false,
+        limits: {
+          maxElements: 200,
+          maxDimension: 16384,
+          maxPixels: 40000000,
+          maxBytes: 52428800,
+        },
+      },
+      timeouts: {},
+      interactions: {
+        enabled: false,
+        maxCases: 20,
+        timeout: 2000,
+        actions: ["click"],
+        isolation: "reload",
+        navigation: "block",
+        excludeDestructive: true,
       },
     },
-    headed: false,
-    capture: {
-      page: "none",
-      elements: false,
-      limits: {
-        maxElements: 200,
-        maxDimension: 16384,
-        maxPixels: 40000000,
-        maxBytes: 52428800,
-      },
-    },
-    timeouts: {},
-    interactions: {
-      enabled: false,
-      maxCases: 20,
-      timeout: 2000,
-      actions: ["click"],
-      isolation: "reload",
-      navigation: "block",
-      excludeDestructive: true,
-    },
-  },
-}));
+  };
+});
 
 vi.mock("@/utils/logger.js", () => ({
   setLogLevel: vi.fn(),
@@ -818,5 +825,46 @@ describe("handlers pass server for sampling", () => {
     };
     expect(calledConfig.ai.enabled).toBe(true);
     expect(result.isError).toBeUndefined();
+  });
+});
+
+describe("handleGetRuleGuidance", () => {
+  it("lists all rules with their config key when ruleId is omitted", () => {
+    const result = handleGetRuleGuidance({});
+    const rules = JSON.parse(result.content[0]!.text) as Array<{
+      ruleId: string;
+      configKey: string;
+    }>;
+
+    expect(rules.length).toBeGreaterThan(0);
+    expect(result.isError).toBeUndefined();
+    expect(rules).toContainEqual(
+      expect.objectContaining({
+        ruleId: "missing-focus-indicator",
+        configKey: "missingFocusIndicator",
+      }),
+    );
+  });
+
+  it("returns a single rule's guidance when ruleId matches", () => {
+    const result = handleGetRuleGuidance({ ruleId: "keyboard-trap" });
+    const rule = JSON.parse(result.content[0]!.text) as {
+      ruleId: string;
+      configKey: string;
+      wcag: unknown[];
+    };
+
+    expect(rule.ruleId).toBe("keyboard-trap");
+    expect(rule.configKey).toBe("keyboardTrap");
+    expect(rule.wcag.length).toBeGreaterThan(0);
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("returns an error for an unknown ruleId", () => {
+    const result = handleGetRuleGuidance({ ruleId: "not-a-real-rule" });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("Unknown rule");
+    expect(result.content[0]!.text).toContain("keyboard-trap");
   });
 });

@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Report schema versioning, deterministic scores, and incomplete-score indicators
 - Support, security, migration, performance, and limitations documentation
 - Cross-browser CI, coverage thresholds, benchmark budgets, and packed-consumer checks
+- `keylens_get_rule_guidance` MCP tool: static rule remediation lookup (WCAG references,
+  guidance, code example, config key), independent of AI
 
 ### Changed
 

@@ -6,6 +6,7 @@ import {
   handleAudit,
   handleClassifyWidgets,
   handleValidateFocusOrder,
+  handleGetRuleGuidance,
 } from "./handlers.js";
 
 declare const __VERSION__: string | undefined;
@@ -112,8 +113,26 @@ server.registerTool(
   async ({ url }) => handleValidateFocusOrder({ url }, server.server),
 );
 
-// ─── Start Server ───────────────────────────────────────────────
+server.registerTool(
+  "keylens_get_rule_guidance",
+  {
+    description:
+      "Look up remediation guidance for a keylens rule — description, WCAG references, " +
+      "the RuleConfig key to toggle it, human-readable guidance, and a code example. " +
+      "Omit ruleId to list all rules.",
+    inputSchema: {
+      ruleId: z
+        .string()
+        .optional()
+        .describe(
+          'A rule ID from an audit violation, e.g. "missing-focus-indicator". Omit to list all rules.',
+        ),
+    },
+  },
+  async ({ ruleId }) => handleGetRuleGuidance({ ruleId }),
+);
 
+// ─── Start Server ───────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
