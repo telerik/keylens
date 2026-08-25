@@ -35,7 +35,7 @@ const ALL_RULES: Rule[] = [
 /**
  * Map rule IDs to config keys.
  */
-const RULE_CONFIG_MAP: Record<string, keyof KeylensConfig["rules"]> = {
+export const RULE_CONFIG_MAP: Record<string, keyof KeylensConfig["rules"]> = {
   "keyboard-trap": "keyboardTrap",
   "unreachable-elements": "unreachableElements",
   "focus-order-mismatch": "focusOrderMismatch",

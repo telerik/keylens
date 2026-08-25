@@ -1,6 +1,14 @@
 import { join } from "path";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { audit, crawlOnly, renderAuditReport, AIAnalyzer } from "../index.js";
+import {
+  audit,
+  crawlOnly,
+  renderAuditReport,
+  AIAnalyzer,
+  getRuleCatalog,
+  getRuleRemediation,
+} from "../index.js";
+import { RULE_CONFIG_MAP } from "../rules/index.js";
 import type {
   KeylensConfig,
   KeylensConfigInput,
@@ -8,6 +16,7 @@ import type {
   FocusedElement,
   ReporterType,
   RuleResult,
+  RuleRemediation,
   RuleViolation,
   WidgetClassification,
   AccessibleNameSuggestion,
@@ -231,6 +240,47 @@ export function compactReport(report: AuditReport) {
 }
 
 // ─── Tool Handlers ──────────────────────────────────────────────
+
+/** Attach the RuleConfig key (e.g. "missingFocusIndicator") an agent needs to toggle this rule. */
+function withConfigKey(rule: RuleRemediation) {
+  return { ...rule, configKey: RULE_CONFIG_MAP[rule.ruleId] };
+}
+
+export function handleGetRuleGuidance(params: {
+  ruleId?: string;
+}): McpToolResponse {
+  if (!params.ruleId) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(getRuleCatalog().map(withConfigKey)),
+        },
+      ],
+    };
+  }
+
+  const rule = getRuleRemediation(params.ruleId);
+  if (!rule) {
+    return {
+      content: [
+        {
+          type: "text",
+          text:
+            `Unknown rule "${params.ruleId}". Valid IDs: ` +
+            getRuleCatalog()
+              .map((r) => r.ruleId)
+              .join(", "),
+        },
+      ],
+      isError: true,
+    };
+  }
+
+  return {
+    content: [{ type: "text", text: JSON.stringify(withConfigKey(rule)) }],
+  };
+}
 
 export async function handleAudit(
   params: { url: string; options?: AuditOptions },

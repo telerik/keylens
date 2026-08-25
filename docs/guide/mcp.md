@@ -44,6 +44,13 @@ Do not place API keys directly in a checked-in MCP configuration.
 | `keylens_audit`                | Single-page audit and compact report       |
 | `keylens_classify_widgets`     | AI widget classification                   |
 | `keylens_validate_focus_order` | AI analysis or raw focus sequence fallback |
+| `keylens_get_rule_guidance`    | Rule remediation guidance lookup           |
+
+`keylens_get_rule_guidance` takes an optional `ruleId` (e.g. `missing-focus-indicator`,
+usually copied from an audit violation). Omit it to list every rule. Each entry
+includes the WCAG references, human-readable guidance, a code example, and the
+`configKey` used to enable/disable the rule via `rules` config. No browser or AI is
+involved — it's a static lookup.
 
 The audit tool accepts:
 
