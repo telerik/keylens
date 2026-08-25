@@ -42,6 +42,7 @@ function makeConfig(overrides: Partial<KeylensConfig> = {}): KeylensConfig {
     ai: { ...DEFAULT_CONFIG.ai, enabled: false },
     maxTabs: 100,
     waitAfterLoad: 500,
+    tabDelay: 10,
     ...overrides,
   };
 }
