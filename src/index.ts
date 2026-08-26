@@ -93,6 +93,18 @@ function sanitizeConfig(config: KeylensConfig): KeylensConfig {
   return structuredClone(config);
 }
 
+function projectFocusSequence(
+  focusSequence: CrawlResult["focusSequence"],
+): AuditReport["focusSequence"] {
+  return focusSequence.map(
+    ({
+      focusedStyleSnapshot: _focused,
+      unfocusedStyleSnapshot: _unfocused,
+      ...element
+    }) => element,
+  );
+}
+
 function buildBaseReport(
   url: string,
   config: KeylensConfig,
@@ -150,7 +162,7 @@ function buildBaseReport(
     },
     pageScreenshotAssetId: crawlResult.pageScreenshotAssetId,
     assets: crawlResult.assets,
-    focusSequence: crawlResult.focusSequence,
+    focusSequence: projectFocusSequence(crawlResult.focusSequence),
     interactiveElements: crawlResult.interactiveElements,
     interactionResults: crawlResult.interactionResults,
     rovingTabindexGroups: crawlResult.rovingTabindexGroups,

@@ -448,6 +448,38 @@ describe("audit", () => {
     expect(report.pageDimensions).toEqual({ width: 1280, height: 2000 });
   });
 
+  it("omits internal focus-style snapshots from the public report", async () => {
+    setupMocks();
+    mockCrawlPage.mockResolvedValue(
+      makeCrawlResult({
+        focusSequence: [
+          makeFocusedElement({
+            hasFocusIndicator: true,
+            focusedStyleSnapshot: {
+              self: { outline: "blue" },
+              before: {},
+              after: {},
+            },
+            unfocusedStyleSnapshot: {
+              self: { outline: "none" },
+              before: {},
+              after: {},
+            },
+          }),
+        ],
+      }),
+    );
+    const audit = await getAudit();
+
+    const report = await audit("https://example.com");
+    const element = report.focusSequence![0] as Record<string, unknown>;
+
+    expect(element.focusedStyleSnapshot).toBeUndefined();
+    expect(element.unfocusedStyleSnapshot).toBeUndefined();
+    expect(element.selector).toBeDefined();
+    expect(element.hasFocusIndicator).toBe(true);
+  });
+
   describe("crawlOnly", () => {
     it("returns the crawl result without running rules or reporters", async () => {
       setupMocks();
