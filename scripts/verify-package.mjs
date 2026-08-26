@@ -109,9 +109,9 @@ try {
   await writeFile(
     join(consumer, "consumer.mjs"),
     `
-      import { AUDIT_REPORT_SCHEMA_VERSION, auditBase } from "@telerik/keylens";
+      import { AUDIT_REPORT_SCHEMA_VERSION, audit } from "@telerik/keylens";
       import { getRuleRemediation } from "@telerik/keylens/guidance";
-      if (typeof auditBase !== "function" || !AUDIT_REPORT_SCHEMA_VERSION) {
+      if (typeof audit !== "function" || !AUDIT_REPORT_SCHEMA_VERSION) {
         throw new Error("Root package exports are unavailable");
       }
       if (!getRuleRemediation("keyboard-trap")) {
@@ -126,7 +126,7 @@ try {
     join(consumer, "consumer.ts"),
     `
       import {
-        auditBase,
+        audit,
         type AuditEvent,
         type AuditReport,
         type KeylensConfigInput,
@@ -134,7 +134,7 @@ try {
       import { getWcagReference } from "@telerik/keylens/guidance";
       const config: KeylensConfigInput = { profile: "fast" };
       const callback = (event: AuditEvent): void => void event.type;
-      const operation: Promise<AuditReport> = auditBase("https://example.com", {
+      const operation: Promise<AuditReport> = audit("https://example.com", {
         ...config,
         onEvent: callback,
       });
