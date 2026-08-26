@@ -39,5 +39,5 @@ enabling interactions.
 ```
 
 Agents must distinguish exit code `1` (accessibility findings) from `2` (incomplete
-audit), and must not treat warnings, AI suggestions, or a score as conformance proof.
+audit), and must not treat warnings or a score as conformance proof.
 See [Known limitations](./limitations).
