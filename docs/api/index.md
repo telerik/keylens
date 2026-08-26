@@ -25,27 +25,8 @@ if (report.summary.errors > 0) {
 
 Nested options are partial; do not spread `DEFAULT_CONFIG`.
 
-## Staged enrichment
-
-```ts
-import { auditBase, enrichAudit } from "@telerik/keylens";
-
-const deterministic = await auditBase("https://example.com", {
-  timeouts: { ai: 30_000 },
-});
-const enriched = await enrichAudit(deterministic, {
-  ai: {
-    enabled: true,
-    features: { reportSummary: true },
-  },
-});
-```
-
-`enrichAudit()` clones the base report and does not mutate it.
-
-`audit()` is a convenience pipeline. It runs deterministic
-analysis and attempts enrichment only when AI is enabled and an API key or transport is
-available. It still does not render or write output.
+`audit()` is a convenience pipeline. It runs deterministic analysis but does not render
+or write output.
 
 `crawlOnly()` is a lightweight crawl path intended for specialized experimental
 adapters; prefer the audit APIs for stable integrations.
@@ -138,8 +119,8 @@ asset capture, interaction progress/completion, and warnings. Events include an 
 timestamp, elapsed milliseconds, phase, and optional URL.
 
 Owned browser resources close after success, error, timeout, or abort. A total timeout
-wraps the complete analysis call; phase timeouts bound crawl, rules, interactions, AI,
-and reporters where applicable.
+wraps the complete analysis call; phase timeouts bound crawl, rules, interactions, and
+reporters where applicable.
 
 ## Errors and incomplete scores
 
@@ -147,7 +128,7 @@ All operational errors derive from `KeylensError` and expose a stable `code`, `p
 optional URL, retryability, details, and serializable `toJSON()` form. Codes are:
 
 `ABORTED`, `TIMEOUT`, `CONFIG_ERROR`, `CRAWL_ERROR`, `NAVIGATION_ERROR`,
-`RULE_ERROR`, `REPORTER_ERROR`, `AI_ERROR`, and `INTERNAL_ERROR`.
+`RULE_ERROR`, `REPORTER_ERROR`, and `INTERNAL_ERROR`.
 
 Individual rule evaluator failures are represented as `RuleResult.status === "error"`
 with `error.code === "RULE_ERROR"`. They increment `summary.errors` and set
@@ -160,11 +141,7 @@ Every `AuditReport` includes:
 - `schemaVersion`, package `version`, timestamp, URL, and sanitized effective config;
 - phase timings and crawl coverage;
 - rule results and deterministic summary;
-- capture summary, optional focus sequence, interaction outcomes, and assets;
-- optional experimental AI fields.
-
-API keys and transports are never copied into `report.config`; only
-`apiKeyConfigured` and `transportConfigured` booleans are exposed.
+- capture summary, optional focus sequence, interaction outcomes, and assets.
 
 ## Browser-safe guidance
 

@@ -25,7 +25,7 @@ features:
     details: Stable exit codes distinguish accessibility failures from incomplete audits. JSON includes rule, coverage, capture, interaction, and score-completeness details.
   - icon: 🧩
     title: Library-first pipeline
-    details: Run deterministic analysis, optional experimental enrichment, and rendering as separate stages with progress, cancellation, and deadlines.
+    details: Run deterministic analysis and rendering as separate stages with progress, cancellation, and deadlines.
 ---
 
 Keylens complements static accessibility analysis; it does not replace it. Use static tools
