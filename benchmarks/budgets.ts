@@ -15,11 +15,11 @@ export const BENCHMARK_BUDGETS: Record<string, BenchmarkBudget> = {
   standard: {
     wallTimeMs: 15_000,
     rssDeltaBytes: 256 * MIB,
-    compactSerializedBytes: 12 * 1024 * 1024,
+    compactSerializedBytes: 512 * 1024,
   },
   interactions: {
     wallTimeMs: 30_000,
     rssDeltaBytes: 256 * MIB,
-    compactSerializedBytes: 4 * 1024 * 1024,
+    compactSerializedBytes: 1024 * 1024,
   },
 };
