@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cloneAuditReport, projectAuditReport } from "@/utils/assets.js";
-import {
-  makeAuditReport,
-  makeFocusedElement,
-  makeInlineAsset,
-} from "@tests/helpers/factories.js";
+import { makeAuditReport, makeInlineAsset } from "@tests/helpers/factories.js";
 
 function makeReportWithAssets() {
   return makeAuditReport({
@@ -17,16 +13,6 @@ function makeReportWithAssets() {
         byteLength: 4,
         storage: { kind: "inline", data: "cGFnZQ==", encoding: "base64" },
       },
-      {
-        id: "focused",
-        type: "focused-element-screenshot",
-        mediaType: "image/png",
-        byteLength: 7,
-        storage: { kind: "inline", data: "Zm9jdXNlZA==", encoding: "base64" },
-      },
-    ],
-    focusSequence: [
-      makeFocusedElement({ focusedScreenshotAssetId: "focused" }),
     ],
   });
 }
@@ -39,11 +25,7 @@ describe("report asset projections", () => {
 
     expect(projected.assets).toEqual([]);
     expect(projected.pageScreenshotAssetId).toBeUndefined();
-    expect(
-      projected.focusSequence?.[0]?.focusedScreenshotAssetId,
-    ).toBeUndefined();
     expect(JSON.stringify(projected)).not.toContain("cGFnZQ==");
-    expect(JSON.stringify(projected)).not.toContain("Zm9jdXNlZA==");
   });
 
   it("preserves canonical inline assets without duplicating asset bytes", () => {
@@ -53,12 +35,8 @@ describe("report asset projections", () => {
     const serialized = JSON.stringify(projected);
 
     expect(projected.pageScreenshotAssetId).toBe("page");
-    expect(projected.focusSequence?.[0]?.focusedScreenshotAssetId).toBe(
-      "focused",
-    );
-    expect(projected.assets).toHaveLength(2);
+    expect(projected.assets).toHaveLength(1);
     expect(serialized.match(/cGFnZQ==/g)).toHaveLength(1);
-    expect(serialized.match(/Zm9jdXNlZA==/g)).toHaveLength(1);
   });
 
   it("preserves canonical inline assets when cloning for enrichment", () => {
@@ -69,11 +47,7 @@ describe("report asset projections", () => {
     const cloned = cloneAuditReport(inline);
 
     expect(cloned.pageScreenshotAssetId).toBe("page");
-    expect(cloned.focusSequence?.[0]?.focusedScreenshotAssetId).toBe("focused");
-    expect(cloned.assets).toEqual([
-      makeInlineAsset("page", "cGFnZQ=="),
-      makeInlineAsset("focused", "Zm9jdXNlZA==", "focused-element-screenshot"),
-    ]);
+    expect(cloned.assets).toEqual([makeInlineAsset("page", "cGFnZQ==")]);
   });
 
   it("replaces inline storage with caller-provided references", () => {
@@ -89,10 +63,13 @@ describe("report asset projections", () => {
       expect.objectContaining({
         storage: { kind: "url", url: "https://assets.test/page" },
       }),
-      expect.objectContaining({
-        storage: { kind: "url", url: "https://assets.test/focused" },
-      }),
     ]);
     expect(JSON.stringify(projected)).not.toContain("cGFnZQ==");
+  });
+
+  it("requires a reference callback for reference projections", () => {
+    expect(() =>
+      projectAuditReport(makeReportWithAssets(), { assets: "references" }),
+    ).toThrow("Asset references projection requires a reference callback");
   });
 });

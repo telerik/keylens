@@ -5,12 +5,7 @@ import {
   makeInlineAsset,
   makeInteractiveElement,
 } from "@tests/helpers/factories.js";
-import type {
-  RuleResult,
-  AIReportSummary,
-  FixSuggestion,
-  AIFocusOrderResult,
-} from "@/types/index.js";
+import type { RuleResult } from "@/types/index.js";
 
 vi.mock("fs/promises", () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
@@ -488,50 +483,6 @@ describe("HTML Reporter", () => {
     expect(html).toContain("a.link");
   });
 
-  it("should render fix suggestions when present", async () => {
-    const reportHTML = await getReportHTML();
-    const rule: RuleResult = {
-      ruleId: "fixable",
-      passed: false,
-      violations: [
-        {
-          ruleId: "fixable",
-          ruleName: "Fixable",
-          severity: "warning",
-          message: "Needs fixing",
-          elements: [],
-          impact: "Medium",
-          fixSuggestion: "Add tabindex=0 to the element",
-        },
-      ],
-      duration: 5,
-    };
-    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
-
-    const html = getWrittenHTML();
-    expect(html).toContain("Add tabindex=0 to the element");
-  });
-
-  it("should render AI summary when present", async () => {
-    const reportHTML = await getReportHTML();
-    await reportHTML(
-      makeAuditReport({ aiSummary: "Page needs keyboard improvements." }),
-      "./out",
-    );
-
-    const html = getWrittenHTML();
-    expect(html).toContain("Page needs keyboard improvements.");
-    expect(html).toContain("AI Summary");
-  });
-
-  it("should not render AI summary when absent", async () => {
-    const reportHTML = await getReportHTML();
-    await reportHTML(makeAuditReport({ aiSummary: undefined }), "./out");
-
-    const html = getWrittenHTML();
-    expect(html).not.toContain("AI Summary");
-  });
-
   it("should escape HTML-special characters in selectors and messages", async () => {
     const reportHTML = await getReportHTML();
     const rule: RuleResult = {
@@ -559,103 +510,6 @@ describe("HTML Reporter", () => {
     const html = getWrittenHTML();
     expect(html).not.toContain('<script>alert("xss")</script>');
     expect(html).toContain("&lt;script&gt;");
-  });
-
-  it("should render structured FixSuggestion with code diff", async () => {
-    const reportHTML = await getReportHTML();
-    const fix: FixSuggestion = {
-      summary: "Add outline to button",
-      codeBefore: "outline: none;",
-      codeAfter: "outline: 2px solid blue;",
-      wcagRef: "2.4.7",
-      estimatedEffort: "low",
-      explanation: "Removing outline hides the focus indicator.",
-    };
-    const rule: RuleResult = {
-      ruleId: "structured-fix",
-      passed: false,
-      violations: [
-        {
-          ruleId: "structured-fix",
-          ruleName: "Structured Fix",
-          severity: "warning",
-          message: "Missing focus style",
-          elements: [],
-          impact: "Medium",
-          fixSuggestion: fix,
-        },
-      ],
-      duration: 5,
-    };
-    await reportHTML(makeAuditReport({ rules: [rule] }), "./out");
-
-    const html = getWrittenHTML();
-    expect(html).toContain("Add outline to button");
-    expect(html).toContain("outline: none;");
-    expect(html).toContain("outline: 2px solid blue;");
-    expect(html).toContain("low effort");
-    expect(html).toContain("Removing outline hides the focus indicator.");
-  });
-
-  it("should render structured AIReportSummary", async () => {
-    const reportHTML = await getReportHTML();
-    const aiSummary: AIReportSummary = {
-      overview: "The page has major keyboard traps.",
-      criticalIssues: ["Modal traps focus indefinitely"],
-      prioritizedFixes: [
-        { fix: "Add Escape handler to modal", effort: "low", impact: "high" },
-      ],
-      aiSeverityRating: 35,
-      recommendation: "Fix the keyboard trap first.",
-    };
-    await reportHTML(makeAuditReport({ aiSummary }), "./out");
-
-    const html = getWrittenHTML();
-    expect(html).toContain("The page has major keyboard traps.");
-    expect(html).toContain("Modal traps focus indefinitely");
-    expect(html).toContain("Add Escape handler to modal");
-    expect(html).toContain("35");
-    expect(html).toContain("Fix the keyboard trap first.");
-  });
-
-  it("should render structured AIFocusOrderResult", async () => {
-    const reportHTML = await getReportHTML();
-    const analysis: AIFocusOrderResult = {
-      summary: "Focus order has issues.",
-      issues: [
-        {
-          elementIndex: 2,
-          description: "Footer focused before main content",
-          severity: "error",
-          suggestion: "Reorder DOM to place footer after main",
-        },
-      ],
-      overallAssessment: "poor",
-    };
-    await reportHTML(
-      makeAuditReport({ aiFocusOrderAnalysis: analysis }),
-      "./out",
-    );
-
-    const html = getWrittenHTML();
-    expect(html).toContain("Focus order has issues.");
-    expect(html).toContain("Footer focused before main content");
-    expect(html).toContain("Reorder DOM to place footer after main");
-    expect(html).toContain("poor");
-  });
-
-  it("should render a plain-string AI focus order analysis", async () => {
-    const reportHTML = await getReportHTML();
-    await reportHTML(
-      makeAuditReport({
-        aiFocusOrderAnalysis: "Focus order looks fine overall.",
-      }),
-      "./out",
-    );
-
-    const html = getWrittenHTML();
-    expect(html).toContain("AI Focus Order Analysis");
-    expect(html).toContain("Focus order looks fine overall.");
   });
 
   it("should mark an overlay dismissal as unverified when not confirmed hidden", async () => {
@@ -688,94 +542,6 @@ describe("HTML Reporter", () => {
 
     const html = getWrittenHTML();
     expect(html).toContain("heuristic (dismiss, unverified)");
-  });
-
-  it("should render widget classifications", async () => {
-    const reportHTML = await getReportHTML();
-    await reportHTML(
-      makeAuditReport({
-        widgetClassifications: [
-          {
-            element: {
-              selector: "div.tabs",
-              tagName: "div",
-              role: "tablist",
-              accessibleName: "Navigation",
-              outerHTML: "<div>Navigation</div>",
-            },
-            pattern: "tabs",
-            confidence: 0.88,
-            expectedKeyboard: [
-              { key: "Arrow Right", expectedBehavior: "Move to next tab" },
-            ],
-          },
-        ],
-      }),
-      "./out",
-    );
-
-    const html = getWrittenHTML();
-    expect(html).toContain("Widget Classifications");
-    expect(html).toContain("tabs");
-    expect(html).toContain("88%");
-    expect(html).toContain("Move to next tab");
-  });
-
-  it("should render accessible name suggestions", async () => {
-    const reportHTML = await getReportHTML();
-    await reportHTML(
-      makeAuditReport({
-        accessibleNameSuggestions: [
-          {
-            element: {
-              selector: "button.close",
-              tagName: "button",
-              role: "button",
-              outerHTML: "<button>X</button>",
-            },
-            suggestedLabel: "Close dialog",
-            confidence: 0.9,
-            reasoning: "Button has only a single character label.",
-          },
-        ],
-      }),
-      "./out",
-    );
-
-    const html = getWrittenHTML();
-    expect(html).toContain("Accessible Name Suggestions");
-    expect(html).toContain("button.close");
-    expect(html).toContain("Close dialog");
-    expect(html).toContain("90%");
-  });
-
-  it("should render focus indicator quality scores", async () => {
-    const reportHTML = await getReportHTML();
-    await reportHTML(
-      makeAuditReport({
-        focusIndicatorScores: [
-          {
-            element: {
-              selector: "a.link",
-              tagName: "a",
-              role: "link",
-              accessibleName: "About",
-            },
-            score: 4,
-            contrast: "low",
-            visibility: "subtle",
-            recommendation: "Use a brighter outline color.",
-          },
-        ],
-      }),
-      "./out",
-    );
-
-    const html = getWrittenHTML();
-    expect(html).toContain("Focus Indicator Quality");
-    expect(html).toContain("a.link");
-    expect(html).toContain("4/10");
-    expect(html).toContain("Use a brighter outline color.");
   });
 });
 

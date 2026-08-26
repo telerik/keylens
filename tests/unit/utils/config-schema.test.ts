@@ -28,8 +28,6 @@ describe("config schema parity", () => {
     { waitForSelector: "#ready", outputDir: "./reports" },
     { interactions: { include: ["button"], timeout: 0.5 } },
     { capture: { limits: { maxBytes: 1024 } } },
-    { ai: { model: "gpt-4o", baseURL: "https://example.com/v1" } },
-    { ai: { limits: { batchSize: 3, maxWidgets: 4, maxElements: 5 } } },
     { rules: { keyboardTrap: false } },
     {
       prepare: {
@@ -61,9 +59,6 @@ describe("config schema parity", () => {
     { outputDir: "" },
     { interactions: { include: [""] } },
     { capture: { limits: { maxBytes: 1.5 } } },
-    { ai: { baseURL: "not a URL" } },
-    { ai: { limits: { batchSize: 1.5 } } },
-    { ai: { transport: "not allowed in JSON" } },
     { prepare: { consentPreference: "necessary" } },
     { prepare: { dismissSelectors: [""] } },
     { prepare: { steps: [{ type: "click" }] } },

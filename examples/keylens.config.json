@@ -15,17 +15,5 @@
   "reporters": ["cli", "json", "html"],
   "outputDir": "./keylens-report",
   "tabDelay": 250,
-  "browser": "chromium",
-  "ai": {
-    "enabled": false,
-    "provider": "anthropic",
-    "features": {
-      "focusOrderValidation": true,
-      "fixSuggestions": true,
-      "widgetClassification": false,
-      "reportSummary": true,
-      "focusIndicatorQuality": false,
-      "accessibleNameInference": false
-    }
-  }
+  "browser": "chromium"
 }

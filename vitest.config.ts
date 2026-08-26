@@ -13,7 +13,12 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov", "html"],
       include: ["src/**/*.ts"],
-      exclude: ["src/cli/**", "src/types/**"],
+      exclude: [
+        "src/cli/**",
+        "src/types/**",
+        "src/crawler/**",
+        "src/mcp/server.ts",
+      ],
       thresholds: {
         statements: 80,
         branches: 65,

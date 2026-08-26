@@ -71,19 +71,6 @@ Markdown "Overlays dismissed"/"Prepare warnings" lines) rather than assuming a b
 was handled. Use `--dismiss <selector>` for a known banner the built-ins miss, or
 `--keep-overlays` to audit the banner deliberately.
 
-## Focus screenshots
-
-`--screenshots` captures a clipped PNG for an element while focused and another after
-focus moves. These images are not used by `missing-focus-indicator` — that rule always
-runs via a computed-style diff instead (see below). Screenshot pairs feed only the AI
-focus-indicator-quality feature, which scores contrast/visibility of indicators already
-confirmed present; it is not a contrast measurement or WCAG Focus Appearance proof on
-its own.
-
-Capture limits can skip a page image or focus pairs without failing the audit. Review
-CLI pair coverage, `crawl.capture`, and screenshot IDs before interpreting AI
-focus-indicator-quality scores.
-
 ## Focus indicator detection
 
 `missing-focus-indicator` diffs a computed-style snapshot (outline, box-shadow, border,
@@ -92,14 +79,14 @@ patterns) taken while an element was focused against one taken once focus moved 
 always, with no flag required. Any difference counts as a visible indicator.
 
 This is more reliable than a text-based CSS scan (it reflects the real cascade,
-including JS/attribute-toggled classes), but it is not a contrast measurement or proof
-of WCAG Focus Appearance conformance. Indicators implemented via canvas drawing, or
-whose visual delta only appears mid-transition before settling, can still be missed.
+including JS/attribute-toggled classes). A targeted pixel comparison is also used for
+style-diff candidates that may be painted outside the inspected style relationships.
+This is not a contrast measurement or proof of WCAG Focus Appearance conformance.
 
 ## Page screenshots and HTML maps
 
-Page capture is independent from focus-state pairs. HTML maps need a page image and
-page dimensions; without an image, the report degrades to nonvisual content. Viewport
+HTML maps need a page image and page dimensions; without an image, the report degrades
+to nonvisual content. Viewport
 capture represents only the initial viewport, while focus coordinates can span the
 document. Full-page capture can be skipped when dimensions, pixels, or bytes exceed the
 configured budget.
@@ -155,13 +142,3 @@ reduce visual-rule coverage.
 A rule evaluator failure is reported separately from a violation, sets
 `scoreComplete: false`, and causes CLI exit code `2`. The numeric score still exists
 for diagnostics but must not be compared as a complete score.
-
-## AI
-
-AI and MCP are experimental. AI output is nondeterministic, provider/model dependent,
-and can be wrong. Enabled features can send HTML snippets, selectors, accessible names,
-focus metadata, report data, and screenshots to a provider or MCP client's model.
-Provider retention, training, residency, and access policies apply.
-
-Do not send sensitive pages without organizational approval. Validate suggestions with
-deterministic results and manual testing, and do not use AI ratings as CI gates.

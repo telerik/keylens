@@ -2,52 +2,31 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { join } from "path";
 import {
   buildConfig,
-  injectSampling,
   compactReport,
   handleAudit,
-  handleClassifyWidgets,
-  handleValidateFocusOrder,
   handleGetRuleGuidance,
 } from "@/mcp/handlers.js";
 import {
   makeAuditReport,
   makeFocusedElement,
-  makeCrawlResult,
-  makeInteractiveElement,
-  makeInlineAsset,
   makeFocusStyleSnapshot,
 } from "@tests/helpers/factories.js";
-import type { AuditReport, CrawlResult } from "@/types/index.js";
+import type { AuditReport } from "@/types/index.js";
 
 // ─── Mocks ──────────────────────────────────────────────────────
 
 const mockAudit =
   vi.fn<(url: string, config: unknown) => Promise<AuditReport>>();
-const mockCrawlOnly =
-  vi.fn<(url: string, config: unknown) => Promise<CrawlResult>>();
 const mockRenderAuditReport = vi.fn().mockResolvedValue(undefined);
-
-const mockAIInstance = {
-  isAvailable: vi.fn().mockReturnValue(false),
-  classifyWidgets: vi.fn().mockResolvedValue([]),
-  validateFocusOrder: vi.fn().mockResolvedValue(null),
-};
 
 vi.mock("@/index.js", async () => {
   const guidance =
     await vi.importActual<typeof import("@/guidance.js")>("@/guidance.js");
   return {
     audit: (...args: unknown[]) => mockAudit(...(args as [string, unknown])),
-    crawlOnly: (...args: unknown[]) =>
-      mockCrawlOnly(...(args as [string, unknown])),
     renderAuditReport: (...args: unknown[]) => mockRenderAuditReport(...args),
     getRuleCatalog: guidance.getRuleCatalog,
     getRuleRemediation: guidance.getRuleRemediation,
-    AIAnalyzer: class MockAIAnalyzer {
-      isAvailable = mockAIInstance.isAvailable;
-      classifyWidgets = mockAIInstance.classifyWidgets;
-      validateFocusOrder = mockAIInstance.validateFocusOrder;
-    },
     DEFAULT_CONFIG: {
       url: undefined,
       viewport: { width: 1280, height: 720 },
@@ -67,24 +46,10 @@ vi.mock("@/index.js", async () => {
       reporters: ["cli"],
       outputDir: "./keylens-report",
       browser: "chromium",
-      ai: {
-        enabled: false,
-        provider: "anthropic",
-        features: {
-          focusOrderValidation: true,
-          fixSuggestions: true,
-          widgetClassification: false,
-          reportSummary: true,
-          focusIndicatorQuality: false,
-          accessibleNameInference: false,
-        },
-      },
       headed: false,
       capture: {
         page: "none",
-        elements: false,
         limits: {
-          maxElements: 200,
           maxDimension: 16384,
           maxPixels: 40000000,
           maxBytes: 52428800,
@@ -135,27 +100,21 @@ describe("buildConfig", () => {
       browser: "firefox",
       maxTabs: 100,
       viewport: { width: 800, height: 600 },
-      screenshots: true,
       interactions: true,
-      ai: true,
     });
 
     expect(config.browser).toBe("firefox");
     expect(config.maxTabs).toBe(100);
     expect(config.viewport).toEqual({ width: 800, height: 600 });
-    expect(config.capture.elements).toBe(true);
     expect(config.interactions.enabled).toBe(true);
-    expect(config.ai.enabled).toBe(true);
   });
 
   it("does not leak capture mutations between requests", () => {
-    const visual = buildConfig({ screenshots: true });
+    const visual = buildConfig();
     visual.capture.page = "full";
     const next = buildConfig();
 
-    expect(next.capture).toEqual(
-      expect.objectContaining({ page: "none", elements: false }),
-    );
+    expect(next.capture).toEqual(expect.objectContaining({ page: "none" }));
     expect(next.capture).not.toBe(visual.capture);
     expect(next.capture.limits).not.toBe(visual.capture.limits);
   });
@@ -170,27 +129,6 @@ describe("buildConfig", () => {
     process.env.KEYLENS_MAX_TABS = "200";
     const config = buildConfig();
     expect(config.maxTabs).toBe(200);
-  });
-
-  it("reads ANTHROPIC_API_KEY env var", () => {
-    process.env.ANTHROPIC_API_KEY = "sk-test-key";
-    const config = buildConfig();
-    expect(config.ai.apiKey).toBe("sk-test-key");
-  });
-
-  it("prefers KEYLENS_AI_API_KEY over ANTHROPIC_API_KEY", () => {
-    process.env.KEYLENS_AI_API_KEY = "keylens-key";
-    process.env.ANTHROPIC_API_KEY = "anthropic-key";
-    const config = buildConfig();
-    expect(config.ai.apiKey).toBe("keylens-key");
-  });
-
-  it("does not use an OpenAI key for the default Anthropic provider", () => {
-    process.env.OPENAI_API_KEY = "openai-key";
-
-    const config = buildConfig();
-
-    expect(config.ai.apiKey).toBeUndefined();
   });
 
   it("caller options override env vars", () => {
@@ -278,37 +216,6 @@ describe("compactReport", () => {
     expect(el.unfocusedStyleSnapshot).toBeUndefined();
   });
 
-  it("removes screenshot assets and their references", () => {
-    const report = makeAuditReport({
-      pageScreenshotAssetId: "page",
-      assets: [
-        makeInlineAsset("page", "base64-page"),
-        makeInlineAsset(
-          "focused",
-          "base64-focused",
-          "focused-element-screenshot",
-        ),
-        makeInlineAsset(
-          "unfocused",
-          "base64-unfocused",
-          "unfocused-element-screenshot",
-        ),
-      ],
-      focusSequence: [
-        makeFocusedElement({
-          focusedScreenshotAssetId: "focused",
-          unfocusedScreenshotAssetId: "unfocused",
-        }),
-      ],
-    });
-
-    const compact = compactReport(report);
-
-    expect(compact.pageScreenshotAssetId).toBeUndefined();
-    expect(compact.focusSequence![0].focusedScreenshotAssetId).toBeUndefined();
-    expect(compact.assets).toBeUndefined();
-  });
-
   it("removes the config object", () => {
     const report = makeAuditReport({
       config: { browser: "chromium", maxTabs: 500 },
@@ -354,55 +261,6 @@ describe("compactReport", () => {
     expect(el.tabPosition).toBe(1);
   });
 
-  it("strips outerHTML from widgetClassifications", () => {
-    const report = makeAuditReport({
-      widgetClassifications: [
-        {
-          element: {
-            selector: "div.modal",
-            tagName: "div",
-            role: "dialog",
-            accessibleName: "Settings",
-            outerHTML: '<div role="dialog">...',
-          },
-          pattern: "dialog" as const,
-          confidence: 0.9,
-          expectedKeyboard: [],
-        },
-      ],
-    });
-
-    const compact = compactReport(report);
-
-    expect(compact.widgetClassifications![0]!.element.outerHTML).toBe("");
-    expect(compact.widgetClassifications![0]!.element.selector).toBe(
-      "div.modal",
-    );
-  });
-
-  it("strips outerHTML from accessibleNameSuggestions", () => {
-    const report = makeAuditReport({
-      accessibleNameSuggestions: [
-        {
-          element: {
-            selector: "button.icon",
-            tagName: "button",
-            role: "button",
-            outerHTML: '<button class="icon"><svg>...</svg></button>',
-          },
-          suggestedLabel: "Close",
-          confidence: 0.8,
-          reasoning: "Icon button needs label",
-        },
-      ],
-    });
-
-    const compact = compactReport(report);
-
-    expect(compact.accessibleNameSuggestions![0]!.element.outerHTML).toBe("");
-    expect(compact.accessibleNameSuggestions![0]!.suggestedLabel).toBe("Close");
-  });
-
   it("preserves essential fields", () => {
     const report = makeAuditReport({
       url: "https://example.com",
@@ -420,7 +278,6 @@ describe("compactReport", () => {
           accessibleName: "Save",
         }),
       ],
-      aiSummary: "Good overall",
     });
 
     const compact = compactReport(report);
@@ -430,7 +287,6 @@ describe("compactReport", () => {
     expect(compact.focusSequence![0]!.selector).toBe("button.save");
     expect(compact.focusSequence![0]!.role).toBe("button");
     expect(compact.focusSequence![0]!.accessibleName).toBe("Save");
-    expect(compact.aiSummary).toBe("Good overall");
   });
 });
 
@@ -491,31 +347,6 @@ describe("handleAudit", () => {
     expect(parsed.focusSequence[0].focusedStyleSnapshot).toBeUndefined();
   });
 
-  it("strips screenshots from response", async () => {
-    const report = makeAuditReport({
-      pageScreenshotAssetId: "page",
-      assets: [
-        makeInlineAsset("page", "base64-data"),
-        makeInlineAsset(
-          "focused",
-          "base64-focused",
-          "focused-element-screenshot",
-        ),
-      ],
-      focusSequence: [
-        makeFocusedElement({ focusedScreenshotAssetId: "focused" }),
-      ],
-    });
-    mockAudit.mockResolvedValue(report);
-
-    const result = await handleAudit({ url: "https://test.com" });
-    const parsed = JSON.parse(result.content[0]!.text);
-
-    expect(parsed.pageScreenshotAssetId).toBeUndefined();
-    expect(parsed.focusSequence[0].focusedScreenshotAssetId).toBeUndefined();
-    expect(parsed.assets).toBeUndefined();
-  });
-
   it("strips outerHTML from rule violation elements", async () => {
     const report = makeAuditReport({
       rules: [
@@ -569,6 +400,52 @@ describe("handleAudit", () => {
     expect(config.maxTabs).toBe(50);
   });
 
+  it("forwards prepare and report options to the audit config", async () => {
+    mockAudit.mockResolvedValue(makeAuditReport());
+
+    await handleAudit({
+      url: "https://test.com",
+      options: {
+        profile: "fast",
+        viewport: { width: 800 },
+        tabDelay: 20,
+        waitForSelector: "#ready",
+        waitAfterLoad: 100,
+        interactions: true,
+        keepOverlays: true,
+        dismissSelectors: ["#close"],
+        reporters: ["json"],
+        outputDir: "./reports",
+      },
+    });
+
+    const config = mockAudit.mock.calls[0]![1] as {
+      profile: string;
+      viewport: { width: number; height: number };
+      tabDelay: number;
+      waitForSelector: string;
+      waitAfterLoad: number;
+      interactions: { enabled: boolean };
+      prepare: { dismissOverlays: boolean; dismissSelectors: string[] };
+      reporters: string[];
+      outputDir: string;
+    };
+    expect(config.profile).toBe("fast");
+    expect(config.viewport).toEqual({ width: 800, height: 720 });
+    expect(config.tabDelay).toBe(20);
+    expect(config.waitForSelector).toBe("#ready");
+    expect(config.waitAfterLoad).toBe(100);
+    expect(config.interactions.enabled).toBe(true);
+    expect(config.prepare).toEqual(
+      expect.objectContaining({
+        dismissOverlays: false,
+        dismissSelectors: ["#close"],
+      }),
+    );
+    expect(config.reporters).toEqual(["json"]);
+    expect(config.outputDir).toBe("./reports");
+  });
+
   it("does not render when no reporters are configured", async () => {
     mockAudit.mockResolvedValue(makeAuditReport());
 
@@ -593,238 +470,6 @@ describe("handleAudit", () => {
     expect(calledDir).toBe("./out");
     expect(calledReport).toBe(report);
     expect(options).toBe("silent");
-  });
-});
-
-describe("handleClassifyWidgets", () => {
-  beforeEach(() => {
-    mockAudit.mockReset();
-    mockCrawlOnly.mockReset();
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    mockAIInstance.classifyWidgets.mockResolvedValue([]);
-  });
-
-  it("calls crawlOnly instead of full audit", async () => {
-    mockCrawlOnly.mockResolvedValue(
-      makeCrawlResult({ interactiveElements: [] }),
-    );
-
-    await handleClassifyWidgets({ url: "https://test.com" });
-
-    expect(mockCrawlOnly).toHaveBeenCalledOnce();
-    expect(mockCrawlOnly.mock.calls[0]![0]).toBe("https://test.com");
-    // Should NOT call full audit
-    expect(mockAudit).not.toHaveBeenCalled();
-  });
-
-  it("returns 'no widgets' message when none detected", async () => {
-    mockCrawlOnly.mockResolvedValue(
-      makeCrawlResult({ interactiveElements: [] }),
-    );
-    mockAIInstance.classifyWidgets.mockResolvedValue([]);
-
-    const result = await handleClassifyWidgets({ url: "https://test.com" });
-
-    expect(result.content[0]!.text).toContain("No complex ARIA widgets");
-  });
-
-  it("returns classifications with outerHTML stripped", async () => {
-    const classifications = [
-      {
-        element: {
-          selector: "div.modal",
-          tagName: "div",
-          role: "dialog",
-          accessibleName: "Settings",
-          outerHTML: '<div role="dialog">',
-        },
-        pattern: "dialog" as const,
-        confidence: 0.95,
-        expectedKeyboard: [{ key: "Escape", expectedBehavior: "Close dialog" }],
-      },
-    ];
-    mockCrawlOnly.mockResolvedValue(
-      makeCrawlResult({
-        interactiveElements: [makeInteractiveElement({ role: "dialog" })],
-      }),
-    );
-    mockAIInstance.classifyWidgets.mockResolvedValue(classifications);
-
-    const result = await handleClassifyWidgets({ url: "https://test.com" });
-    const parsed = JSON.parse(result.content[0]!.text);
-
-    expect(parsed).toHaveLength(1);
-    expect(parsed[0].pattern).toBe("dialog");
-    expect(parsed[0].element.outerHTML).toBe("");
-    expect(parsed[0].element.selector).toBe("div.modal");
-  });
-
-  it("returns isError when crawl fails", async () => {
-    mockCrawlOnly.mockRejectedValue(new Error("Browser crashed"));
-
-    const result = await handleClassifyWidgets({ url: "https://test.com" });
-
-    expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Browser crashed");
-  });
-});
-
-describe("handleValidateFocusOrder", () => {
-  beforeEach(() => {
-    mockAudit.mockReset();
-    mockCrawlOnly.mockReset();
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    mockAIInstance.validateFocusOrder.mockResolvedValue(null);
-  });
-
-  it("calls crawlOnly instead of full audit", async () => {
-    mockCrawlOnly.mockResolvedValue(makeCrawlResult({ focusSequence: [] }));
-
-    await handleValidateFocusOrder({ url: "https://test.com" });
-
-    expect(mockCrawlOnly).toHaveBeenCalledOnce();
-    expect(mockCrawlOnly.mock.calls[0]![0]).toBe("https://test.com");
-    expect(mockAudit).not.toHaveBeenCalled();
-  });
-
-  it("returns raw focus sequence when AI unavailable", async () => {
-    mockAIInstance.isAvailable.mockReturnValue(false);
-    mockCrawlOnly.mockResolvedValue(
-      makeCrawlResult({
-        focusSequence: [
-          makeFocusedElement({ selector: "a.nav", tagName: "a", role: "link" }),
-          makeFocusedElement({
-            selector: "button.cta",
-            tagName: "button",
-            role: "button",
-          }),
-        ],
-        cycleCompleted: true,
-      }),
-    );
-
-    const result = await handleValidateFocusOrder({ url: "https://test.com" });
-    const parsed = JSON.parse(result.content[0]!.text);
-
-    expect(parsed.note).toContain("AI analysis unavailable");
-    expect(parsed.focusSequence).toHaveLength(2);
-    expect(parsed.focusSequence[0].position).toBe(1);
-    expect(parsed.focusSequence[1].selector).toBe("button.cta");
-  });
-
-  it("returns AI analysis when available", async () => {
-    const analysis = {
-      summary: "Focus order is logical",
-      issues: [],
-      overallAssessment: "good" as const,
-    };
-    mockCrawlOnly.mockResolvedValue(
-      makeCrawlResult({
-        focusSequence: [makeFocusedElement()],
-        pageScreenshotAssetId: "page",
-        assets: [makeInlineAsset("page", "data")],
-      }),
-    );
-    mockAIInstance.validateFocusOrder.mockResolvedValue(analysis);
-
-    const result = await handleValidateFocusOrder({ url: "https://test.com" });
-    const parsed = JSON.parse(result.content[0]!.text);
-
-    expect(parsed.overallAssessment).toBe("good");
-    expect(parsed.issues).toEqual([]);
-  });
-
-  it("returns isError on failure", async () => {
-    mockCrawlOnly.mockRejectedValue(new Error("Browser crashed"));
-
-    const result = await handleValidateFocusOrder({ url: "https://test.com" });
-
-    expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Browser crashed");
-  });
-});
-
-// ─── Sampling Injection ──────────────────────────────────────────
-
-describe("injectSampling", () => {
-  it("injects transport when client supports sampling and no API key", () => {
-    const config = buildConfig();
-    const mockServer = {
-      getClientCapabilities: vi.fn().mockReturnValue({ sampling: {} }),
-    };
-
-    injectSampling(config, mockServer as never);
-
-    expect(config.ai.transport).toBeDefined();
-    expect(config.ai.enabled).toBe(true);
-  });
-
-  it("does not inject transport when API key is set", () => {
-    const config = buildConfig({ ai: true });
-    config.ai.apiKey = "sk-test-key";
-    const mockServer = {
-      getClientCapabilities: vi.fn().mockReturnValue({ sampling: {} }),
-    };
-
-    injectSampling(config, mockServer as never);
-
-    expect(config.ai.transport).toBeUndefined();
-  });
-
-  it("does not inject transport when client lacks sampling capability", () => {
-    const config = buildConfig();
-    const mockServer = {
-      getClientCapabilities: vi.fn().mockReturnValue({}),
-    };
-
-    injectSampling(config, mockServer as never);
-
-    expect(config.ai.transport).toBeUndefined();
-    expect(config.ai.enabled).toBe(false);
-  });
-
-  it("does not inject transport when no server is provided", () => {
-    const config = buildConfig();
-
-    injectSampling(config);
-
-    expect(config.ai.transport).toBeUndefined();
-  });
-});
-
-describe("handlers pass server for sampling", () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    process.env = { ...originalEnv };
-    delete process.env.KEYLENS_AI_KEY;
-    delete process.env.KEYLENS_AI_API_KEY;
-    delete process.env.ANTHROPIC_API_KEY;
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it("handleAudit checks client sampling capability", async () => {
-    const mockServer = {
-      getClientCapabilities: vi.fn().mockReturnValue({ sampling: {} }),
-    };
-    mockAudit.mockResolvedValue(makeAuditReport());
-
-    const result = await handleAudit(
-      { url: "https://test.com" },
-      mockServer as never,
-    );
-
-    expect(mockServer.getClientCapabilities).toHaveBeenCalled();
-    // Config should have AI enabled via sampling
-    const calledConfig = mockAudit.mock.calls[0]![1] as {
-      ai: { enabled: boolean };
-    };
-    expect(calledConfig.ai.enabled).toBe(true);
-    expect(result.isError).toBeUndefined();
   });
 });
 

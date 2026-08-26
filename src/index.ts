@@ -1,11 +1,9 @@
 import type {
-  AIEnrichmentOptions,
   AuditReport,
   AuditOptions,
   KeylensConfig,
   LogLevel,
   CrawlResult,
-  EffectiveKeylensConfig,
   ReporterType,
   RenderOptions,
   RuleResult,
@@ -14,12 +12,10 @@ import type {
 import { crawlPage } from "./crawler/index.js";
 import { runRules } from "./rules/index.js";
 import { runReporters } from "./reporters/index.js";
-import { AIAnalyzer } from "./ai/index.js";
 import { logger, withLogLevel } from "./utils/logger.js";
 import { computeScore } from "./utils/score.js";
-import { cloneAuditReport, getInlineAssetData } from "./utils/assets.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
-import { hasConfiguredAIAPIKey, normalizeConfig } from "./utils/config.js";
+import { normalizeConfig } from "./utils/config.js";
 import { createExecutionScope, throwIfAborted } from "./utils/execution.js";
 import { getUnreachedInteractiveElements } from "./utils/roving-tabindex.js";
 
@@ -44,41 +40,6 @@ function resolveAuditOptions(
   } = options as AuditOptions;
   return {
     config: normalizeConfig(configInput),
-    logLevel,
-    signal,
-    onEvent,
-  };
-}
-
-function resolveEnrichmentOptions(
-  baseConfig: EffectiveKeylensConfig,
-  options: AIEnrichmentOptions = {},
-): ResolvedAuditOptions {
-  const { signal, onEvent, logLevel = "silent", ai: aiOverrides } = options;
-  const {
-    apiKeyConfigured: _apiKeyConfigured,
-    transportConfigured: _transportConfigured,
-    ...baseAI
-  } = baseConfig.ai;
-  void _apiKeyConfigured;
-  void _transportConfigured;
-
-  return {
-    config: normalizeConfig({
-      ...baseConfig,
-      ai: {
-        ...baseAI,
-        ...aiOverrides,
-        features: {
-          ...baseAI.features,
-          ...aiOverrides?.features,
-        },
-        limits: {
-          ...baseAI.limits,
-          ...aiOverrides?.limits,
-        },
-      },
-    }),
     logLevel,
     signal,
     onEvent,
@@ -128,17 +89,8 @@ async function withTotalBudget<T>(
   }
 }
 
-function sanitizeConfig(config: KeylensConfig): EffectiveKeylensConfig {
-  const { apiKey, transport, ...ai } = config.ai;
-  void apiKey;
-  return structuredClone({
-    ...config,
-    ai: {
-      ...ai,
-      apiKeyConfigured: hasConfiguredAIAPIKey(config.ai),
-      transportConfigured: Boolean(transport),
-    },
-  });
+function sanitizeConfig(config: KeylensConfig): KeylensConfig {
+  return structuredClone(config);
 }
 
 function buildBaseReport(
@@ -270,85 +222,8 @@ async function auditBaseWithConfig(
   );
 }
 
-async function enrichAuditWithConfig(
-  baseReport: AuditReport,
-  config: KeylensConfig,
-  controls: ExecutionControls,
-): Promise<AuditReport> {
-  const report = cloneAuditReport(baseReport);
-  report.config = sanitizeConfig(config);
-  const aiScope = createExecutionScope({
-    parentSignal: controls.signal,
-    timeout: config.timeouts.ai,
-    phase: "ai",
-    url: report.url,
-  });
-  const ai = new AIAnalyzer(config.ai, aiScope.signal);
-  if (!ai.isAvailable()) {
-    aiScope.dispose();
-    return report;
-  }
-  const startedAt = Date.now();
-  const allViolations = report.rules.flatMap((result) => result.violations);
-  const focusSequence = report.focusSequence ?? [];
-  const interactiveElements = report.interactiveElements ?? [];
-  const pageScreenshot =
-    getInlineAssetData(report.assets, report.pageScreenshotAssetId) ?? "";
-
-  try {
-    emitPhase(controls, "phase-started", "ai", report.url);
-    const [
-      fixResult,
-      focusOrderResult,
-      classificationsResult,
-      nameSuggestionsResult,
-      fiScoresResult,
-    ] = await Promise.allSettled([
-      ai.generateFixSuggestions(allViolations),
-      ai.validateFocusOrder(
-        focusSequence,
-        pageScreenshot,
-        report.pageDimensions,
-      ),
-      ai.classifyWidgets(interactiveElements),
-      ai.inferAccessibleNames(
-        interactiveElements,
-        pageScreenshot,
-        report.pageDimensions,
-      ),
-      ai.scoreFocusIndicatorQuality(focusSequence, report.assets),
-    ] as const);
-    unwrapSettled(fixResult);
-    const focusOrderAnalysis = unwrapSettled(focusOrderResult);
-    const classifications = unwrapSettled(classificationsResult);
-    const nameSuggestions = unwrapSettled(nameSuggestionsResult);
-    const fiScores = unwrapSettled(fiScoresResult);
-
-    throwIfAborted(aiScope.signal, "ai", report.url);
-    report.aiFocusOrderAnalysis = focusOrderAnalysis ?? undefined;
-    report.widgetClassifications =
-      classifications.length > 0 ? classifications : undefined;
-    report.accessibleNameSuggestions =
-      nameSuggestions.length > 0 ? nameSuggestions : undefined;
-    report.focusIndicatorScores = fiScores.length > 0 ? fiScores : undefined;
-    report.aiSummary = (await ai.generateSummary(report)) ?? undefined;
-    throwIfAborted(aiScope.signal, "ai", report.url);
-    report.timings.ai = Date.now() - startedAt;
-    report.timings.total = baseReport.timings.total + report.timings.ai;
-    emitPhase(controls, "phase-completed", "ai", report.url);
-    return report;
-  } finally {
-    aiScope.dispose();
-  }
-}
-
-function unwrapSettled<T>(result: PromiseSettledResult<T>): T {
-  if (result.status === "rejected") throw result.reason;
-  return result.value;
-}
-
-/** Run crawl and deterministic rules without AI, reporters, or file output. */
-export async function auditBase(
+/** Run a complete in-memory audit. Output is only produced by renderAuditReport(). */
+export async function audit(
   url: string,
   options: AuditOptions | KeylensConfig = {},
 ): Promise<AuditReport> {
@@ -358,40 +233,6 @@ export async function auditBase(
       auditBaseWithConfig(url, resolved.config, controls),
     ),
   );
-}
-
-/** Add optional AI enrichment to an immutable deterministic report. */
-export async function enrichAudit(
-  baseReport: AuditReport,
-  options: AIEnrichmentOptions = {},
-): Promise<AuditReport> {
-  const resolved = resolveEnrichmentOptions(baseReport.config, options);
-  return withLogLevel(resolved.logLevel, () =>
-    withTotalBudget(resolved.config, resolved, baseReport.url, (controls) =>
-      enrichAuditWithConfig(baseReport, resolved.config, controls),
-    ),
-  );
-}
-
-/**
- * Run a complete in-memory audit. Reporter configuration is retained in the
- * effective config but output is only produced by renderAuditReport().
- */
-export async function audit(
-  url: string,
-  options: AuditOptions | KeylensConfig = {},
-): Promise<AuditReport> {
-  const resolved = resolveAuditOptions(options);
-  return withLogLevel(resolved.logLevel, async () => {
-    return withTotalBudget(resolved.config, resolved, url, async (controls) => {
-      const baseReport = await auditBaseWithConfig(
-        url,
-        resolved.config,
-        controls,
-      );
-      return enrichAuditWithConfig(baseReport, resolved.config, controls);
-    });
-  });
 }
 
 /** Explicitly render or write configured report formats. */
@@ -453,8 +294,6 @@ export type {
   AuditReport,
   KeylensConfig,
   KeylensConfigInput,
-  AIConfigInput,
-  AIEnrichmentOptions,
   RenderOptions,
   AuditOptions,
   AuditEvent,
@@ -471,13 +310,9 @@ export type {
   AuditAssetType,
   AuditAssetStorage,
   AuditReportSchemaVersion,
-  EffectiveAIConfig,
-  EffectiveKeylensConfig,
   AuditTimings,
   LogLevel,
   RuleConfig,
-  AIConfig,
-  AITransport,
   ReporterType,
   Severity,
   Rule,
@@ -494,14 +329,6 @@ export type {
   InteractionIsolation,
   InteractionNavigationPolicy,
   SkipLinkResult,
-  WidgetClassification,
-  APGPattern,
-  AIFocusOrderResult,
-  FocusOrderIssue,
-  FixSuggestion,
-  AccessibleNameSuggestion,
-  FocusIndicatorScore,
-  AIReportSummary,
   RuleRemediation,
   WcagReference,
 } from "./types/index.js";
@@ -520,7 +347,6 @@ export {
   getRuleRemediation,
   getWcagReference,
 } from "./guidance.js";
-export { AIAnalyzer } from "./ai/index.js";
 export {
   renderHTML,
   renderMarkdown,

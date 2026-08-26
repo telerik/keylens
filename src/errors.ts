@@ -12,7 +12,6 @@ export type KeylensErrorCode =
   | "NAVIGATION_ERROR"
   | "RULE_ERROR"
   | "REPORTER_ERROR"
-  | "AI_ERROR"
   | "INTERNAL_ERROR";
 
 export interface KeylensErrorOptions {
@@ -136,15 +135,5 @@ export class ReporterError extends KeylensError {
       ...options,
     });
     this.name = "ReporterError";
-  }
-}
-
-export class AIError extends KeylensError {
-  constructor(
-    message: string,
-    options: Omit<KeylensErrorOptions, "phase"> = {},
-  ) {
-    super(message, "AI_ERROR", { phase: "ai", ...options });
-    this.name = "AIError";
   }
 }

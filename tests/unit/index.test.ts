@@ -40,28 +40,6 @@ vi.mock("@/utils/logger.js", () => ({
   },
 }));
 
-const mockAIInstance = {
-  isAvailable: vi.fn().mockReturnValue(false),
-  generateFixSuggestions: vi.fn().mockResolvedValue(undefined),
-  validateFocusOrder: vi.fn().mockResolvedValue(null),
-  generateSummary: vi.fn().mockResolvedValue(null),
-  classifyWidgets: vi.fn().mockResolvedValue([]),
-  inferAccessibleNames: vi.fn().mockResolvedValue([]),
-  scoreFocusIndicatorQuality: vi.fn().mockResolvedValue([]),
-};
-
-vi.mock("@/ai/index.js", () => ({
-  AIAnalyzer: class MockAIAnalyzer {
-    isAvailable = mockAIInstance.isAvailable;
-    generateFixSuggestions = mockAIInstance.generateFixSuggestions;
-    validateFocusOrder = mockAIInstance.validateFocusOrder;
-    generateSummary = mockAIInstance.generateSummary;
-    classifyWidgets = mockAIInstance.classifyWidgets;
-    inferAccessibleNames = mockAIInstance.inferAccessibleNames;
-    scoreFocusIndicatorQuality = mockAIInstance.scoreFocusIndicatorQuality;
-  },
-}));
-
 import { crawlPage, launchAuditBrowser } from "@/crawler/index.js";
 import { runRules } from "@/rules/index.js";
 import { runReporters } from "@/reporters/index.js";
@@ -76,13 +54,6 @@ const mockWithLogLevel = vi.mocked(withLogLevel);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockAIInstance.isAvailable.mockReturnValue(false);
-  mockAIInstance.generateFixSuggestions.mockResolvedValue(undefined);
-  mockAIInstance.validateFocusOrder.mockResolvedValue(null);
-  mockAIInstance.generateSummary.mockResolvedValue(null);
-  mockAIInstance.classifyWidgets.mockResolvedValue([]);
-  mockAIInstance.inferAccessibleNames.mockResolvedValue([]);
-  mockAIInstance.scoreFocusIndicatorQuality.mockResolvedValue([]);
   mockSharedBrowserClose.mockClear();
   mockLaunchAuditBrowser.mockResolvedValue({
     close: mockSharedBrowserClose,
@@ -242,21 +213,17 @@ describe("audit", () => {
       mockRunRules.mockResolvedValue(ruleResults);
     }
 
-    it("auditBase returns deterministic results without AI or reporters", async () => {
+    it("audit returns deterministic results without reporters", async () => {
       setupStageMocks();
-      mockAIInstance.isAvailable.mockReturnValue(true);
-      const { auditBase } = await import("@/index.js");
+      const audit = await getAudit();
 
-      const report = await auditBase("https://example.com", {
+      const report = await audit("https://example.com", {
         viewport: { width: 800 },
-        ai: { enabled: true, apiKey: "secret" },
         reporters: ["json"],
       });
 
       expect(report.summary.totalWarnings).toBe(1);
       expect(report.config.viewport).toEqual({ width: 800, height: 720 });
-      expect(report.config.ai.apiKeyConfigured).toBe(true);
-      expect(report.config).not.toHaveProperty("ai.apiKey");
       expect(report.interactiveElements).toEqual(
         crawlResult.interactiveElements,
       );
@@ -267,30 +234,10 @@ describe("audit", () => {
           total: expect.any(Number),
         }),
       );
-      expect(mockAIInstance.generateFixSuggestions).not.toHaveBeenCalled();
       expect(mockRunReporters).not.toHaveBeenCalled();
     });
 
-    it("records environment-backed AI credentials without exposing them", async () => {
-      setupStageMocks();
-      vi.stubEnv("OPENAI_API_KEY", "environment-secret");
-      const { auditBase } = await import("@/index.js");
-
-      try {
-        const report = await auditBase("https://example.com", {
-          ai: { provider: "openai" },
-        });
-
-        expect(report.config.ai.apiKeyConfigured).toBe(true);
-        expect(JSON.stringify(report.config)).not.toContain(
-          "environment-secret",
-        );
-      } finally {
-        vi.unstubAllEnvs();
-      }
-    });
-
-    it("aborts a crawl before rules or enrichment continue", async () => {
+    it("aborts a crawl before rules continue", async () => {
       const controller = new AbortController();
       mockCrawlPage.mockImplementation((_url, _config, signal) => {
         return new Promise<CrawlResult>((_resolve, reject) => {
@@ -299,9 +246,9 @@ describe("audit", () => {
           });
         });
       });
-      const { auditBase, AuditAbortedError } = await import("@/index.js");
+      const { audit, AuditAbortedError } = await import("@/index.js");
 
-      const pending = auditBase("https://example.com", {
+      const pending = audit("https://example.com", {
         signal: controller.signal,
       });
       controller.abort();
@@ -318,9 +265,9 @@ describe("audit", () => {
           });
         });
       });
-      const { auditBase, AuditTimeoutError } = await import("@/index.js");
+      const { audit, AuditTimeoutError } = await import("@/index.js");
 
-      const pending = auditBase("https://example.com", {
+      const pending = audit("https://example.com", {
         timeouts: { crawl: 10 },
       });
 
@@ -342,9 +289,9 @@ describe("audit", () => {
           });
         });
       });
-      const { auditBase, AuditTimeoutError } = await import("@/index.js");
+      const { audit, AuditTimeoutError } = await import("@/index.js");
 
-      const pending = auditBase("https://example.com", {
+      const pending = audit("https://example.com", {
         timeouts: { rules: 10 },
       });
 
@@ -354,40 +301,6 @@ describe("audit", () => {
         phase: "rules",
         details: { timeoutMs: 10, timeoutKind: "phase" },
       });
-    });
-
-    it("enrichAudit does not mutate the deterministic report", async () => {
-      setupStageMocks();
-      const { auditBase, enrichAudit } = await import("@/index.js");
-      const baseReport = await auditBase("https://example.com", {
-        viewport: { width: 900 },
-      });
-      const snapshot = structuredClone(baseReport);
-      mockAIInstance.isAvailable.mockReturnValue(true);
-      mockAIInstance.generateFixSuggestions.mockImplementationOnce(
-        async (violations) => {
-          violations[0]!.fixSuggestion = "Use tabindex=0";
-        },
-      );
-
-      const unsafeOptions = {
-        ai: { enabled: true, apiKey: "secret" },
-        viewport: { width: 320 },
-        rules: { keyboardTrap: false },
-      };
-      const enriched = await enrichAudit(baseReport, unsafeOptions);
-
-      expect(baseReport).toEqual(snapshot);
-      expect(enriched).not.toBe(baseReport);
-      expect(enriched.rules[0]!.violations[0]!.fixSuggestion).toBe(
-        "Use tabindex=0",
-      );
-      expect(enriched.config.viewport).toEqual({ width: 900, height: 720 });
-      expect(enriched.config.rules.keyboardTrap).toBe(true);
-      expect(enriched.config.ai.enabled).toBe(true);
-      expect(enriched.config.ai.apiKeyConfigured).toBe(true);
-      expect(enriched.config).not.toHaveProperty("ai.apiKey");
-      expect(enriched.timings.ai).toEqual(expect.any(Number));
     });
 
     it("renderAuditReport performs output only when called explicitly", async () => {
@@ -519,153 +432,6 @@ describe("audit", () => {
     expect(report.schemaVersion).toBe("1.0");
   });
 
-  it("should skip AI when not available", async () => {
-    setupMocks();
-    mockAIInstance.isAvailable.mockReturnValue(false);
-    const audit = await getAudit();
-
-    await audit("https://example.com", { ...DEFAULT_CONFIG });
-
-    expect(mockAIInstance.generateFixSuggestions).not.toHaveBeenCalled();
-    expect(mockAIInstance.validateFocusOrder).not.toHaveBeenCalled();
-    expect(mockAIInstance.generateSummary).not.toHaveBeenCalled();
-    expect(mockAIInstance.inferAccessibleNames).not.toHaveBeenCalled();
-    expect(mockAIInstance.scoreFocusIndicatorQuality).not.toHaveBeenCalled();
-  });
-
-  it("should call AI methods when available", async () => {
-    setupMocks();
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    mockAIInstance.generateSummary.mockResolvedValue("AI summary text");
-    const audit = await getAudit();
-
-    const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
-
-    expect(mockAIInstance.generateFixSuggestions).toHaveBeenCalled();
-    expect(mockAIInstance.validateFocusOrder).toHaveBeenCalled();
-    expect(mockAIInstance.generateSummary).toHaveBeenCalled();
-    expect(mockAIInstance.classifyWidgets).toHaveBeenCalled();
-    expect(mockAIInstance.inferAccessibleNames).toHaveBeenCalled();
-    expect(mockAIInstance.scoreFocusIndicatorQuality).toHaveBeenCalled();
-    expect(report.aiSummary).toBe("AI summary text");
-  });
-
-  it("should include focusIndicatorScores when AI returns them", async () => {
-    setupMocks();
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    const mockScores = [
-      {
-        element: {
-          selector: "button.test",
-          tagName: "button",
-          role: "button",
-          accessibleName: "Test",
-        },
-        score: 8,
-        contrast: "sufficient",
-        visibility: "clear",
-      },
-    ];
-    mockAIInstance.scoreFocusIndicatorQuality.mockResolvedValue(mockScores);
-    const audit = await getAudit();
-
-    const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
-
-    expect(report.focusIndicatorScores).toEqual(mockScores);
-  });
-
-  it("should store structured AI summary on report", async () => {
-    setupMocks();
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    const structuredSummary = {
-      overview: "Good keyboard navigation.",
-      criticalIssues: [],
-      prioritizedFixes: [],
-      aiSeverityRating: 85,
-      recommendation: "Minor improvements needed.",
-    };
-    mockAIInstance.generateSummary.mockResolvedValue(structuredSummary);
-    const audit = await getAudit();
-
-    const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
-
-    expect(report.aiSummary).toEqual(structuredSummary);
-  });
-
-  it("should include accessibleNameSuggestions when AI returns them", async () => {
-    setupMocks();
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    const mockSuggestions = [
-      {
-        element: {
-          selector: "button.icon",
-          tagName: "button",
-          role: "button",
-          outerHTML: '<button class="icon"></button>',
-        },
-        suggestedLabel: "Close dialog",
-        confidence: 0.9,
-        reasoning: "Icon button with X symbol",
-      },
-    ];
-    mockAIInstance.inferAccessibleNames.mockResolvedValue(mockSuggestions);
-    const audit = await getAudit();
-
-    const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
-
-    expect(report.accessibleNameSuggestions).toEqual(mockSuggestions);
-  });
-
-  it("should pass pageDimensions to validateFocusOrder", async () => {
-    mockCrawlPage.mockResolvedValue(
-      makeCrawlResult({
-        focusSequence: [makeFocusedElement()],
-        interactiveElements: [makeInteractiveElement()],
-        pageScreenshotAssetId: "page-screenshot",
-        assets: [makeInlineAsset("page-screenshot", "data")],
-        pageDimensions: { width: 1280, height: 2000 },
-      }),
-    );
-    mockRunRules.mockResolvedValue([]);
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    const audit = await getAudit();
-
-    await audit("https://example.com", { ...DEFAULT_CONFIG });
-
-    expect(mockAIInstance.validateFocusOrder).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.any(String),
-      { width: 1280, height: 2000 },
-    );
-  });
-
-  it("should include widgetClassifications when AI classifies widgets", async () => {
-    setupMocks();
-    mockAIInstance.isAvailable.mockReturnValue(true);
-    const mockClassifications = [
-      {
-        element: {
-          selector: "[role='tablist']",
-          tagName: "div",
-          role: "tablist",
-          accessibleName: "Main tabs",
-          outerHTML: '<div role="tablist">...</div>',
-        },
-        pattern: "tabs",
-        confidence: 0.9,
-        expectedKeyboard: [
-          { key: "Arrow Right", expectedBehavior: "Move to next tab" },
-        ],
-      },
-    ];
-    mockAIInstance.classifyWidgets.mockResolvedValue(mockClassifications);
-    const audit = await getAudit();
-
-    const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
-
-    expect(report.widgetClassifications).toEqual(mockClassifications);
-  });
-
   it("should include pageDimensions in report", async () => {
     mockCrawlPage.mockResolvedValue(
       makeCrawlResult({
@@ -680,5 +446,42 @@ describe("audit", () => {
     const report = await audit("https://example.com", { ...DEFAULT_CONFIG });
 
     expect(report.pageDimensions).toEqual({ width: 1280, height: 2000 });
+  });
+
+  describe("crawlOnly", () => {
+    it("returns the crawl result without running rules or reporters", async () => {
+      setupMocks();
+      const { crawlOnly } = await import("@/index.js");
+
+      const result = await crawlOnly("https://example.com", {
+        waitAfterLoad: 250,
+      });
+
+      expect(result).toBe(defaultCrawlResult);
+      expect(mockCrawlPage).toHaveBeenCalledWith(
+        "https://example.com",
+        expect.objectContaining({ waitAfterLoad: 250 }),
+        expect.any(AbortSignal),
+        undefined,
+        undefined,
+        expect.any(Number),
+      );
+      expect(mockRunRules).not.toHaveBeenCalled();
+      expect(mockRunReporters).not.toHaveBeenCalled();
+    });
+
+    it("uses the caller log level and disposes the crawl scope on failure", async () => {
+      const error = new Error("crawl failed");
+      mockCrawlPage.mockRejectedValue(error);
+      const { crawlOnly } = await import("@/index.js");
+
+      await expect(
+        crawlOnly("https://example.com", { logLevel: "debug" }),
+      ).rejects.toBe(error);
+      expect(mockWithLogLevel).toHaveBeenCalledWith(
+        "debug",
+        expect.any(Function),
+      );
+    });
   });
 });

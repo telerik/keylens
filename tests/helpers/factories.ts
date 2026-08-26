@@ -147,14 +147,7 @@ export function makeAuditReport(
     version: "0.1.0",
     timestamp: new Date().toISOString(),
     url: "https://example.com",
-    config: {
-      ...normalizeConfig(DEFAULT_CONFIG),
-      ai: {
-        ...DEFAULT_CONFIG.ai,
-        apiKeyConfigured: false,
-        transportConfigured: false,
-      },
-    },
+    config: normalizeConfig(DEFAULT_CONFIG),
     timings: {
       crawl: 1000,
       rules: 0,
