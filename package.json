@@ -122,10 +122,6 @@
     "vitepress": "^1.6.4",
     "vitest": "^4.0.18"
   },
-  "optionalDependencies": {
-    "@anthropic-ai/sdk": "^0.116.0",
-    "openai": "^6.0.0"
-  },
   "engines": {
     "node": ">=26.0.0"
   },

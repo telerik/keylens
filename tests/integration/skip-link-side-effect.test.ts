@@ -39,7 +39,6 @@ describe("Integration: skip link activation does not corrupt the full crawl", ()
     const report = await audit(url, {
       ...DEFAULT_CONFIG,
       reporters: [],
-      ai: { ...DEFAULT_CONFIG.ai, enabled: false },
       maxTabs: 20,
       tabDelay: 20,
       waitAfterLoad: 50,

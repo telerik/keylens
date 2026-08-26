@@ -31,7 +31,6 @@ function makeConfig(overrides: Partial<KeylensConfig> = {}): KeylensConfig {
   return {
     ...DEFAULT_CONFIG,
     reporters: [],
-    ai: { ...DEFAULT_CONFIG.ai, enabled: false },
     maxTabs: 20,
     waitAfterLoad: 100,
     tabDelay: 10,

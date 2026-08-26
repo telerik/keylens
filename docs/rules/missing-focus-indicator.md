@@ -42,10 +42,9 @@ diff already flagged. It also catches indicators that a static HTML/CSS scan wou
 such as classes or attributes toggled by JavaScript (e.g. `data-focus-visible`) and
 `:focus-within` container highlighting.
 
-Per-element screenshots (`--screenshots`) are a separate, opt-in concern — they feed the
-AI focus-indicator-quality scoring feature, which rates contrast/visibility of indicators
-that are already confirmed present. They're unrelated to the always-on pixel-diff
-confirmation pass described above.
+Candidates that show no computed-style change receive a bounded focused-vs-unfocused
+pixel comparison as a second opinion for indicators painted outside the inspected style
+relationships.
 
 ## Examples
 
@@ -86,4 +85,3 @@ confirmation pass described above.
 - Never remove focus outlines without providing a visible alternative
 - Use `:focus-visible` instead of `:focus` to only show focus styles for keyboard navigation
 - Ensure custom focus indicators have sufficient contrast (at least 3:1 ratio)
-- Use `--screenshots` to get an AI-scored quality rating of indicators already detected as present

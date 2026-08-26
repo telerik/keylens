@@ -18,7 +18,6 @@ interface BenchmarkResult {
   serializedBytes: number;
   compactSerializedBytes: number;
   inlineScreenshotBytes: number;
-  elementScreenshotCount: number;
   interactionResultCount: number;
   focusedElements: number;
 }
@@ -51,14 +50,6 @@ function countScreenshotBytes(report: AuditReport): number {
 
 function countFocusedElements(report: AuditReport): number {
   return report.crawl.totalFocusableElements;
-}
-
-function countElementScreenshots(report: AuditReport): number {
-  return report.assets.filter(
-    (asset) =>
-      asset.type === "focused-element-screenshot" ||
-      asset.type === "unfocused-element-screenshot",
-  ).length;
 }
 
 function countInteractionResults(report: AuditReport): number {
@@ -94,7 +85,6 @@ async function measure(
       serializedBytes: Buffer.byteLength(serialized),
       compactSerializedBytes: Buffer.byteLength(compact),
       inlineScreenshotBytes: countScreenshotBytes(report),
-      elementScreenshotCount: countElementScreenshots(report),
       interactionResultCount: countInteractionResults(report),
       focusedElements: countFocusedElements(report),
     };
@@ -183,7 +173,6 @@ async function main(): Promise<void> {
   const { server, baseUrl } = await startFixtureServer();
   const baseConfig = normalizeConfig({
     reporters: [],
-    ai: { enabled: false },
     waitAfterLoad: 25,
     tabDelay: 10,
     tabTimeout: 500,
@@ -193,18 +182,6 @@ async function main(): Promise<void> {
   try {
     const results = [
       await measure("standard", () => audit(`${baseUrl}/standard`, baseConfig)),
-      await measure("element-screenshots", () =>
-        audit(
-          `${baseUrl}/standard`,
-          normalizeConfig({
-            ...baseConfig,
-            capture: {
-              ...baseConfig.capture,
-              elements: true,
-            },
-          }),
-        ),
-      ),
       await measure("interactions", () =>
         audit(
           `${baseUrl}/interactions`,
@@ -218,14 +195,6 @@ async function main(): Promise<void> {
         ),
       ),
     ];
-    const screenshotResult = results.find(
-      (result) => result.name === "element-screenshots",
-    );
-    if (!screenshotResult || screenshotResult.elementScreenshotCount === 0) {
-      throw new Error(
-        "Element screenshot benchmark completed without capturing element screenshots",
-      );
-    }
     const interactionResult = results.find(
       (result) => result.name === "interactions",
     );

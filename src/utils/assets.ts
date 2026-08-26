@@ -49,15 +49,6 @@ function projectAuditReportWithoutInlineData(
 ): AuditReport {
   const projected = cloneReportShell(report);
 
-  projected.focusSequence = projected.focusSequence?.map((element) => {
-    const copy = { ...element };
-    if (options.assets === "omit") {
-      delete copy.focusedScreenshotAssetId;
-      delete copy.unfocusedScreenshotAssetId;
-    }
-    return copy;
-  });
-
   if (options.assets === "omit") {
     delete projected.pageScreenshotAssetId;
     projected.assets = [];

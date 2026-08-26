@@ -38,7 +38,6 @@ function makeConfig(overrides: Partial<KeylensConfig> = {}): KeylensConfig {
   return {
     ...DEFAULT_CONFIG,
     reporters: [], // Don't write files during tests
-    ai: { ...DEFAULT_CONFIG.ai, enabled: false },
     maxTabs: 100,
     waitAfterLoad: 500,
     tabDelay: 10,
@@ -243,7 +242,6 @@ describe("Integration: audit pipeline", () => {
       makeConfig({
         capture: {
           page: "full",
-          elements: false,
           limits: {
             ...DEFAULT_CONFIG.capture.limits,
             maxDimension: 1,

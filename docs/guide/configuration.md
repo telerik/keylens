@@ -14,7 +14,7 @@ the audit. Partial nested objects are accepted and merged with defaults.
   "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
   "url": "https://example.com",
   "profile": "balanced",
-  "capture": { "page": "none", "elements": false },
+  "capture": { "page": "none" },
   "reporters": ["cli", "json"]
 }
 ```
@@ -69,9 +69,7 @@ or timeout limits.
   },
   "capture": {
     "page": "none",
-    "elements": false,
     "limits": {
-      "maxElements": 200,
       "maxDimension": 16384,
       "maxPixels": 40000000,
       "maxBytes": 52428800
@@ -93,7 +91,6 @@ or timeout limits.
     "crawl": 90000,
     "rules": 10000,
     "interactions": 30000,
-    "ai": 30000,
     "reporters": 15000
   },
   "rules": {
@@ -108,20 +105,7 @@ or timeout limits.
     "rovingTabindexBroken": true
   },
   "reporters": ["cli", "json"],
-  "outputDir": "./keylens-report",
-  "ai": {
-    "enabled": false,
-    "provider": "anthropic",
-    "features": {
-      "focusOrderValidation": true,
-      "fixSuggestions": true,
-      "widgetClassification": false,
-      "reportSummary": true,
-      "focusIndicatorQuality": false,
-      "accessibleNameInference": false
-    },
-    "limits": { "batchSize": 10, "maxWidgets": 20, "maxElements": 10 }
-  }
+  "outputDir": "./keylens-report"
 }
 ```
 
@@ -168,9 +152,7 @@ retaining enforced safety limits; it does not mean unbounded or complete WCAG co
   "profile": "thorough",
   "capture": {
     "page": "full",
-    "elements": true,
     "limits": {
-      "maxElements": 400,
       "maxDimension": 16384,
       "maxPixels": 80000000,
       "maxBytes": 104857600
@@ -197,18 +179,11 @@ retaining enforced safety limits; it does not mean unbounded or complete WCAG co
 ```
 
 Review selectors and limits for the target environment before enabling interactions.
-Use `include` to restrict activation to known-safe controls. AI remains a separate,
-experimental choice and is not required for an exhaustive deterministic audit.
+Use `include` to restrict activation to known-safe controls.
 
 ## Capture degradation
 
-The capture budget is shared by the page image and focus-state images. `maxDimension`
-limits each image; `maxPixels` and `maxBytes` limit cumulative decoded pixels and
-encoded bytes. `maxElements` limits focus-state pairs. Exceeding a limit skips capture
-rather than failing the audit. `crawl.capture` reports attempted, captured, skipped,
-failed, byte, and pixel totals.
-
-## AI configuration
-
-AI is disabled by default and experimental. See [AI features](./ai) for providers,
-credentials, data handling, and feature-specific limits.
+The capture budget applies to the page image. `maxDimension` limits the image, while
+`maxPixels` and `maxBytes` limit cumulative decoded pixels and encoded bytes. Exceeding
+a limit skips capture rather than failing the audit. `crawl.capture` reports attempted,
+captured, skipped, failed, byte, and pixel totals.

@@ -49,10 +49,6 @@ interface FocusedElementInfo {
   parentContext: string | null;
 }
 
-interface CapturedFocusedElement extends FocusedElement {
-  focusedScreenshot?: string;
-  unfocusedScreenshot?: string;
-}
 import { logger } from "../utils/logger.js";
 import {
   GET_FOCUSED_ELEMENT_INFO_SCRIPT,
@@ -346,7 +342,6 @@ export async function crawlPage(
     const { focusSequence, cycleCompleted } = await crawlTabOrder(
       page,
       config,
-      captureBudget,
       signal,
       url,
       onEvent,
@@ -732,21 +727,17 @@ function emitCrawlProgress(
 async function crawlTabOrder(
   page: Page,
   config: KeylensConfig,
-  captureBudget: CaptureBudget,
   signal?: AbortSignal,
   url?: string,
   onEvent?: (event: AuditEvent) => void,
   eventStartedAt = Date.now(),
 ): Promise<{
-  focusSequence: CapturedFocusedElement[];
+  focusSequence: FocusedElement[];
   cycleCompleted: boolean;
 }> {
-  const focusSequence: CapturedFocusedElement[] = [];
+  const focusSequence: FocusedElement[] = [];
   let cycleCompleted = false;
   let firstSelector: string | null = null;
-  const captureScreenshots = config.capture.elements;
-  const maxElements =
-    config.capture.limits.maxElements ?? Number.POSITIVE_INFINITY;
   const tabDelay = config.tabDelay;
 
   await resetSequentialFocus(page, tabDelay);
@@ -869,58 +860,7 @@ async function crawlTabOrder(
       }
     }
 
-    // Capture per-element screenshots if enabled (used for AI focus-indicator
-    // quality scoring — presence detection no longer depends on these)
-    let focusedScreenshot: string | undefined;
-    const captureThisElement =
-      captureScreenshots && focusSequence.length < maxElements;
-    if (captureThisElement) {
-      focusedScreenshot = await captureElementScreenshot(
-        page,
-        elementInfo.pageRect,
-        captureBudget,
-        signal,
-        url,
-      );
-      if (focusedScreenshot) {
-        emitAssetCaptured(
-          onEvent,
-          eventStartedAt,
-          url,
-          "focused-element-screenshot",
-          focusedScreenshot,
-        );
-      }
-    } else if (captureScreenshots) {
-      captureBudget.skip(2);
-    }
-
-    // Capture unfocused screenshot of the *previous* element (if screenshots enabled)
-    if (
-      captureScreenshots &&
-      lastElement &&
-      lastElement.tabIndex <= maxElements &&
-      !lastElement.unfocusedScreenshot
-    ) {
-      lastElement.unfocusedScreenshot = await captureElementScreenshot(
-        page,
-        lastElement.pageRect ?? lastElement.boundingRect,
-        captureBudget,
-        signal,
-        url,
-      );
-      if (lastElement.unfocusedScreenshot) {
-        emitAssetCaptured(
-          onEvent,
-          eventStartedAt,
-          url,
-          "unfocused-element-screenshot",
-          lastElement.unfocusedScreenshot,
-        );
-      }
-    }
-
-    const focusedElement: CapturedFocusedElement = {
+    const focusedElement: FocusedElement = {
       tabIndex: focusSequence.length + 1,
       selector: elementInfo.selector,
       tagName: elementInfo.tagName,
@@ -931,7 +871,6 @@ async function crawlTabOrder(
       tabindexAttr: elementInfo.tabindexAttr,
       hasFocusIndicator: null, // Will be determined by focus indicator rule
       isObscured,
-      focusedScreenshot,
       focusedStyleSnapshot,
       outerHTML: elementInfo.outerHTML,
       ariaAttributes:
@@ -952,48 +891,21 @@ async function crawlTabOrder(
     );
   }
 
-  // Capture unfocused state of the last element (it just lost focus when cycle ends)
+  // Capture unfocused style snapshot of the last element (it just lost focus when cycle ends)
   if (focusSequence.length > 0) {
     const lastEl = focusSequence[focusSequence.length - 1];
-    const needsScreenshot =
-      captureScreenshots &&
-      focusSequence.length <= maxElements &&
-      !lastEl.unfocusedScreenshot;
-    const needsStyleSnapshot = !lastEl.unfocusedStyleSnapshot;
-
-    if (needsScreenshot || needsStyleSnapshot) {
+    if (!lastEl.unfocusedStyleSnapshot) {
       // Tab once more so the last element loses focus
       await page.keyboard.press("Tab");
       await page.waitForTimeout(tabDelay);
 
-      if (needsStyleSnapshot) {
-        try {
-          lastEl.unfocusedStyleSnapshot =
-            (await page.evaluate(
-              `(${GET_STYLE_SNAPSHOT_BY_SELECTOR_SCRIPT})(${JSON.stringify(lastEl.selector)})`,
-            )) ?? undefined;
-        } catch {
-          throwIfAborted(signal, "capture", url);
-        }
-      }
-
-      if (needsScreenshot) {
-        lastEl.unfocusedScreenshot = await captureElementScreenshot(
-          page,
-          lastEl.pageRect ?? lastEl.boundingRect,
-          captureBudget,
-          signal,
-          url,
-        );
-        if (lastEl.unfocusedScreenshot) {
-          emitAssetCaptured(
-            onEvent,
-            eventStartedAt,
-            url,
-            "unfocused-element-screenshot",
-            lastEl.unfocusedScreenshot,
-          );
-        }
+      try {
+        lastEl.unfocusedStyleSnapshot =
+          (await page.evaluate(
+            `(${GET_STYLE_SNAPSHOT_BY_SELECTOR_SCRIPT})(${JSON.stringify(lastEl.selector)})`,
+          )) ?? undefined;
+      } catch {
+        throwIfAborted(signal, "capture", url);
       }
     }
   }
@@ -1003,94 +915,32 @@ async function crawlTabOrder(
 
 function extractCapturedAssets(
   pageScreenshot: string | undefined,
-  focusSequence: CapturedFocusedElement[],
+  focusSequence: FocusedElement[],
 ): {
   assets: AuditAsset[];
   pageScreenshotAssetId?: string;
   focusSequence: FocusedElement[];
 } {
   const assets: AuditAsset[] = [];
-  const addAsset = (
-    id: string,
-    type: AuditAsset["type"],
-    data: string,
-  ): string => {
-    assets.push({
-      id,
-      type,
-      mediaType: "image/png",
-      byteLength: Buffer.byteLength(data, "base64"),
-      storage: { kind: "inline", data, encoding: "base64" },
-    });
-    return id;
-  };
-
   const pageScreenshotAssetId = pageScreenshot
-    ? addAsset("page-screenshot", "page-screenshot", pageScreenshot)
+    ? (() => {
+        const id = "page-screenshot";
+        assets.push({
+          id,
+          type: "page-screenshot",
+          mediaType: "image/png",
+          byteLength: Buffer.byteLength(pageScreenshot, "base64"),
+          storage: { kind: "inline", data: pageScreenshot, encoding: "base64" },
+        });
+        return id;
+      })()
     : undefined;
-  const projectedSequence = focusSequence.map(
-    ({ focusedScreenshot, unfocusedScreenshot, ...element }) => ({
-      ...element,
-      focusedScreenshotAssetId: focusedScreenshot
-        ? addAsset(
-            `focus-${element.tabIndex}-focused`,
-            "focused-element-screenshot",
-            focusedScreenshot,
-          )
-        : undefined,
-      unfocusedScreenshotAssetId: unfocusedScreenshot
-        ? addAsset(
-            `focus-${element.tabIndex}-unfocused`,
-            "unfocused-element-screenshot",
-            unfocusedScreenshot,
-          )
-        : undefined,
-    }),
-  );
 
   return {
     assets,
     pageScreenshotAssetId,
-    focusSequence: projectedSequence,
+    focusSequence,
   };
-}
-
-/**
- * Capture a screenshot of a specific element region on the page.
- * Returns base64-encoded PNG or undefined if capture fails.
- */
-async function captureElementScreenshot(
-  page: Page,
-  rect: BoundingRect,
-  budget: CaptureBudget,
-  signal?: AbortSignal,
-  url?: string,
-): Promise<string | undefined> {
-  throwIfAborted(signal, "capture", url);
-  try {
-    // Add padding around the element for context
-    const padding = 10;
-    const clip = {
-      x: Math.max(0, rect.x - padding),
-      y: Math.max(0, rect.y - padding),
-      width: rect.width + padding * 2,
-      height: rect.height + padding * 2,
-    };
-    if (!budget.allows(clip.width, clip.height)) return undefined;
-
-    const buffer = await page.screenshot({
-      clip,
-      type: "png",
-    });
-    return budget.accept(buffer, clip.width, clip.height);
-  } catch {
-    throwIfAborted(signal, "capture", url);
-    budget.fail();
-    logger.debug(
-      `Failed to capture element screenshot at (${rect.x}, ${rect.y})`,
-    );
-    return undefined;
-  }
 }
 
 /** Max elements to re-verify via screenshot in the missing-focus-indicator confirmation pass. */
@@ -1141,7 +991,7 @@ async function captureLiveElementScreenshot(
  */
 async function confirmMissingFocusIndicators(
   page: Page,
-  focusSequence: CapturedFocusedElement[],
+  focusSequence: FocusedElement[],
   config: KeylensConfig,
   signal?: AbortSignal,
   url?: string,

@@ -6,7 +6,6 @@ import {
   NavigationError,
   AuditAbortedError,
   AuditTimeoutError,
-  AIError,
 } from "@/errors.js";
 
 describe("KeylensError", () => {
@@ -79,36 +78,6 @@ describe("NavigationError", () => {
     const error = new NavigationError("test", "https://example.com");
 
     expect(error).toBeInstanceOf(KeylensError);
-  });
-});
-
-describe("AIError", () => {
-  it("should set code to AI_ERROR and phase to ai", () => {
-    const error = new AIError("@anthropic-ai/sdk is not installed");
-
-    expect(error.message).toBe("@anthropic-ai/sdk is not installed");
-    expect(error.code).toBe("AI_ERROR");
-    expect(error.name).toBe("AIError");
-    expect(error.phase).toBe("ai");
-  });
-
-  it("should be an instance of KeylensError and Error", () => {
-    const error = new AIError("test");
-
-    expect(error).toBeInstanceOf(Error);
-    expect(error).toBeInstanceOf(KeylensError);
-    expect(error).toBeInstanceOf(AIError);
-  });
-
-  it("accepts optional url and cause metadata", () => {
-    const cause = new Error("network down");
-    const error = new AIError("Unsupported AI provider: mistral", {
-      url: "https://example.com",
-      cause,
-    });
-
-    expect(error.url).toBe("https://example.com");
-    expect(error.cause).toBe(cause);
   });
 });
 

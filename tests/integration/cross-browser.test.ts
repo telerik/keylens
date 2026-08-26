@@ -47,9 +47,7 @@ describe("Cross-browser audit contract", () => {
       waitAfterLoad: 10,
       capture: {
         page: "viewport",
-        elements: true,
         limits: {
-          maxElements: 3,
           maxDimension: 4096,
           maxPixels: 10_000_000,
           maxBytes: 10 * 1024 * 1024,
@@ -91,13 +89,6 @@ describe("Cross-browser audit contract", () => {
     ).toBe(true);
     expect(
       report.assets.some((asset) => asset.type === "page-screenshot"),
-    ).toBe(true);
-    expect(
-      report.focusSequence?.some(
-        (element) =>
-          element.focusedScreenshotAssetId &&
-          element.unfocusedScreenshotAssetId,
-      ),
     ).toBe(true);
     if (report.interactionResults?.length === 0) {
       throw new Error(

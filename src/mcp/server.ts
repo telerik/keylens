@@ -2,12 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { setLogLevel } from "../utils/logger.js";
-import {
-  handleAudit,
-  handleClassifyWidgets,
-  handleValidateFocusOrder,
-  handleGetRuleGuidance,
-} from "./handlers.js";
+import { handleAudit, handleGetRuleGuidance } from "./handlers.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
@@ -36,7 +31,6 @@ const auditOptionsSchema = z
     tabDelay: z.number().min(10).optional(),
     waitForSelector: z.string().min(1).optional(),
     waitAfterLoad: z.number().nonnegative().optional(),
-    screenshots: z.boolean().optional(),
     interactions: z.boolean().optional(),
     keepOverlays: z
       .boolean()
@@ -50,7 +44,6 @@ const auditOptionsSchema = z
       .describe(
         "Extra CSS selectors to click before auditing, for banners not covered by built-in presets.",
       ),
-    ai: z.boolean().optional(),
     reporters: z
       .array(z.enum(["cli", "json", "html", "markdown"]))
       .optional()
@@ -82,35 +75,7 @@ server.registerTool(
       options: auditOptionsSchema,
     },
   },
-  async ({ url, options }) => handleAudit({ url, options }, server.server),
-);
-
-server.registerTool(
-  "keylens_classify_widgets",
-  {
-    description:
-      "Identify WAI-ARIA APG widget patterns (dialog, menu, tabs, accordion, combobox, " +
-      "disclosure, tooltip) on a page and report expected keyboard behaviors for each. " +
-      "Uses the client's AI model via sampling when available, or requires an API key.",
-    inputSchema: {
-      url: z.string().url().describe("The URL to analyze"),
-    },
-  },
-  async ({ url }) => handleClassifyWidgets({ url }, server.server),
-);
-
-server.registerTool(
-  "keylens_validate_focus_order",
-  {
-    description:
-      "Check if the keyboard focus order on a page is logical. Uses vision-based AI " +
-      "analysis when available, otherwise returns the raw focus sequence. " +
-      "Uses the client's AI model via sampling when available, or requires an API key.",
-    inputSchema: {
-      url: z.string().url().describe("The URL to validate"),
-    },
-  },
-  async ({ url }) => handleValidateFocusOrder({ url }, server.server),
+  async ({ url, options }) => handleAudit({ url, options }),
 );
 
 server.registerTool(

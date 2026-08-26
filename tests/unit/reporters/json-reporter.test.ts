@@ -45,25 +45,13 @@ describe("jsonReporter", () => {
     expect(parsed.summary.totalErrors).toBe(1);
   });
 
-  it("should strip screenshots from JSON output", async () => {
+  it("should omit page screenshot data from JSON output", async () => {
     const { reportJSON: jsonReporter } =
       await import("@/reporters/json-reporter.js");
 
     const report = makeAuditReport({
       pageScreenshotAssetId: "page",
-      assets: [
-        makeInlineAsset("page", "base64-screenshot-data-here"),
-        makeInlineAsset(
-          "focused",
-          "focused-screenshot-data",
-          "focused-element-screenshot",
-        ),
-        makeInlineAsset(
-          "unfocused",
-          "unfocused-screenshot-data",
-          "unfocused-element-screenshot",
-        ),
-      ],
+      assets: [makeInlineAsset("page", "base64-screenshot-data-here")],
       focusSequence: [
         {
           tabIndex: 1,
@@ -74,8 +62,6 @@ describe("jsonReporter", () => {
           boundingRect: { x: 0, y: 0, width: 100, height: 40 },
           tabindexAttr: null,
           hasFocusIndicator: null,
-          focusedScreenshotAssetId: "focused",
-          unfocusedScreenshotAssetId: "unfocused",
           outerHTML: "<a>Test</a>",
         },
       ],
@@ -85,7 +71,5 @@ describe("jsonReporter", () => {
 
     const writtenContent = mockWriteFile.mock.calls[0][1] as string;
     expect(writtenContent).not.toContain("base64-screenshot-data-here");
-    expect(writtenContent).not.toContain("focused-screenshot-data");
-    expect(writtenContent).not.toContain("unfocused-screenshot-data");
   });
 });

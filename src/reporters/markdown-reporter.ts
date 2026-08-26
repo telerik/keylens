@@ -1,9 +1,4 @@
-import type {
-  AuditReport,
-  FixSuggestion,
-  AIFocusOrderResult,
-  AIReportSummary,
-} from "../types/index.js";
+import type { AuditReport } from "../types/index.js";
 import { writeReportFile } from "../utils/report-writer.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────
@@ -206,10 +201,6 @@ function renderRules(report: AuditReport): string {
             lines.push(`    - \`${esc(truncate(el.selector, 80))}\`${pos}`);
           }
         }
-
-        if (v.fixSuggestion) {
-          renderFixSuggestion(lines, v.fixSuggestion);
-        }
       }
     }
 
@@ -217,190 +208,6 @@ function renderRules(report: AuditReport): string {
   }
 
   return lines.join("\n");
-}
-
-function renderFixSuggestion(
-  lines: string[],
-  fix: string | FixSuggestion,
-): void {
-  if (typeof fix === "string") {
-    lines.push(`  - **Fix:** ${esc(fix)}`);
-    return;
-  }
-
-  lines.push(`  - **Fix:** ${esc(fix.summary)}`);
-  lines.push(`    - Effort: ${fix.estimatedEffort} | WCAG: ${fix.wcagRef}`);
-  lines.push(`    - ${esc(fix.explanation)}`);
-
-  if (fix.codeBefore || fix.codeAfter) {
-    if (fix.codeBefore) {
-      lines.push("    ```diff");
-      lines.push(
-        fix.codeBefore
-          .split("\n")
-          .map((l) => `    - ${l}`)
-          .join("\n"),
-      );
-      if (fix.codeAfter) {
-        lines.push(
-          fix.codeAfter
-            .split("\n")
-            .map((l) => `    + ${l}`)
-            .join("\n"),
-        );
-      }
-      lines.push("    ```");
-    } else if (fix.codeAfter) {
-      lines.push("    ```html");
-      lines.push(`    ${fix.codeAfter}`);
-      lines.push("    ```");
-    }
-  }
-}
-
-function renderAIAnalysis(report: AuditReport): string {
-  const hasAny =
-    report.aiFocusOrderAnalysis ||
-    report.widgetClassifications?.length ||
-    report.accessibleNameSuggestions?.length ||
-    report.focusIndicatorScores?.length ||
-    report.aiSummary;
-
-  if (!hasAny) return "";
-
-  const lines: string[] = [];
-  lines.push("## AI Analysis");
-  lines.push("");
-
-  // Focus Order Analysis
-  if (report.aiFocusOrderAnalysis) {
-    lines.push("### Focus Order Analysis");
-    lines.push("");
-    const analysis = report.aiFocusOrderAnalysis;
-    if (typeof analysis === "string") {
-      lines.push(analysis);
-    } else {
-      const a = analysis as AIFocusOrderResult;
-      lines.push(`**Assessment:** ${a.overallAssessment}`);
-      lines.push("");
-      lines.push(a.summary);
-      if (a.issues.length > 0) {
-        lines.push("");
-        lines.push("| # | Severity | Description | Suggestion |");
-        lines.push("| --- | --- | --- | --- |");
-        for (const issue of a.issues) {
-          lines.push(
-            `| ${issue.elementIndex} | ${issue.severity} | ${esc(issue.description)} | ${esc(issue.suggestion)} |`,
-          );
-        }
-      }
-    }
-    lines.push("");
-  }
-
-  // Widget Classifications
-  if (report.widgetClassifications && report.widgetClassifications.length > 0) {
-    lines.push("### Widget Classifications");
-    lines.push("");
-    lines.push("| Element | Pattern | Confidence | Expected Keyboard |");
-    lines.push("| --- | --- | --- | --- |");
-    for (const w of report.widgetClassifications) {
-      const elLabel = esc(
-        w.element.accessibleName || w.element.role || w.element.tagName,
-      );
-      const keys = w.expectedKeyboard
-        .map((k) => `\`${k.key}\`: ${k.expectedBehavior}`)
-        .join("; ");
-      lines.push(
-        `| ${elLabel} (\`${esc(truncate(w.element.selector, 40))}\`) | ${w.pattern} | ${(w.confidence * 100).toFixed(0)}% | ${esc(keys)} |`,
-      );
-    }
-    lines.push("");
-  }
-
-  // Accessible Name Suggestions
-  if (
-    report.accessibleNameSuggestions &&
-    report.accessibleNameSuggestions.length > 0
-  ) {
-    lines.push("### Accessible Name Suggestions");
-    lines.push("");
-    lines.push(
-      "| Element | Suggested Label | Suggested Role | Confidence | Reasoning |",
-    );
-    lines.push("| --- | --- | --- | --- | --- |");
-    for (const s of report.accessibleNameSuggestions) {
-      const elLabel = esc(s.element.role || s.element.tagName);
-      lines.push(
-        `| ${elLabel} (\`${esc(truncate(s.element.selector, 40))}\`) | ${esc(s.suggestedLabel)} | ${s.suggestedRole || "-"} | ${(s.confidence * 100).toFixed(0)}% | ${esc(s.reasoning)} |`,
-      );
-    }
-    lines.push("");
-  }
-
-  // Focus Indicator Scores
-  if (report.focusIndicatorScores && report.focusIndicatorScores.length > 0) {
-    lines.push("### Focus Indicator Scores");
-    lines.push("");
-    lines.push("| Element | Score | Contrast | Visibility | Recommendation |");
-    lines.push("| --- | --- | --- | --- | --- |");
-    for (const f of report.focusIndicatorScores) {
-      const elLabel = esc(
-        f.element.accessibleName || f.element.role || f.element.tagName,
-      );
-      lines.push(
-        `| ${elLabel} (\`${esc(truncate(f.element.selector, 40))}\`) | ${f.score}/10 | ${f.contrast} | ${f.visibility} | ${esc(f.recommendation || "-")} |`,
-      );
-    }
-    lines.push("");
-  }
-
-  // AI Summary
-  if (report.aiSummary) {
-    lines.push("### AI Summary");
-    lines.push("");
-    renderAISummary(lines, report.aiSummary);
-    lines.push("");
-  }
-
-  return lines.join("\n");
-}
-
-function renderAISummary(
-  lines: string[],
-  summary: string | AIReportSummary,
-): void {
-  if (typeof summary === "string") {
-    lines.push(summary);
-    return;
-  }
-
-  const s = summary as AIReportSummary;
-  lines.push(s.overview);
-  lines.push("");
-
-  if (s.criticalIssues.length > 0) {
-    lines.push("**Critical Issues:**");
-    for (const issue of s.criticalIssues) {
-      lines.push(`- ${esc(issue)}`);
-    }
-    lines.push("");
-  }
-
-  if (s.prioritizedFixes.length > 0) {
-    lines.push("**Prioritized Fixes:**");
-    lines.push("");
-    lines.push("| Fix | Effort | Impact |");
-    lines.push("| --- | --- | --- |");
-    for (const f of s.prioritizedFixes) {
-      lines.push(`| ${esc(f.fix)} | ${f.effort} | ${f.impact} |`);
-    }
-    lines.push("");
-  }
-
-  lines.push(`**AI Severity Rating:** ${s.aiSeverityRating}/100`);
-  lines.push("");
-  lines.push(`**Recommendation:** ${esc(s.recommendation)}`);
 }
 
 function renderFooter(version: string, timestamp: string): string {
@@ -421,7 +228,6 @@ export function renderMarkdown(report: AuditReport): string {
   sections.push(renderFocusSequence(report));
   sections.push(renderSkipLink(report));
   sections.push(renderRules(report));
-  sections.push(renderAIAnalysis(report));
   sections.push(renderFooter(report.version, report.timestamp));
   return sections.filter(Boolean).join("\n");
 }

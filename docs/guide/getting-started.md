@@ -43,8 +43,8 @@ By default, Keylens:
 6. evaluates eight deterministic rules;
 7. prints a CLI report.
 
-No page or element screenshots are captured by the default CLI report, controls are
-not activated, and AI is disabled.
+No page screenshot is captured by the default CLI report, and controls are not
+activated.
 
 ## Save reports
 
