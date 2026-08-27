@@ -26,6 +26,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run docs:build
+        env:
+          # Internal/private repos serve Pages from a randomized
+          # <slug>.pages.github.io domain root, not <org>.github.io/<repo>/.
+          DOCS_BASE: "/"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
