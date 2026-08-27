@@ -126,11 +126,14 @@ establish a pass in another; pin CI and run separate browser jobs where required
 
 ## Focus-order heuristic
 
-The focus-order rule sorts rectangles top-to-bottom and then left-to-right for elements
-within 50 pixels vertically. It warns when an element differs by more than three
-positions. This is not language-direction aware and cannot understand intended reading
-order, component semantics, responsive relationships, or legitimate alternate
-sequences. Treat findings as review prompts.
+The focus-order rule compares each element's position in the observed Tab sequence
+against its position in DOM (content) order, captured before tabbing begins. It warns
+when an element differs by more than three positions. This is deliberate: WCAG 2.4.3
+explicitly allows focus order to differ from visual/pixel layout (e.g. a nav sidebar
+fully before a shorter main-content column), so the rule does not compare against
+screen position at all. It cannot understand intended reading order, component
+semantics, responsive relationships, or legitimate alternate sequences that also
+reorder DOM content. Treat findings as review prompts.
 
 ## Bounded and incomplete audits
 

@@ -10,7 +10,8 @@
     "missingFocusIndicator": true,
     "skipLink": true,
     "focusNotObscured": true,
-    "focusAfterInteraction": true
+    "focusAfterInteraction": true,
+    "rovingTabindexBroken": true
   },
   "reporters": ["cli", "json", "html"],
   "outputDir": "./keylens-report",

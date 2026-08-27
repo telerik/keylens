@@ -110,12 +110,12 @@ action, resulting focus, and duration.
 
 ### Reports
 
-| Reporter   | File                                                                 |
-| ---------- | -------------------------------------------------------------------- |
-| `cli`      | stdout                                                               |
-| `json`     | `keylens-report.json`                                                |
-| `html`     | `keylens-report.html`                                                |
-| `markdown` | `keylens-report.md`, or `keylens-report-multi.md` for multiple pages |
+| Reporter   | File                  |
+| ---------- | --------------------- |
+| `cli`      | stdout                |
+| `json`     | `keylens-report.json` |
+| `html`     | `keylens-report.html` |
+| `markdown` | `keylens-report.md`   |
 
 The JSON reporter omits binary assets and screenshot asset IDs. Use the programmatic
 projection APIs when inline bytes or external references are required.

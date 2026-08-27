@@ -14,7 +14,7 @@ export default defineConfig([
     splitting: false,
     target: "node26",
     outDir: "dist",
-    external: ["playwright", "@anthropic-ai/sdk"],
+    external: ["playwright"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
     },
@@ -40,7 +40,7 @@ export default defineConfig([
     target: "node26",
     outDir: "dist",
     banner: { js: "#!/usr/bin/env node\n" },
-    external: ["playwright", "@anthropic-ai/sdk"],
+    external: ["playwright"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
     },
@@ -55,12 +55,7 @@ export default defineConfig([
     target: "node26",
     outDir: "dist",
     banner: { js: "#!/usr/bin/env node\n" },
-    external: [
-      "playwright",
-      "@anthropic-ai/sdk",
-      "@modelcontextprotocol/sdk",
-      "zod",
-    ],
+    external: ["playwright", "@modelcontextprotocol/sdk", "zod"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
     },

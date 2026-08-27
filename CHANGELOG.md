@@ -10,16 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Execution profiles (`fast`, `balanced`, and `thorough`)
-- Enforced capture, interaction, phase-timeout, cancellation, and concurrency budgets
-- Browser reuse with bounded multi-page concurrency
+- Enforced capture, interaction, phase-timeout, and cancellation budgets
 - Structured progress events, typed operational errors, and stable CLI exit codes
 - Staged deterministic, experimental enrichment, and explicit rendering APIs
 - Asset projection modes and browser-safe `@telerik/keylens/guidance`
 - Report schema versioning, deterministic scores, and incomplete-score indicators
-- Support, security, migration, performance, and limitations documentation
+- Support, security, performance, and limitations documentation
 - Cross-browser CI, coverage thresholds, benchmark budgets, and packed-consumer checks
 - `keylens_get_rule_guidance` MCP tool: static rule remediation lookup (WCAG references,
-  guidance, code example, config key), independent of AI
+  guidance, code example, config key)
 
 ### Changed
 
@@ -27,15 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration accepts nested partial input and rejects unknown keys
 - Page screenshots are independent from bounded focus-state screenshot pairs
 - Interaction results distinguish passed, failed, skipped, and errored cases
-- Multi-page JSON uses `keylens-report.json`
-- AI, MCP, and the bundled agent skill are explicitly experimental
+- MCP and the bundled agent skill are explicitly experimental
 - Documentation reflects GitHub Packages distribution; no public npm or `1.0.0`
   availability is announced
 
 ### Removed
 
 - Legacy `captureElementScreenshots` and boolean `interactions` config shapes
-- Experimental AI analysis, MCP sampling, and the `--screenshots` per-element capture option
+- MCP sampling and the `--screenshots` per-element capture option
+- Multi-page auditing (`auditMultiple()`, multi-page CLI/MCP options, and multi-page report variants) in favor of a single-page-per-invocation contract
 
 ## [0.1.0] - 2026-02-20
 
@@ -53,18 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-page scanning with aggregate reports
 - ARIA attributes (`ariaAttributes`) and parent landmark context (`parentContext`) on `FocusedElement`
 - Rule metadata (`ruleName`, `ruleDescription`, `wcag`) on `RuleResult` for richer external consumption
-- MCP server for AI agent integration (`keylens-mcp` binary, stdio transport)
+- MCP server for agent integration (`keylens-mcp` binary, stdio transport)
 - MCP tools: `keylens_audit`, `keylens_audit_multiple`, `keylens_classify_widgets`, `keylens_validate_focus_order`
 - `keylens mcp` CLI subcommand to start the MCP server
 - Agent Skill (`/keylens`) for Claude Code and compatible agent platforms
-- MCP sampling support: AI features work without a separate API key when the MCP client supports sampling (e.g. Copilot, Claude Desktop)
-- `AITransport` interface for pluggable AI providers
 - `@modelcontextprotocol/sdk` and `zod` dependencies
-- AI-powered analysis (optional and experimental):
-  - Vision-based focus order validation
-  - Structured fix suggestions with before/after code
-  - Widget classification by APG pattern
-  - Accessible name inference
-  - Focus indicator quality scoring
-  - Natural language report summaries
-  - Cross-page pattern detection

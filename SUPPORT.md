@@ -7,14 +7,14 @@ published. During prerelease, only the latest package on the documented `@dev` c
 is supported; upgrade before reporting a defect.
 
 The deterministic CLI, report schema, and programmatic core are the intended stable
-surface. Experimental AI, MCP, and agent-skill contracts can change independently and
+surface. Experimental MCP and agent-skill contracts can change independently and
 do not carry compatibility guarantees.
 
 ## Runtime support
 
 | Surface           | Supported                                                                             |
 | ----------------- | ------------------------------------------------------------------------------------- |
-| Node.js           | 22 and later                                                                          |
+| Node.js           | 26 and later                                                                          |
 | Module system     | ESM                                                                                   |
 | Browser engines   | Chromium, Firefox, and WebKit revisions installed by the package's Playwright version |
 | Browser mode      | Headless and headed                                                                   |
@@ -31,9 +31,9 @@ server require Node.js and must not be bundled for browser execution.
 ## Compatibility
 
 Until `1.0.0` is actually published, prerelease changes can include breaking changes
-documented in the changelog and migration guide. A future stable major line will follow
-Semantic Versioning for the stable surface; this statement does not announce or
-schedule that release.
+documented in the changelog. A future stable major line will follow Semantic
+Versioning for the stable surface; this statement does not announce or schedule that
+release.
 
 Report JSON has its own `schemaVersion`. Consumers should validate that field rather
 than infer report compatibility from the package version.
@@ -47,7 +47,7 @@ Before opening an issue:
 3. include the command/config with credentials removed;
 4. attach semantic JSON where safe, after reviewing URLs, selectors, names, and HTML
    snippets for sensitive data;
-5. state whether the behavior reproduces with AI and interactions disabled.
+5. state whether the behavior reproduces with interactions disabled.
 
 Use [GitHub Issues](https://github.com/telerik/keylens/issues) for bugs and
 documentation requests. Use the private process in [SECURITY.md](SECURITY.md) for

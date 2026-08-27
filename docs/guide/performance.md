@@ -60,20 +60,3 @@ order-of-magnitude regressions against conservative ceilings:
 
 These are regression alarms, not product performance guarantees. Runtime configuration
 limits remain the authoritative per-audit bounds.
-
-### Historical pre-GA baseline
-
-The following baseline was recorded on 2026-07-24 with Node 25.0.0 on macOS arm64 and
-10 logical CPUs, before browser reuse and enforced GA budgets were complete:
-
-| Scenario     | Wall time | Peak RSS increase | Serialized report | Inline image bytes | Focus stops |
-| ------------ | --------: | ----------------: | ----------------: | -----------------: | ----------: |
-| Standard     |  2,890 ms |           27.2 MB |            122 KB |              56 KB |         101 |
-| Interactions |  2,415 ms |            0.9 MB |             44 KB |              20 KB |          31 |
-| Multi-page   |  4,045 ms |            1.5 MB |            341 KB |             198 KB |         153 |
-
-These numbers are retained only as migration context and must not be treated as current
-guarantees. The scenarios shared a process, so RSS deltas were directional. Current CI
-measurements record runtime metadata in an artifact. The generous gates above detect
-major regressions without treating one shared-runner sample as a precise service-level
-objective.

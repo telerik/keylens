@@ -13,9 +13,6 @@ const MARKER_BG = { r: 15, g: 23, b: 42, a: 200 };
 /**
  * Annotate a page screenshot with numbered circle markers at each
  * focused element's center position. Returns a new base64-encoded PNG.
- *
- * Used by the vision-based focus order validation to give the AI model
- * visual context about which element corresponds to which tab position.
  */
 export function annotateFocusOrder(
   screenshotBase64: string,

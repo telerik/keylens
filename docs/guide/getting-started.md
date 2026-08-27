@@ -40,7 +40,7 @@ By default, Keylens:
 3. tests the first five focus stops for a skip link;
 4. discovers interactive elements in the top-level document;
 5. presses Tab until focus cycles or the `balanced` profile reaches 500 attempts;
-6. evaluates eight deterministic rules;
+6. evaluates nine deterministic rules;
 7. prints a CLI report.
 
 No page screenshot is captured by the default CLI report, and controls are not
