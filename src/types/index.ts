@@ -8,8 +8,8 @@ export interface KeylensConfig {
   /** Execution accuracy/speed preset applied before explicit overrides */
   profile: ExecutionProfile;
 
-  /** URL(s) to audit */
-  urls: string[];
+  /** URL to audit (used only as a config-file fallback; audit()/auditBase() take the URL as an explicit argument) */
+  url?: string;
 
   /** Viewport dimensions */
   viewport: {
@@ -44,9 +44,6 @@ export interface KeylensConfig {
   /** Browser to use */
   browser: "chromium" | "firefox" | "webkit";
 
-  /** AI configuration */
-  ai: AIConfig;
-
   /** Navigation timeout in ms (default: 30000) */
   navigationTimeout: number;
 
@@ -55,9 +52,6 @@ export interface KeylensConfig {
 
   /** Bounded post-activation focus testing */
   interactions: InteractionConfig;
-
-  /** Multi-page browser reuse and concurrency policy */
-  multiPage: MultiPageConfig;
 
   /** Bounded screenshot capture policy */
   capture: CaptureConfig;
@@ -73,8 +67,6 @@ export type ExecutionProfile = "fast" | "balanced" | "thorough";
 export type PageCaptureMode = "none" | "viewport" | "full";
 
 export interface CaptureLimits {
-  /** Maximum number of focused elements with screenshot pairs */
-  maxElements?: number;
   /** Maximum width or height of a captured image */
   maxDimension?: number;
   /** Maximum decoded pixels across captured assets */
@@ -86,8 +78,6 @@ export interface CaptureLimits {
 export interface CaptureConfig {
   /** Page-level screenshot behavior */
   page: PageCaptureMode;
-  /** Capture focused and unfocused element screenshots */
-  elements: boolean;
   /** Resource bounds for captured assets */
   limits: CaptureLimits;
 }
@@ -124,11 +114,6 @@ export interface InteractionConfig {
   navigation: InteractionNavigationPolicy;
   /** Skip controls whose accessible name indicates a destructive action */
   excludeDestructive: boolean;
-}
-
-export interface MultiPageConfig {
-  /** Maximum isolated browser contexts audited concurrently */
-  concurrency: number;
 }
 
 // ─── Prepare Phase (overlay/consent-banner dismissal) ────────────
@@ -217,36 +202,20 @@ export interface PhaseTimeoutConfig {
   rules?: number;
   /** Interaction phase wall-time budget */
   interactions?: number;
-  /** Experimental AI enrichment wall-time budget */
-  ai?: number;
   /** Reporter/rendering wall-time budget */
   reporters?: number;
 }
 
-export type AIConfigInput = Partial<Omit<AIConfig, "features" | "limits">> & {
-  features?: Partial<AIConfig["features"]>;
-  limits?: Partial<NonNullable<AIConfig["limits"]>>;
-};
-
 export interface KeylensConfigInput extends Omit<
   Partial<KeylensConfig>,
-  | "viewport"
-  | "rules"
-  | "ai"
-  | "capture"
-  | "interactions"
-  | "multiPage"
-  | "timeouts"
-  | "prepare"
+  "viewport" | "rules" | "capture" | "interactions" | "timeouts" | "prepare"
 > {
   viewport?: Partial<KeylensConfig["viewport"]>;
   rules?: Partial<RuleConfig>;
-  ai?: AIConfigInput;
   capture?: Partial<Omit<CaptureConfig, "limits">> & {
     limits?: Partial<CaptureLimits>;
   };
   interactions?: Partial<InteractionConfig>;
-  multiPage?: Partial<MultiPageConfig>;
   timeouts?: Partial<PhaseTimeoutConfig>;
   prepare?: Partial<PrepareConfig>;
 }
@@ -261,13 +230,6 @@ export interface AuditOptions extends KeylensConfigInput {
 }
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
-
-export interface AIEnrichmentOptions {
-  ai?: AIConfigInput;
-  signal?: AbortSignal;
-  onEvent?: (event: AuditEvent) => void;
-  logLevel?: LogLevel;
-}
 
 export interface RenderOptions {
   signal?: AbortSignal;
@@ -292,6 +254,8 @@ export interface RuleConfig {
   focusNotObscured: boolean;
   /** Detect focus lost after clicking interactive elements */
   focusAfterInteraction: boolean;
+  /** Detect composite widget members unreachable via arrow keys despite roving tabindex markup */
+  rovingTabindexBroken: boolean;
 }
 
 export interface WcagReference {
@@ -310,50 +274,6 @@ export interface RuleRemediation {
   wcag: readonly WcagReference[];
 }
 
-/** Provider-agnostic transport for AI queries (e.g. MCP sampling). */
-export interface AITransport {
-  query(prompt: string, signal?: AbortSignal): Promise<string>;
-  queryVision(
-    prompt: string,
-    images: Array<{ base64: string; mediaType: string }>,
-    signal?: AbortSignal,
-  ): Promise<string>;
-}
-
-export interface AIConfig {
-  /** Enable AI-powered analysis */
-  enabled: boolean;
-  /** AI provider */
-  provider: "anthropic" | "openai";
-  /** API key (or use env var KEYLENS_AI_API_KEY) */
-  apiKey?: string;
-  /** AI model to use */
-  model?: string;
-  /** Base URL for AI provider (Azure AI Foundry, custom OpenAI-compatible endpoints) */
-  baseURL?: string;
-  /** Custom AI transport (e.g. MCP sampling). Takes priority over direct API when no apiKey is set. */
-  transport?: AITransport;
-  /** Which AI features to enable */
-  features: {
-    focusOrderValidation: boolean;
-    fixSuggestions: boolean;
-    widgetClassification: boolean;
-    reportSummary: boolean;
-    focusIndicatorQuality: boolean;
-    accessibleNameInference: boolean;
-    crossPagePatterns: boolean;
-  };
-  /** Batch/element limits for AI features */
-  limits?: {
-    /** Fix suggestion chunk size (default: 10) */
-    batchSize?: number;
-    /** Max widgets for classification (default: 20) */
-    maxWidgets?: number;
-    /** Max elements per AI feature call — name inference, focus scoring, cross-page (default: 10) */
-    maxElements?: number;
-  };
-}
-
 export type ReporterType = "cli" | "json" | "html" | "markdown";
 
 // ─── Execution Contracts ─────────────────────────────────────────
@@ -369,7 +289,6 @@ export type AuditPhase =
   | "crawl"
   | "rules"
   | "interactions"
-  | "ai"
   | "reporters"
   | "cleanup";
 
@@ -424,12 +343,7 @@ export type AuditEvent =
     });
 
 export type AuditAssetType =
-  | "page-screenshot"
-  | "focused-element-screenshot"
-  | "unfocused-element-screenshot"
-  | "html-report"
-  | "json-report"
-  | "markdown-report";
+  "page-screenshot" | "html-report" | "json-report" | "markdown-report";
 
 export type AuditAssetStorage =
   | { kind: "inline"; data: string; encoding: "base64" | "utf8" }
@@ -455,32 +369,36 @@ export interface AssetProjectionOptions {
   ) => Extract<AuditAssetStorage, { kind: "file" | "url" }>;
 }
 
-export interface EffectiveAIConfig extends Omit<
-  AIConfig,
-  "apiKey" | "transport"
-> {
-  apiKeyConfigured: boolean;
-  transportConfigured: boolean;
-}
-
-export interface EffectiveKeylensConfig extends Omit<KeylensConfig, "ai"> {
-  ai: EffectiveAIConfig;
-}
-
 export interface AuditTimings {
   crawl: number;
   rules: number;
-  ai?: number;
-  total: number;
-}
-
-export interface MultiPageAuditTimings {
-  pages: number;
-  ai?: number;
   total: number;
 }
 
 // ─── Crawl Results ───────────────────────────────────────────────
+
+/** All computed style properties for an element, keyed by CSS property name. */
+export type ComputedStyleMap = Record<string, string>;
+
+/**
+ * Computed style snapshot compared between a focused and unfocused capture of
+ * the same element to detect a visible focus indicator (WCAG 2.4.7). Captures
+ * the *entire* computed style declaration (not a curated property subset) for
+ * the element itself, its ::before/::after pseudo-elements, and a chain of
+ * ancestors (for :focus-within patterns, which are commonly applied several
+ * levels up — e.g. a form-group/fieldset wrapper around a label+input, not
+ * just the element's immediate parent) — any CSS-expressible visual change
+ * shows up as a value difference somewhere in one of these maps.
+ */
+export interface FocusStyleSnapshot {
+  self: ComputedStyleMap;
+  before: ComputedStyleMap;
+  after: ComputedStyleMap;
+  /** Computed styles of ancestors, nearest first (index 0 = immediate parent). */
+  ancestors?: ComputedStyleMap[];
+  /** Computed styles of descendants (bounded breadth-first walk), document order. */
+  descendants?: ComputedStyleMap[];
+}
 
 export interface FocusedElement {
   /** Position in the tab sequence (1-indexed) */
@@ -510,21 +428,25 @@ export interface FocusedElement {
   /** Whether the element is obscured by other content when focused (WCAG 2.4.11) */
   isObscured?: boolean;
 
-  /** Asset containing the focused element screenshot */
-  focusedScreenshotAssetId?: string;
-
-  /** Asset containing the unfocused element screenshot */
-  unfocusedScreenshotAssetId?: string;
-
   /** Element's bounding rectangle in absolute page coordinates (accounts for scroll) */
   pageRect?: BoundingRect;
 
-  /** Computed focus-related CSS styles (captured when --screenshots enabled) */
-  computedFocusStyles?: {
-    outline: string;
-    boxShadow: string;
-    border: string;
-  };
+  /** Computed style snapshot captured the moment this element received focus */
+  focusedStyleSnapshot?: FocusStyleSnapshot;
+
+  /** Computed style snapshot captured for this same element once focus moved away */
+  unfocusedStyleSnapshot?: FocusStyleSnapshot;
+
+  /**
+   * Screenshot pixel-diff second opinion, run only when the computed-style
+   * diff found no change (crawler confirmation phase, after the main tab
+   * crawl). true = pixels differ (indicator confirmed present despite no
+   * style diff — e.g. canvas-painted or portaled indicators); false =
+   * pixels also show no change (confirmed missing); undefined = not run
+   * (a style diff already existed, or confirmation capture failed/was
+   * capped).
+   */
+  focusIndicatorPixelConfirmed?: boolean;
 
   /** Raw outer HTML (truncated) */
   outerHTML: string;
@@ -560,6 +482,11 @@ export interface InteractiveElement {
   tabindexAttr: number | null;
   /** Raw outer HTML (truncated) */
   outerHTML: string;
+  /**
+   * Selector of the nearest ancestor composite widget container (e.g. `[role="tablist"]`)
+   * when this element is a roving-tabindex member (e.g. `[role="tab"]`). Null otherwise.
+   */
+  rovingContainerSelector: string | null;
 }
 
 export interface SkipLinkResult {
@@ -619,6 +546,36 @@ export interface CrawlResult {
 
   /** Capture resource usage and skipped/failed attempts */
   capture: CaptureSummary;
+
+  /** Arrow-key reachability verification results for roving-tabindex composite widgets */
+  rovingTabindexGroups?: RovingTabindexGroupResult[];
+}
+
+/**
+ * Result of verifying that every member of a roving-tabindex composite widget
+ * (e.g. a tablist) is actually reachable via arrow keys from the active member -
+ * not just assumed from `tabindex="-1"` markup.
+ */
+export interface RovingTabindexGroupResult {
+  /** Selector of the composite container element (e.g. the `[role="tablist"]`) */
+  containerSelector: string;
+
+  /** Role of the composite container */
+  containerRole: string;
+
+  /** Total number of members discovered in this container */
+  totalMembers: number;
+
+  /**
+   * Members confirmed reachable via arrow keys, in traversal order (the
+   * active/entry member - the one that's a real Tab stop - always comes
+   * first). Each entry includes a live-captured page-relative bounding rect
+   * so reports can plot these as focus-map markers.
+   */
+  reachedViaArrowKeys: Array<{ selector: string; pageRect: BoundingRect }>;
+
+  /** Selectors of members that could not be reached via arrow keys */
+  unreachedViaArrowKeys: string[];
 }
 
 // ─── Interaction Results ─────────────────────────────────────────
@@ -674,41 +631,6 @@ export interface InteractionSummary {
   errors: number;
 }
 
-// ─── Widget Classification ──────────────────────────────────────
-
-export type APGPattern =
-  | "dialog"
-  | "menu"
-  | "accordion"
-  | "tabs"
-  | "combobox"
-  | "disclosure"
-  | "tooltip"
-  | "unknown";
-
-export interface WidgetClassification {
-  /** The classified element */
-  element: {
-    selector: string;
-    tagName: string;
-    role: string;
-    accessibleName: string;
-    outerHTML: string;
-  };
-
-  /** The identified WAI-ARIA APG pattern */
-  pattern: APGPattern;
-
-  /** Confidence score (0-1) */
-  confidence: number;
-
-  /** Expected keyboard interactions for this pattern */
-  expectedKeyboard: Array<{
-    key: string;
-    expectedBehavior: string;
-  }>;
-}
-
 // ─── Rule Results ────────────────────────────────────────────────
 
 export type Severity = "error" | "warning" | "info";
@@ -736,9 +658,6 @@ export interface RuleViolation {
 
   /** WCAG success criteria reference */
   wcag?: string[];
-
-  /** AI-generated fix suggestion (string for backward compat, or structured) */
-  fixSuggestion?: string | FixSuggestion;
 
   /** Impact description */
   impact: string;
@@ -814,7 +733,7 @@ export interface AuditReport {
   url: string;
 
   /** Configuration used */
-  config: EffectiveKeylensConfig;
+  config: KeylensConfig;
 
   /** Wall-clock duration by execution phase */
   timings: AuditTimings;
@@ -852,21 +771,6 @@ export interface AuditReport {
     scoreComplete: boolean;
   };
 
-  /** AI-generated summary (if enabled) — string for backward compat, or structured */
-  aiSummary?: string | AIReportSummary;
-
-  /** AI focus order analysis (if enabled) — string for text-only, structured for vision */
-  aiFocusOrderAnalysis?: string | AIFocusOrderResult;
-
-  /** AI widget classifications (if enabled) */
-  widgetClassifications?: WidgetClassification[];
-
-  /** AI accessible name suggestions (if enabled) */
-  accessibleNameSuggestions?: AccessibleNameSuggestion[];
-
-  /** AI focus indicator quality scores (if enabled and --screenshots used) */
-  focusIndicatorScores?: FocusIndicatorScore[];
-
   /** Asset containing the page screenshot */
   pageScreenshotAssetId?: string;
 
@@ -882,161 +786,9 @@ export interface AuditReport {
   /** Per-case post-activation outcomes */
   interactionResults?: InteractionResult[];
 
+  /** Arrow-key reachability verification results for roving-tabindex composite widgets */
+  rovingTabindexGroups?: RovingTabindexGroupResult[];
+
   /** Page dimensions for focus map overlay rendering */
   pageDimensions?: { width: number; height: number };
-}
-
-// ─── Multi-Page Report ───────────────────────────────────────────
-
-export interface MultiPageReport {
-  /** Version of the serialized report contract */
-  schemaVersion: AuditReportSchemaVersion;
-
-  /** Tool version */
-  version: string;
-
-  /** Timestamp of the audit */
-  timestamp: string;
-
-  /** URLs audited */
-  urls: string[];
-
-  /** Individual page reports */
-  pages: AuditReport[];
-
-  /** Wall-clock duration for page work and optional enrichment */
-  timings: MultiPageAuditTimings;
-
-  /** Aggregate summary across all pages */
-  summary: {
-    totalPages: number;
-    totalErrors: number;
-    totalWarnings: number;
-    totalInfo: number;
-    ruleErrors: number;
-    pagesWithErrors: number;
-    /** Average deterministic score across all pages (0–100) */
-    score: number;
-    /** False when any page has an incomplete deterministic score */
-    scoreComplete: boolean;
-  };
-
-  /** AI-generated cross-page summary (if enabled) — string or structured */
-  aiSummary?: string | AIReportSummary;
-
-  /** AI-detected cross-page patterns (if multi-page audit with AI) */
-  crossPagePatterns?: CrossPagePattern[];
-}
-
-// ─── AI Types ────────────────────────────────────────────────────
-
-// ─── Structured AI Results (Stage 5) ─────────────────────────────
-
-export interface FocusOrderIssue {
-  /** Index in the focus sequence (1-based) */
-  elementIndex: number;
-  /** Description of the issue */
-  description: string;
-  /** Severity of this specific issue */
-  severity: "error" | "warning" | "info";
-  /** Suggested fix */
-  suggestion: string;
-}
-
-export interface AIFocusOrderResult {
-  /** Overall summary of focus order quality */
-  summary: string;
-  /** Specific issues found */
-  issues: FocusOrderIssue[];
-  /** Overall assessment: good, acceptable, or poor */
-  overallAssessment: "good" | "acceptable" | "poor";
-}
-
-export interface FixSuggestion {
-  /** Brief summary of the fix */
-  summary: string;
-  /** Original code (if applicable) */
-  codeBefore?: string;
-  /** Suggested replacement code */
-  codeAfter?: string;
-  /** WCAG success criteria reference */
-  wcagRef: string;
-  /** Estimated effort: low, medium, or high */
-  estimatedEffort: "low" | "medium" | "high";
-  /** Detailed explanation of why this fix works */
-  explanation: string;
-}
-
-export interface AccessibleNameSuggestion {
-  /** The element being analyzed */
-  element: {
-    selector: string;
-    tagName: string;
-    role: string;
-    outerHTML: string;
-  };
-  /** Suggested accessible label */
-  suggestedLabel: string;
-  /** Suggested role (if current role is incorrect) */
-  suggestedRole?: string;
-  /** Confidence score (0-1) */
-  confidence: number;
-  /** Reasoning for the suggestion */
-  reasoning: string;
-}
-
-// ─── Structured AI Results (Stage 6) ─────────────────────────────
-
-export interface FocusIndicatorScore {
-  /** The scored element */
-  element: {
-    selector: string;
-    tagName: string;
-    role: string;
-    accessibleName: string;
-  };
-  /** Quality score from 1 (worst) to 10 (best) */
-  score: number;
-  /** Contrast assessment */
-  contrast: "sufficient" | "low" | "very-low";
-  /** Visibility assessment */
-  visibility: "clear" | "subtle" | "nearly-invisible";
-  /** AI recommendation for improvement (only when score <= 7) */
-  recommendation?: string;
-}
-
-export interface AIReportSummary {
-  /** Brief overall assessment (2-3 sentences) */
-  overview: string;
-  /** Most critical issues found */
-  criticalIssues: string[];
-  /** Prioritized fixes with effort estimates */
-  prioritizedFixes: Array<{
-    fix: string;
-    effort: "low" | "medium" | "high";
-    impact: "high" | "medium" | "low";
-  }>;
-  /** AI-generated usability severity rating 1-100 (non-deterministic; see summary.score for the stable rule-based score) */
-  aiSeverityRating: number;
-  /** One-sentence recommendation for next steps */
-  recommendation: string;
-}
-
-export type CrossPagePatternType =
-  | "inconsistent-order"
-  | "missing-component"
-  | "inconsistent-focus-style"
-  | "inconsistent-skip-link";
-
-export interface CrossPagePattern {
-  /** The type of cross-page inconsistency */
-  type: CrossPagePatternType;
-  /** Human-readable description of the pattern */
-  description: string;
-  /** URLs of affected pages */
-  affectedPages: string[];
-  /** Severity of this inconsistency */
-  severity: Severity;
-  /** AI-generated suggestion for fixing */
-  suggestion: string;
 }

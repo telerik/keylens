@@ -1,12 +1,7 @@
 import { Command } from "commander";
 import ora from "ora";
 import chalk from "chalk";
-import {
-  audit,
-  auditMultiple,
-  renderAuditReport,
-  renderMultiPageReport,
-} from "../index.js";
+import { audit, renderAuditReport } from "../index.js";
 import {
   loadConfigInput,
   DEFAULT_CONFIG,
@@ -43,43 +38,13 @@ function parseViewport(value: string): { width: number; height: number } {
   return { width: Number(match[1]), height: Number(match[2]) };
 }
 
-interface CLIProgressState {
-  captureElements: boolean;
-  focusedCaptures: number;
-  unfocusedCaptures: number;
-  captureBytes: number;
-}
-
-function formatProgressBytes(bytes: number): string {
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 function updateProgress(
   spinner: ReturnType<typeof ora>,
   event: AuditEvent,
-  state: CLIProgressState,
 ): void {
   const page = event.url ? ` ${event.url}` : "";
   if (event.type === "crawl-progress") {
-    const capture = state.captureElements
-      ? `, ${Math.min(state.focusedCaptures, state.unfocusedCaptures)} focus pairs, ${formatProgressBytes(state.captureBytes)}`
-      : "";
-    spinner.text = `Tabbing${state.captureElements ? " and capturing focus states" : ""}${page}: ${event.tabsAttempted}/${event.maxTabs} attempts, ${event.elementsFocused} focused${capture}`;
-  } else if (event.type === "asset-captured") {
-    if (event.assetType === "focused-element-screenshot") {
-      state.focusedCaptures++;
-      state.captureBytes += event.byteLength;
-    } else if (event.assetType === "unfocused-element-screenshot") {
-      state.unfocusedCaptures++;
-      state.captureBytes += event.byteLength;
-    }
-    if (
-      event.assetType === "focused-element-screenshot" ||
-      event.assetType === "unfocused-element-screenshot"
-    ) {
-      spinner.text = `Capturing focus states${page}: ${Math.min(state.focusedCaptures, state.unfocusedCaptures)} pairs, ${formatProgressBytes(state.captureBytes)}`;
-    }
+    spinner.text = `Tabbing${page}: ${event.tabsAttempted}/${event.maxTabs} attempts, ${event.elementsFocused} focused`;
   } else if (event.type === "interaction-progress") {
     spinner.text = `Testing interactions${page}: ${event.completed}/${event.maxCases} completed`;
   } else if (event.type === "rule-started") {
@@ -108,7 +73,7 @@ program
 program
   .command("audit")
   .alias("scan")
-  .description("Run a keyboard navigation audit on one or more URLs")
+  .description("Run a keyboard navigation audit on a URL")
   .argument("[url]", "URL to audit (reads from config if omitted)")
   .option("-c, --config <path>", "path to keylens.config.json")
   .option("--profile <profile>", "execution profile (fast, balanced, thorough)")
@@ -127,25 +92,10 @@ program
   .option("--max-tabs <n>", "maximum tab presses")
   .option("--tab-delay <ms>", "delay between tab presses in ms (min: 10)")
   .option("--viewport <WxH>", "viewport dimensions (e.g., 1280x720)")
-  .option("--ai", "enable experimental AI-powered analysis", false)
-  .option(
-    "--ai-model <model>",
-    "AI model to use (default: claude-sonnet-4-20250514)",
-  )
-  .option("--ai-provider <provider>", "AI provider (anthropic, openai)")
-  .option(
-    "--ai-base-url <url>",
-    "AI provider base URL (for Azure AI Foundry, custom endpoints)",
-  )
   .option("--timeout <ms>", "navigation timeout in ms")
   .option(
     "--page-screenshot <mode>",
     "page screenshot mode (none, viewport, full); defaults to full for HTML reports",
-  )
-  .option(
-    "--screenshots",
-    "capture per-element screenshots for focus indicator diffing",
-    false,
   )
   .option(
     "--interactions",
@@ -202,15 +152,11 @@ program
         ? (options.output.split(",") as ReporterType[])
         : [...(fileConfig.reporters ?? DEFAULT_CONFIG.reporters)];
 
-      const urls: string[] = url
-        ? [url]
-        : fileConfig.urls && fileConfig.urls.length > 0
-          ? fileConfig.urls
-          : [];
+      const targetUrl = url ?? fileConfig.url;
 
-      if (urls.length === 0) {
+      if (!targetUrl) {
         throw new ConfigError(
-          "No URL provided. Pass a URL argument or set urls in config file.",
+          "No URL provided. Pass a URL argument or set url in config file.",
         );
       }
 
@@ -218,8 +164,6 @@ program
         options.pageScreenshot ??
         fileConfig.capture?.page ??
         (reporters.includes("html") ? "full" : "none");
-      const captureElements =
-        options.screenshots || (fileConfig.capture?.elements ?? false);
 
       const CONSENT_PREFERENCES: PrepareConsentPreference[] = [
         "reject",
@@ -240,7 +184,7 @@ program
       const config: KeylensConfig = normalizeConfig({
         ...fileConfig,
         ...(options.profile ? { profile: options.profile } : {}),
-        urls,
+        url: targetUrl,
         ...(viewport ? { viewport } : {}),
         rules: {
           ...fileConfig.rules,
@@ -256,7 +200,6 @@ program
         capture: {
           ...fileConfig.capture,
           page: pageCapture as PageCaptureMode,
-          elements: captureElements,
           limits: {
             ...fileConfig.capture?.limits,
           },
@@ -269,9 +212,6 @@ program
             ...(fileConfig.interactions?.actions ??
               DEFAULT_CONFIG.interactions.actions),
           ],
-        },
-        multiPage: {
-          ...fileConfig.multiPage,
         },
         timeouts: {
           ...fileConfig.timeouts,
@@ -295,23 +235,6 @@ program
         ...(options.timeout
           ? { navigationTimeout: Number(options.timeout) }
           : {}),
-        ai: {
-          ...fileConfig.ai,
-          enabled: options.ai || fileConfig.ai?.enabled || false,
-          apiKey: fileConfig.ai?.apiKey,
-          model: options.aiModel || fileConfig.ai?.model,
-          provider:
-            options.aiProvider ||
-            fileConfig.ai?.provider ||
-            DEFAULT_CONFIG.ai.provider,
-          baseURL: options.aiBaseUrl || fileConfig.ai?.baseURL,
-          features: {
-            ...fileConfig.ai?.features,
-          },
-          limits: {
-            ...fileConfig.ai?.limits,
-          },
-        },
       });
 
       spinner = ora({
@@ -323,61 +246,26 @@ program
         phase: "setup",
         timeoutKind: "total",
       });
-      const progressStates = new Map<string, CLIProgressState>();
       const onEvent = (event: AuditEvent) => {
-        const key = event.url ?? "";
-        let state = progressStates.get(key);
-        if (!state) {
-          state = {
-            captureElements: config.capture.elements,
-            focusedCaptures: 0,
-            unfocusedCaptures: 0,
-            captureBytes: 0,
-          };
-          progressStates.set(key, state);
-        }
-        updateProgress(spinner!, event, state);
+        updateProgress(spinner!, event);
       };
 
-      if (urls.length === 1) {
-        const report = await audit(urls[0]!, {
-          ...config,
-          logLevel,
-          signal: totalScope.signal,
-          onEvent,
-        });
-        spinner.stop();
-        await renderAuditReport(report, config.reporters, config.outputDir, {
-          logLevel,
-          signal: totalScope.signal,
-        });
+      const report = await audit(targetUrl, {
+        ...config,
+        logLevel,
+        signal: totalScope.signal,
+        onEvent,
+      });
+      spinner.stop();
+      await renderAuditReport(report, config.reporters, config.outputDir, {
+        logLevel,
+        signal: totalScope.signal,
+      });
 
-        if (report.summary.errors > 0) {
-          process.exitCode = 2;
-        } else if (report.summary.totalErrors > 0) {
-          process.exitCode = 1;
-        }
-      } else {
-        // Multi-page audit
-        const multiReport = await auditMultiple(urls, {
-          ...config,
-          logLevel,
-          signal: totalScope.signal,
-          onEvent,
-        });
-        spinner.stop();
-        await renderMultiPageReport(
-          multiReport,
-          config.reporters,
-          config.outputDir,
-          { logLevel, signal: totalScope.signal },
-        );
-
-        if (multiReport.summary.ruleErrors > 0) {
-          process.exitCode = 2;
-        } else if (multiReport.summary.totalErrors > 0) {
-          process.exitCode = 1;
-        }
+      if (report.summary.errors > 0) {
+        process.exitCode = 2;
+      } else if (report.summary.totalErrors > 0) {
+        process.exitCode = 1;
       }
     } catch (error) {
       spinner?.fail(chalk.red(`Audit failed: ${(error as Error).message}`));
@@ -414,18 +302,13 @@ program
       $schema:
         "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
       profile: "balanced",
-      urls: ["https://example.com"],
+      url: "https://example.com",
       viewport: { width: 1280, height: 720 },
       tabDelay: 250,
       rules: DEFAULT_CONFIG.rules,
       reporters: ["cli", "json"],
       outputDir: "./keylens-report",
       browser: "chromium",
-      ai: {
-        enabled: false,
-        provider: "anthropic",
-        features: DEFAULT_CONFIG.ai.features,
-      },
     };
 
     await writeFile(

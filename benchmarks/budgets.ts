@@ -17,20 +17,9 @@ export const BENCHMARK_BUDGETS: Record<string, BenchmarkBudget> = {
     rssDeltaBytes: 256 * MIB,
     compactSerializedBytes: 512 * 1024,
   },
-  "element-screenshots": {
-    wallTimeMs: 30_000,
-    rssDeltaBytes: 512 * MIB,
-    compactSerializedBytes: 512 * 1024,
-    inlineScreenshotBytes: 50 * MIB,
-  },
   interactions: {
     wallTimeMs: 30_000,
     rssDeltaBytes: 256 * MIB,
-    compactSerializedBytes: 1024 * 1024,
-  },
-  "multi-page": {
-    wallTimeMs: 30_000,
-    rssDeltaBytes: 512 * MIB,
     compactSerializedBytes: 1024 * 1024,
   },
 };

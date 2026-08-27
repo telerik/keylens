@@ -38,7 +38,7 @@ aren't dominated by banner noise. Disable with `--keep-overlays`; see
 
 > [!IMPORTANT]
 > The deterministic CLI, reports, and programmatic core are the stable surface.
-> AI enrichment and MCP are experimental and may change independently.
+> MCP distribution and interaction testing are experimental and may change independently.
 
 ## Install from GitHub Packages
 
@@ -73,12 +73,9 @@ npx keylens audit https://example.com --output cli,json
 # HTML focus map (implicitly requests a full-page capture)
 npx keylens audit https://example.com --output html
 
-# Focus-state screenshot pairs for missing-focus-indicator evidence
-npx keylens audit https://example.com --screenshots --output cli,json
-
 # Exhaustive within explicit enforced budgets
 npx keylens audit https://example.com --profile thorough \
-  --screenshots --interactions --output cli,json,html,markdown \
+  --interactions --output cli,json,html,markdown \
   --config keylens.config.json
 ```
 
@@ -102,10 +99,10 @@ Programmatic analysis is silent and in-memory by default. It does not print repo
 write files unless a renderer is called explicitly.
 
 ```ts
-import { auditBase, renderAuditReport } from "@telerik/keylens";
+import { audit, renderAuditReport } from "@telerik/keylens";
 
 const controller = new AbortController();
-const report = await auditBase("https://example.com", {
+const report = await audit("https://example.com", {
   profile: "balanced",
   capture: { page: "none" },
   signal: controller.signal,
@@ -120,11 +117,7 @@ const report = await auditBase("https://example.com", {
 await renderAuditReport(report, ["json"], "./keylens-report");
 ```
 
-Use `auditBase()` / `auditMultipleBase()` for deterministic analysis,
-`enrichAudit()` / `enrichMultiPageAudit()` for experimental AI, and
-`renderAuditReport()` / `renderMultiPageReport()` for output. The convenience
-`audit()` and `auditMultiple()` functions still return in-memory reports and only
-enrich when AI is enabled.
+Use `audit()` for deterministic analysis and `renderAuditReport()` for output.
 
 The browser-safe `@telerik/keylens/guidance` subpath exposes rule remediation and WCAG
 references without importing Playwright:
@@ -133,16 +126,12 @@ references without importing Playwright:
 import { getRuleRemediation } from "@telerik/keylens/guidance";
 ```
 
-## Screenshots and interactions
+## Page screenshots and interactions
 
 - `capture.page` / `--page-screenshot` controls one page image (`none`, `viewport`, or
   `full`). HTML output defaults it to `full`; other CLI output defaults it to `none`.
-- `capture.elements` / `--screenshots` captures focused and unfocused element images.
-  The `missing-focus-indicator` rule only performs pixel comparison when both images in
-  a pair exist.
-- Capture is bounded by element count, dimensions, decoded pixels, and encoded bytes.
-  Reports expose skipped/failed capture totals; the CLI shows complete and partial pair
-  coverage. Missing pairs degrade to the limited inline-style heuristic.
+- Page capture is bounded by dimensions, decoded pixels, and encoded bytes. Reports
+  expose skipped/failed capture totals.
 - Interactions are experimental and off by default. They are bounded, reload-isolated
   by default, skip likely destructive controls, and block top-level navigation.
   Inspect `interactionResults` in the in-memory report or JSON projection for every
@@ -163,15 +152,11 @@ accessibility conformance evidence.
 Reports carry an independent `schemaVersion`. A score is marked incomplete when a rule
 could not be evaluated; do not compare that score as if it covered all enabled rules.
 
-## Experimental AI and MCP
+## MCP distribution
 
-AI can add fix suggestions, visual focus-order analysis, summaries, widget
-classification, name suggestions, focus-indicator scoring, and cross-page patterns.
-It is nondeterministic and can send HTML snippets, element metadata, focus data, and
-images to the configured provider. It is disabled by default.
-
-The `@telerik/keylens/mcp` subpath and `keylens-mcp` binary expose experimental MCP
-tools over stdio. Review [AI](docs/guide/ai.md) and [MCP](docs/guide/mcp.md) before use.
+The `@telerik/keylens/mcp` subpath and `keylens-mcp` binary expose the deterministic
+single-page audit and rule guidance tools over stdio. Review [MCP](docs/guide/mcp.md)
+before use.
 
 ## Support and security
 

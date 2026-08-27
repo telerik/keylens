@@ -43,8 +43,8 @@ By default, Keylens:
 6. evaluates eight deterministic rules;
 7. prints a CLI report.
 
-No page or element screenshots are captured by the default CLI report, controls are
-not activated, and AI is disabled.
+No page screenshot is captured by the default CLI report, and controls are not
+activated.
 
 ## Save reports
 
@@ -69,16 +69,11 @@ npx keylens audit https://example.com/app \
 settling delay. Neither option proves that all later lazy content or application states
 have loaded. Audit significant routes and states separately.
 
-## Audit multiple pages
+## Audit using a config file
 
 ```json
 {
-  "urls": [
-    "https://example.com/",
-    "https://example.com/products",
-    "https://example.com/checkout"
-  ],
-  "multiPage": { "concurrency": 2 },
+  "url": "https://example.com/",
   "reporters": ["cli", "json"]
 }
 ```
@@ -87,8 +82,7 @@ have loaded. Audit significant routes and states separately.
 npx keylens audit --config keylens.config.json
 ```
 
-Multi-page audits reuse one browser, create isolated contexts, preserve input order in
-the report, and process at most the configured concurrency.
+A CLI URL argument takes precedence over the config file's `url`.
 
 ## Next steps
 

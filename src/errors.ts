@@ -12,7 +12,6 @@ export type KeylensErrorCode =
   | "NAVIGATION_ERROR"
   | "RULE_ERROR"
   | "REPORTER_ERROR"
-  | "AI_ERROR"
   | "INTERNAL_ERROR";
 
 export interface KeylensErrorOptions {

@@ -6,7 +6,6 @@ import { tmpdir } from "os";
 import { join, resolve } from "path";
 import {
   audit,
-  auditMultiple,
   AuditAbortedError,
   AuditTimeoutError,
   renderAuditReport,
@@ -39,7 +38,6 @@ function makeConfig(overrides: Partial<KeylensConfig> = {}): KeylensConfig {
   return {
     ...DEFAULT_CONFIG,
     reporters: [], // Don't write files during tests
-    ai: { ...DEFAULT_CONFIG.ai, enabled: false },
     maxTabs: 100,
     waitAfterLoad: 500,
     tabDelay: 10,
@@ -126,27 +124,6 @@ describe("Integration: audit pipeline", () => {
     ).toBeLessThan(
       events.findIndex((event) => event.type === "crawl-progress"),
     );
-  });
-
-  it("identifies progress from each page in a concurrent audit", async () => {
-    const events: import("@/types/index.js").AuditEvent[] = [];
-
-    await auditMultiple([testPageUrl, cleanPageUrl], {
-      ...makeConfig({
-        maxTabs: 2,
-        waitAfterLoad: 10,
-        tabDelay: 10,
-        multiPage: { concurrency: 2 },
-      }),
-      onEvent: (event) => events.push(event),
-    });
-
-    const crawlUrls = new Set(
-      events
-        .filter((event) => event.type === "crawl-progress")
-        .map((event) => event.url),
-    );
-    expect(crawlUrls).toEqual(new Set([testPageUrl, cleanPageUrl]));
   });
 
   it("aborts promptly and removes process cleanup listeners", async () => {
@@ -265,7 +242,6 @@ describe("Integration: audit pipeline", () => {
       makeConfig({
         capture: {
           page: "full",
-          elements: false,
           limits: {
             ...DEFAULT_CONFIG.capture.limits,
             maxDimension: 1,

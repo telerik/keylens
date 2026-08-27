@@ -1,7 +1,6 @@
 import { readFile } from "fs/promises";
 import { resolve } from "path";
 import type {
-  AIConfig,
   ExecutionProfile,
   KeylensConfig,
   KeylensConfigInput,
@@ -11,7 +10,6 @@ import { z } from "zod";
 
 export const DEFAULT_CONFIG: KeylensConfig = {
   profile: "balanced",
-  urls: [],
   viewport: { width: 1280, height: 720 },
   maxTabs: 500,
   tabTimeout: 3000,
@@ -26,28 +24,11 @@ export const DEFAULT_CONFIG: KeylensConfig = {
     skipLink: true,
     focusNotObscured: true,
     focusAfterInteraction: true,
+    rovingTabindexBroken: true,
   },
   reporters: ["cli"],
   outputDir: "./keylens-report",
   browser: "chromium",
-  ai: {
-    enabled: false,
-    provider: "anthropic",
-    features: {
-      focusOrderValidation: true,
-      fixSuggestions: true,
-      widgetClassification: false,
-      reportSummary: true,
-      focusIndicatorQuality: false,
-      accessibleNameInference: false,
-      crossPagePatterns: true,
-    },
-    limits: {
-      batchSize: 10,
-      maxWidgets: 20,
-      maxElements: 10,
-    },
-  },
   navigationTimeout: 30_000,
   headed: false,
   interactions: {
@@ -59,14 +40,9 @@ export const DEFAULT_CONFIG: KeylensConfig = {
     navigation: "block",
     excludeDestructive: true,
   },
-  multiPage: {
-    concurrency: 2,
-  },
   capture: {
     page: "none",
-    elements: false,
     limits: {
-      maxElements: 200,
       maxDimension: 16_384,
       maxPixels: 40_000_000,
       maxBytes: 50 * 1024 * 1024,
@@ -116,7 +92,7 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
   .object({
     $schema: z.string().optional(),
     profile: z.enum(["fast", "balanced", "thorough"]).optional(),
-    urls: z.array(z.url()).optional(),
+    url: z.url().optional(),
     viewport: z
       .object({
         width: positiveNumber.optional(),
@@ -139,6 +115,7 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
         skipLink: z.boolean().optional(),
         focusNotObscured: z.boolean().optional(),
         focusAfterInteraction: z.boolean().optional(),
+        rovingTabindexBroken: z.boolean().optional(),
       })
       .strict()
       .optional(),
@@ -161,17 +138,11 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
       })
       .strict()
       .optional(),
-    multiPage: z
-      .object({ concurrency: positiveInteger.optional() })
-      .strict()
-      .optional(),
     capture: z
       .object({
         page: z.enum(["none", "viewport", "full"]).optional(),
-        elements: z.boolean().optional(),
         limits: z
           .object({
-            maxElements: nonNegativeInteger.optional(),
             maxDimension: positiveInteger.optional(),
             maxPixels: positiveInteger.optional(),
             maxBytes: positiveInteger.optional(),
@@ -187,7 +158,6 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
         crawl: positiveNumber.optional(),
         rules: positiveNumber.optional(),
         interactions: positiveNumber.optional(),
-        ai: positiveNumber.optional(),
         reporters: positiveNumber.optional(),
       })
       .strict()
@@ -246,47 +216,6 @@ export const KEYLENS_CONFIG_INPUT_SCHEMA = z
       })
       .strict()
       .optional(),
-    ai: z
-      .object({
-        enabled: z.boolean().optional(),
-        provider: z.enum(["anthropic", "openai"]).optional(),
-        apiKey: z.string().optional(),
-        model: z.string().min(1).optional(),
-        baseURL: z.url().optional(),
-        transport: z
-          .custom<NonNullable<AIConfig["transport"]>>(
-            (value) =>
-              typeof value === "object" &&
-              value !== null &&
-              typeof (value as AIConfig["transport"])?.query === "function" &&
-              typeof (value as AIConfig["transport"])?.queryVision ===
-                "function",
-            "transport must implement query() and queryVision()",
-          )
-          .optional(),
-        features: z
-          .object({
-            focusOrderValidation: z.boolean().optional(),
-            fixSuggestions: z.boolean().optional(),
-            widgetClassification: z.boolean().optional(),
-            reportSummary: z.boolean().optional(),
-            focusIndicatorQuality: z.boolean().optional(),
-            accessibleNameInference: z.boolean().optional(),
-            crossPagePatterns: z.boolean().optional(),
-          })
-          .strict()
-          .optional(),
-        limits: z
-          .object({
-            batchSize: positiveInteger.optional(),
-            maxWidgets: positiveInteger.optional(),
-            maxElements: positiveInteger.optional(),
-          })
-          .strict()
-          .optional(),
-      })
-      .strict()
-      .optional(),
   })
   .strict();
 
@@ -312,20 +241,6 @@ export function validateConfigInput(input: unknown): KeylensConfigInput {
   const { $schema: _schema, ...config } = parsed.data;
   void _schema;
   return config as KeylensConfigInput;
-}
-
-export function resolveAIAPIKey(config: AIConfig): string | undefined {
-  return (
-    config.apiKey ||
-    process.env.KEYLENS_AI_API_KEY ||
-    (config.provider === "openai"
-      ? process.env.OPENAI_API_KEY
-      : process.env.ANTHROPIC_API_KEY)
-  );
-}
-
-export function hasConfiguredAIAPIKey(config: AIConfig): boolean {
-  return resolveAIAPIKey(config) !== undefined;
 }
 
 /**
@@ -367,43 +282,22 @@ export function normalizeConfig(
   const profile = validated.profile ?? DEFAULT_CONFIG.profile;
   const profileConfig = EXECUTION_PROFILES[profile];
   const input = { ...profileConfig, ...validated };
-  const maxElements =
-    input.capture?.limits?.maxElements ??
-    DEFAULT_CONFIG.capture.limits.maxElements ??
-    200;
   const maxCases =
     input.interactions?.maxCases ?? DEFAULT_CONFIG.interactions.maxCases;
-  const concurrency =
-    input.multiPage?.concurrency ?? DEFAULT_CONFIG.multiPage.concurrency;
 
   return {
     ...DEFAULT_CONFIG,
     ...input,
     profile,
-    urls: [...(input.urls ?? DEFAULT_CONFIG.urls)],
     viewport: { ...DEFAULT_CONFIG.viewport, ...input.viewport },
     rules: { ...DEFAULT_CONFIG.rules, ...input.rules },
     reporters: [...(input.reporters ?? DEFAULT_CONFIG.reporters)],
-    ai: {
-      ...DEFAULT_CONFIG.ai,
-      ...input.ai,
-      features: {
-        ...DEFAULT_CONFIG.ai.features,
-        ...input.ai?.features,
-      },
-      limits: {
-        ...DEFAULT_CONFIG.ai.limits,
-        ...input.ai?.limits,
-      },
-    },
     capture: {
       ...DEFAULT_CONFIG.capture,
       ...input.capture,
-      elements: input.capture?.elements ?? DEFAULT_CONFIG.capture.elements,
       limits: {
         ...DEFAULT_CONFIG.capture.limits,
         ...input.capture?.limits,
-        maxElements,
       },
     },
     interactions: {
@@ -419,11 +313,6 @@ export function normalizeConfig(
       exclude: input.interactions?.exclude
         ? [...input.interactions.exclude]
         : undefined,
-    },
-    multiPage: {
-      ...DEFAULT_CONFIG.multiPage,
-      ...input.multiPage,
-      concurrency,
     },
     timeouts: {
       ...DEFAULT_CONFIG.timeouts,

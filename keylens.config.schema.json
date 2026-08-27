@@ -12,10 +12,10 @@
       "default": "balanced",
       "description": "Execution preset applied before explicit option overrides."
     },
-    "urls": {
-      "type": "array",
-      "items": { "type": "string", "format": "uri" },
-      "description": "URLs to audit."
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to audit (used only when no URL argument is passed on the CLI)."
     },
     "viewport": {
       "type": "object",
@@ -63,7 +63,8 @@
         "missingFocusIndicator": { "type": "boolean", "default": true },
         "skipLink": { "type": "boolean", "default": true },
         "focusNotObscured": { "type": "boolean", "default": true },
-        "focusAfterInteraction": { "type": "boolean", "default": true }
+        "focusAfterInteraction": { "type": "boolean", "default": true },
+        "rovingTabindexBroken": { "type": "boolean", "default": true }
       }
     },
     "reporters": {
@@ -94,12 +95,10 @@
           "enum": ["none", "viewport", "full"],
           "default": "none"
         },
-        "elements": { "type": "boolean", "default": false },
         "limits": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "maxElements": { "type": "integer", "minimum": 0, "default": 200 },
             "maxDimension": {
               "type": "integer",
               "minimum": 1,
@@ -128,7 +127,6 @@
         "crawl": { "type": "number", "exclusiveMinimum": 0 },
         "rules": { "type": "number", "exclusiveMinimum": 0 },
         "interactions": { "type": "number", "exclusiveMinimum": 0 },
-        "ai": { "type": "number", "exclusiveMinimum": 0 },
         "reporters": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
@@ -160,72 +158,6 @@
         "isolation": { "enum": ["reload", "none"], "default": "reload" },
         "navigation": { "enum": ["block", "allow"], "default": "block" },
         "excludeDestructive": { "type": "boolean", "default": true }
-      }
-    },
-    "multiPage": {
-      "type": "object",
-      "additionalProperties": false,
-      "description": "Browser reuse and bounded concurrency for multi-page audits.",
-      "properties": {
-        "concurrency": { "type": "integer", "minimum": 1, "default": 2 }
-      }
-    },
-    "ai": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": { "type": "boolean", "default": false },
-        "provider": {
-          "type": "string",
-          "enum": ["anthropic", "openai"],
-          "default": "anthropic",
-          "description": "AI provider. Use 'openai' for OpenAI, Azure AI Foundry, or any OpenAI-compatible endpoint."
-        },
-        "apiKey": { "type": "string" },
-        "model": { "type": "string", "minLength": 1 },
-        "baseURL": {
-          "type": "string",
-          "format": "uri",
-          "description": "Base URL for the AI provider. Set this for Azure AI Foundry or other custom OpenAI-compatible endpoints."
-        },
-        "features": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "focusOrderValidation": { "type": "boolean", "default": true },
-            "fixSuggestions": { "type": "boolean", "default": true },
-            "widgetClassification": { "type": "boolean", "default": false },
-            "reportSummary": { "type": "boolean", "default": true },
-            "focusIndicatorQuality": { "type": "boolean", "default": false },
-            "accessibleNameInference": { "type": "boolean", "default": false },
-            "crossPagePatterns": { "type": "boolean", "default": true }
-          }
-        },
-        "limits": {
-          "type": "object",
-          "additionalProperties": false,
-          "description": "Batch and element limits for AI features.",
-          "properties": {
-            "batchSize": {
-              "type": "integer",
-              "default": 10,
-              "minimum": 1,
-              "description": "Fix suggestion chunk size."
-            },
-            "maxWidgets": {
-              "type": "integer",
-              "default": 20,
-              "minimum": 1,
-              "description": "Max widgets for classification."
-            },
-            "maxElements": {
-              "type": "integer",
-              "default": 10,
-              "minimum": 1,
-              "description": "Max elements per AI feature call (name inference, focus scoring, cross-page)."
-            }
-          }
-        }
       }
     },
     "navigationTimeout": {

@@ -54,5 +54,54 @@
     <!-- Elements for GET_FOCUSED_ELEMENT_INFO_SCRIPT tests -->
     <button id="info-btn" aria-label="Info Button Label">Info Button</button>
     <a href="/titled" title="Title Attr Link" id="titled-link">Titled Link</a>
+
+    <!-- Native form control with an ARIA role from HTML semantics only,
+         no explicit role attribute - regression fixture for implicit-role
+         detection in getRovingContainerSelector/getEffectiveRole. -->
+    <div
+      role="radiogroup"
+      id="native-radiogroup"
+      aria-label="Native radio group"
+    >
+      <input
+        type="radio"
+        name="native-radio"
+        id="native-radio-1"
+        checked
+        tabindex="0"
+      />
+      <input
+        type="radio"
+        name="native-radio"
+        id="native-radio-2"
+        tabindex="-1"
+      />
+    </div>
+
+    <!-- aria-hidden="true" removes an element from the accessibility tree -
+         it must never be counted as requiring keyboard reachability. -->
+    <button id="aria-hidden-btn" aria-hidden="true">Hidden from AT</button>
+    <div aria-hidden="true">
+      <button id="aria-hidden-descendant-btn">Nested in hidden ancestor</button>
+    </div>
+
+    <!-- Purely structural filler grid cells (no tabindex, no accessible
+         name, no children, no text) carry no operable content and should
+         be excluded, e.g. a calendar's out-of-range padding cells. A cell
+         with real content, or an explicit tabindex, is still interactive. -->
+    <div role="grid" aria-label="Cell filtering grid">
+      <div
+        role="gridcell"
+        id="empty-gridcell"
+        style="width: 20px; height: 20px"
+      ></div>
+      <div role="gridcell" id="filled-gridcell">3</div>
+      <div
+        role="gridcell"
+        tabindex="-1"
+        id="tabbable-empty-gridcell"
+        style="width: 20px; height: 20px"
+      ></div>
+    </div>
   </body>
 </html>

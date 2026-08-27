@@ -36,10 +36,12 @@ fragment target.
 ## Iframes and shadow DOM
 
 Discovery and focused-element inspection run against the top-level `document`.
-Keylens does not traverse iframe documents or shadow roots. Browser focus may be
-represented by an iframe or shadow host rather than the internal focused control.
-Audit iframe documents as separate URLs when possible and test shadow-root internals
-with component-specific automation.
+Keylens does not traverse iframe documents or shadow roots, and cannot see what's
+focused inside them. Before the tab crawl starts, all `<iframe>` elements are set to
+`tabindex="-1"` so keyboard navigation skips over them entirely instead of tabbing
+into content Keylens can't inspect or report on — iframes are never recorded in the
+focus sequence or interactive element list. Audit iframe documents as separate URLs
+and test shadow-root internals with component-specific automation.
 
 ## Cookie/consent auto-dismissal
 
@@ -69,27 +71,22 @@ Markdown "Overlays dismissed"/"Prepare warnings" lines) rather than assuming a b
 was handled. Use `--dismiss <selector>` for a known banner the built-ins miss, or
 `--keep-overlays` to audit the banner deliberately.
 
-## Focus screenshots
+## Focus indicator detection
 
-`--screenshots` captures a clipped PNG for an element while focused and another after
-focus moves. A complete pair is compared for pixel change; it does not measure contrast
-or prove WCAG Focus Appearance conformance.
+`missing-focus-indicator` diffs a computed-style snapshot (outline, box-shadow, border,
+background, color, `::before`/`::after`, and the immediate parent for `:focus-within`
+patterns) taken while an element was focused against one taken once focus moved away —
+always, with no flag required. Any difference counts as a visible indicator.
 
-False results can come from animation, caret blinking, content changes, antialiasing,
-scrolling, clipping, transparent effects outside the element rectangle, browser theme,
-device scale, or focus styles that do not alter enough pixels. Elements with different
-image dimensions or failed/omitted captures are not compared. The fallback heuristic
-only recognizes inline `outline: none`/`outline: 0` text in recorded outer HTML; it
-cannot understand external stylesheets or prove that an alternative indicator exists.
-
-Capture limits can skip a page image or focus pairs without failing the audit. Review
-CLI pair coverage, `crawl.capture`, and screenshot IDs before interpreting the
-missing-focus-indicator result.
+This is more reliable than a text-based CSS scan (it reflects the real cascade,
+including JS/attribute-toggled classes). A targeted pixel comparison is also used for
+style-diff candidates that may be painted outside the inspected style relationships.
+This is not a contrast measurement or proof of WCAG Focus Appearance conformance.
 
 ## Page screenshots and HTML maps
 
-Page capture is independent from focus-state pairs. HTML maps need a page image and
-page dimensions; without an image, the report degrades to nonvisual content. Viewport
+HTML maps need a page image and page dimensions; without an image, the report degrades
+to nonvisual content. Viewport
 capture represents only the initial viewport, while focus coordinates can span the
 document. Full-page capture can be skipped when dimensions, pixels, or bytes exceed the
 configured budget.
@@ -137,21 +134,11 @@ sequences. Treat findings as review prompts.
 
 ## Bounded and incomplete audits
 
-`maxTabs`, Tab timeouts, capture budgets, interaction limits, phase deadlines, aborts,
-and multi-page failures intentionally bound work. An incomplete Tab cycle may indicate
+`maxTabs`, Tab timeouts, capture budgets, interaction limits, phase deadlines, and
+aborts intentionally bound work. An incomplete Tab cycle may indicate
 a trap, a large page, unstable focus, or simply an insufficient limit. Skipped captures
 reduce visual-rule coverage.
 
 A rule evaluator failure is reported separately from a violation, sets
 `scoreComplete: false`, and causes CLI exit code `2`. The numeric score still exists
 for diagnostics but must not be compared as a complete score.
-
-## AI
-
-AI and MCP are experimental. AI output is nondeterministic, provider/model dependent,
-and can be wrong. Enabled features can send HTML snippets, selectors, accessible names,
-focus metadata, report data, and screenshots to a provider or MCP client's model.
-Provider retention, training, residency, and access policies apply.
-
-Do not send sensitive pages without organizational approval. Validate suggestions with
-deterministic results and manual testing, and do not use AI ratings as CI gates.

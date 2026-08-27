@@ -47,9 +47,7 @@ describe("Cross-browser audit contract", () => {
       waitAfterLoad: 10,
       capture: {
         page: "viewport",
-        elements: true,
         limits: {
-          maxElements: 3,
           maxDimension: 4096,
           maxPixels: 10_000_000,
           maxBytes: 10 * 1024 * 1024,
@@ -84,20 +82,13 @@ describe("Cross-browser audit contract", () => {
     expect(positiveTabindexIndex).toBeGreaterThanOrEqual(0);
     expect(positiveTabindexIndex).toBeLessThan(preserveIndex);
     expect(selectors[preserveIndex + 1]).toBe("#main > input:nth-of-type(2)");
-    expect(report.rules).toHaveLength(8);
+    expect(report.rules).toHaveLength(9);
     expect(report.summary.errors).toBe(0);
     expect(
       report.rules.find((rule) => rule.ruleId === "skip-link")?.passed,
     ).toBe(true);
     expect(
       report.assets.some((asset) => asset.type === "page-screenshot"),
-    ).toBe(true);
-    expect(
-      report.focusSequence?.some(
-        (element) =>
-          element.focusedScreenshotAssetId &&
-          element.unfocusedScreenshotAssetId,
-      ),
     ).toBe(true);
     if (report.interactionResults?.length === 0) {
       throw new Error(

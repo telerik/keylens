@@ -22,34 +22,11 @@ if (report.summary.errors > 0) {
 ```
 
 `auditBase(url, options)` runs the crawl and enabled deterministic rules only.
-`auditMultipleBase(urls, options)` does the same for multiple URLs using one browser
-and `multiPage.concurrency` isolated contexts.
 
 Nested options are partial; do not spread `DEFAULT_CONFIG`.
 
-## Staged enrichment
-
-```ts
-import { auditBase, enrichAudit } from "@telerik/keylens";
-
-const deterministic = await auditBase("https://example.com", {
-  timeouts: { ai: 30_000 },
-});
-const enriched = await enrichAudit(deterministic, {
-  ai: {
-    enabled: true,
-    features: { reportSummary: true },
-  },
-});
-```
-
-`enrichAudit()` clones the base report and does not mutate it.
-`enrichMultiPageAudit()` clones and enriches each page, then adds experimental
-cross-page analysis.
-
-`audit()` and `auditMultiple()` are convenience pipelines. They run deterministic
-analysis and attempt enrichment only when AI is enabled and an API key or transport is
-available. They still do not render or write output.
+`audit()` is a convenience pipeline. It runs deterministic analysis but does not render
+or write output.
 
 `crawlOnly()` is a lightweight crawl path intended for specialized experimental
 adapters; prefer the audit APIs for stable integrations.
@@ -73,16 +50,14 @@ const html = renderHTML(report);
 const markdown = renderMarkdown(report);
 ```
 
-- `renderAuditReport()` and `renderMultiPageReport()` print/write selected reporters.
-- `serializeJSON()` and `serializeMultiJSON()` return semantic JSON with assets omitted.
-- `renderHTML()` / `renderMultiHTML()` and `renderMarkdown()` /
-  `renderMultiMarkdown()` return strings without writing.
+- `renderAuditReport()` prints/writes selected reporters.
+- `serializeJSON()` returns semantic JSON with assets omitted.
+- `renderHTML()` and `renderMarkdown()` return strings without writing.
 - Render functions accept an `AbortSignal`; file renderers also honor the reporter
   timeout from `RenderOptions` or `config.timeouts.reporters`.
 
-Single-page file names are `keylens-report.json`, `keylens-report.html`, and
-`keylens-report.md`. Multi-page JSON and HTML use the same names; Markdown uses
-`keylens-report-multi.md`.
+Report file names are `keylens-report.json`, `keylens-report.html`, and
+`keylens-report.md`.
 
 ## Assets and projections
 
@@ -144,8 +119,8 @@ asset capture, interaction progress/completion, and warnings. Events include an 
 timestamp, elapsed milliseconds, phase, and optional URL.
 
 Owned browser resources close after success, error, timeout, or abort. A total timeout
-wraps the complete analysis call; phase timeouts bound crawl, rules, interactions, AI,
-and reporters where applicable.
+wraps the complete analysis call; phase timeouts bound crawl, rules, interactions, and
+reporters where applicable.
 
 ## Errors and incomplete scores
 
@@ -153,7 +128,7 @@ All operational errors derive from `KeylensError` and expose a stable `code`, `p
 optional URL, retryability, details, and serializable `toJSON()` form. Codes are:
 
 `ABORTED`, `TIMEOUT`, `CONFIG_ERROR`, `CRAWL_ERROR`, `NAVIGATION_ERROR`,
-`RULE_ERROR`, `REPORTER_ERROR`, `AI_ERROR`, and `INTERNAL_ERROR`.
+`RULE_ERROR`, `REPORTER_ERROR`, and `INTERNAL_ERROR`.
 
 Individual rule evaluator failures are represented as `RuleResult.status === "error"`
 with `error.code === "RULE_ERROR"`. They increment `summary.errors` and set
@@ -166,14 +141,7 @@ Every `AuditReport` includes:
 - `schemaVersion`, package `version`, timestamp, URL, and sanitized effective config;
 - phase timings and crawl coverage;
 - rule results and deterministic summary;
-- capture summary, optional focus sequence, interaction outcomes, and assets;
-- optional experimental AI fields.
-
-API keys and transports are never copied into `report.config`; only
-`apiKeyConfigured` and `transportConfigured` booleans are exposed.
-
-Multi-page reports contain ordered page reports, aggregate counts and score,
-`ruleErrors`, `scoreComplete`, and optional experimental cross-page fields.
+- capture summary, optional focus sequence, interaction outcomes, and assets.
 
 ## Browser-safe guidance
 

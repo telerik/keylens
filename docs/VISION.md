@@ -25,7 +25,6 @@ A CLI tool that uses Playwright under the hood to:
 - **Map the complete focus order** — tab through every element, record what gets focus and in what sequence
 - **Detect problems automatically** — keyboard traps, unreachable interactive elements, illogical order, missing focus indicators, focus lost after interactions, skip link issues, obscured focus
 - **Test post-click interactions** — click buttons and verify focus isn't lost, with opt-in `--interactions` flag
-- **Classify widgets with AI** — identify APG patterns (dialog, menu, tabs, accordion) and report expected keyboard behaviors
 - **Output actionable reports** — CLI summary, JSON for CI, and an interactive HTML report with a visual focus-order map
 
 ---
@@ -41,29 +40,22 @@ A CLI tool that uses Playwright under the hood to:
 - Compare focus order to visual layout order (left-to-right, top-to-bottom)
 - Output a numbered focus sequence
 
-### 2. Problem Detection Rules (8 implemented)
+### 2. Problem Detection Rules (9 implemented)
 
 - **Keyboard trap** (WCAG 2.1.2): forward Tab appears stuck (detected via consecutive duplicate selectors) or does not complete a cycle
 - **Unreachable interactives** (WCAG 2.1.1): `<button>`, `<a href>`, `<input>`, etc. discovered on page but never reached via Tab
 - **Focus order vs visual order mismatch** (WCAG 2.4.3): element position in tab sequence doesn't match its screen position (with tolerance for minor discrepancies)
 - **Positive tabindex abuse** (WCAG 2.4.3): any `tabindex > 0` detected — disrupts natural tab order
-- **Missing focus indicator** (WCAG 2.4.7): two-phase detection — CSS heuristic checks for `outline: none` patterns (severity: warning), then pixelmatch screenshot comparison confirms no visible focus style change (severity: error when `--screenshots` enabled)
+- **Missing focus indicator** (WCAG 2.4.7): computed-style diff — compares outline, box-shadow, border, background, color, pseudo-elements, and parent styles taken while focused vs. once focus moves away. Runs by default (no flag needed); any difference counts as a visible indicator (severity: error)
 - **Skip link** (WCAG 2.4.1): crawler tabs through the first 5 elements, identifies a skip-link pattern, presses Enter, and records the resulting focus target. The current pass check only establishes that focus is not lost to the document; manual destination verification remains necessary
 - **Focus not obscured** (WCAG 2.4.11): checks if focused elements are hidden behind overlays or other content using `elementFromPoint` at the element's center
 - **Focus after interaction** (WCAG 2.4.3, 2.4.7): when experimental interactions are enabled, runs bounded configured activations against eligible controls and verifies focus remains on a valid target. Each failed interaction is a separate error-severity violation
 
 ### 3. Report Outputs
 
-- **CLI:** colored terminal output with pass/fail/warning per rule, multi-page aggregate summary
+- **CLI:** colored terminal output with pass/fail/warning per rule
 - **JSON:** machine-readable for CI integration; binary assets omitted. CLI exit codes distinguish accessibility failures (`1`) from incomplete audits (`2`)
-- **HTML:** interactive visual focus order map — page screenshot as background with numbered circle markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red. Multi-page reports use tabbed UI with per-page focus maps
-
-### 4. Multi-Page Scanning
-
-- Audit multiple URLs in a single run via config file `urls` array or `auditMultiple()` API
-- CLI URL argument is optional — reads from config when omitted
-- Aggregate summary across all pages (total errors, warnings, pages with errors)
-- Each reporter has single and multi-page variants
+- **HTML:** interactive visual focus order map — page screenshot as background with numbered circle markers at each focused element, SVG dashed connecting lines between consecutive markers, violation markers colored red
 
 ---
 
@@ -79,7 +71,7 @@ npx keylens https://example.com \
   --interactions \
   --wait-for "#app-loaded"
 
-# Config file for multi-page
+# Config file
 npx keylens --config keylens.config.json
 ```
 
@@ -128,24 +120,23 @@ keylens/
 │   │   ├── unreachable-elements.ts  # WCAG 2.1.1 - interactive elements never reached
 │   │   ├── focus-order-mismatch.ts  # WCAG 2.4.3 - tab order vs visual layout
 │   │   ├── tabindex-abuse.ts      # WCAG 2.4.3 - positive tabindex values
-│   │   ├── missing-focus-indicator.ts  # WCAG 2.4.7 - pixelmatch diff + CSS heuristic
+│   │   ├── missing-focus-indicator.ts  # WCAG 2.4.7 - computed-style diff (focused vs unfocused)
 │   │   ├── skip-link.ts          # WCAG 2.4.1 - skip link presence and functional test
 │   │   ├── focus-not-obscured.ts  # WCAG 2.4.11 - focused element not hidden by overlays
 │   │   └── focus-after-interaction.ts  # WCAG 2.4.3/2.4.7 - focus not lost after clicking
 │   ├── reporters/
-│   │   ├── cli-reporter.ts        # Terminal output, single + multi-page
-│   │   ├── json-reporter.ts       # JSON for CI, single + multi-page
-│   │   ├── html-reporter.ts       # Interactive HTML with focus map overlay + tabbed multi-page
-│   │   └── index.ts               # Dispatcher: runReporters + runMultiReporters
-│   ├── ai/index.ts          # Optional AI analysis layer (Anthropic Claude)
-│   ├── types/index.ts       # All core types (AuditReport, MultiPageReport, etc.)
+│   │   ├── cli-reporter.ts        # Terminal output
+│   │   ├── json-reporter.ts       # JSON for CI
+│   │   ├── html-reporter.ts       # Interactive HTML with focus map overlay
+│   │   └── index.ts               # Dispatcher: runReporters
+│   ├── types/index.ts       # All core types (AuditReport, etc.)
 │   ├── errors.ts            # Custom error hierarchy
 │   └── utils/
 │       ├── config.ts        # Config loading and deep merging
 │       ├── logger.ts        # Leveled logging (debug/info/warn/error/silent)
 │       └── selectors.ts     # Browser-injected scripts for element discovery
 ├── tests/
-│   ├── unit/                # Vitest unit tests (rules, reporters, utils, AI)
+│   ├── unit/                # Vitest unit tests (rules, reporters, utils)
 │   ├── integration/         # End-to-end audit pipeline + selector tests
 │   ├── fixtures/            # HTML test pages (clean-page, test-page, skip-link-broken, etc.)
 │   └── helpers/factories.ts # Test factories: makeFocusedElement, makeCrawlResult, etc.
@@ -156,11 +147,10 @@ keylens/
 
 - **Playwright over Puppeteer** — cross-browser support (Chromium, Firefox, WebKit), better API, actively maintained
 - **Rule-based architecture** — each check is a standalone module, easy to add new rules or let community contribute them
-- **Two-phase focus indicator detection** — fast CSS heuristic first (detects `outline: none` patterns in inline styles), then pixel-accurate screenshot comparison via pixelmatch when `--screenshots` is enabled. Screenshot-confirmed violations are severity "error" vs heuristic "warning"
+- **Computed-style diffing for focus indicators** — crawler diffs a computed-style snapshot (outline, box-shadow, border, background, color, `::before`/`::after`, and parent styles for `:focus-within`) taken while focused vs. once focus moves away. Runs by default (no flag needed) since the crawler already focuses every element for real; catches JS/attribute-driven indicators and container-level highlighting that a CSS/HTML text scan would miss
 - **Skip link functional testing** — crawler tabs through first 5 elements, identifies skip links by regex pattern, presses Enter, and records the resulting focus target; current pass logic only checks that focus remains on a non-document element
-- **Per-element focused/unfocused screenshots** — during tab crawl, captures focused state of current element + unfocused state of previous element (which just lost focus), enabling before/after pixelmatch comparison
+- **Targeted focus-indicator pixel confirmation** — candidates missed by computed-style diffing receive a bounded focused-vs-unfocused pixel comparison; this runs automatically and is separate from page screenshot capture
 - **HTML focus order overlay** — `buildFocusMapHTML()` renders page screenshot as background with numbered markers at each focused element, SVG connecting lines showing tab flow. Percentage-based positioning via `pageRect` / `pageDimensions`. Violation markers colored red
-- **Multi-page scanning** — `auditMultiple()` reuses one browser with bounded concurrency and aggregates results into `MultiPageReport`. CLI URL is optional; reads from config `urls` when omitted. Tabbed HTML report with per-page focus maps
 - **HTML escaping throughout** — all user-supplied strings escaped in HTML output to prevent XSS
 - **Use tabbable npm package as a reference** — compare its computed tabbable list against what actually receives focus to find discrepancies
 
@@ -172,186 +162,13 @@ keylens/
 | Actually tabs through page   | No               | Manual only            | Yes, automated                                      |
 | Detects keyboard traps       | No               | Manual only            | Yes                                                 |
 | Focus order visualization    | No               | Manual only            | Yes, HTML overlay with numbered markers + SVG lines |
-| Focus indicator detection    | No               | No                     | Yes, pixelmatch screenshot diff                     |
+| Focus indicator detection    | No               | No                     | Yes, computed-style diff (focused vs unfocused)     |
 | Skip link functional testing | No               | No                     | Yes, verifies Enter + focus target                  |
-| Multi-page scanning          | Yes              | No                     | Yes, aggregate report with tabbed HTML              |
 | Scriptable / configurable    | Yes              | No                     | Yes, JSON config + CLI flags                        |
 | Cross-browser                | Varies           | Chrome only            | Yes, via Playwright                                 |
 | Post-click interaction test  | No               | No                     | Yes, `--interactions` flag                          |
-| AI widget classification     | No               | No                     | Yes, APG pattern detection with confidence scores   |
-| AI vision-based analysis     | No               | No                     | Yes (focus order, name inference, fix suggestions)  |
-| AI-powered analysis          | No               | No                     | Optional (fix suggestions, summaries, etc.)         |
 
 ---
-
-## High-Impact AI Features (All Implemented)
-
-### 1. Intelligent Focus Order Validation (Implemented)
-
-This is the single hardest problem in keyboard nav testing — determining if the focus order is "logical." Left-to-right, top-to-bottom is a heuristic, not a rule. A sidebar nav before main content might be perfectly fine. A two-column layout has ambiguous "correct" order.
-
-**AI approach:** `validateFocusOrder()` annotates the page screenshot with numbered circle markers at each focus position using `annotateFocusOrder()`, then sends the annotated image along with focus sequence metadata to the vision model. Returns a structured `AIFocusOrderResult` with a summary, per-element issues (with severity and suggestions), and an overall assessment (`good`, `acceptable`, or `poor`). Falls back to text-only analysis when no screenshot is available.
-
-```
-AI Focus Order Analysis: acceptable
-  ⚠ Element #8 (sidebar link): Receives focus before main content
-    Suggestion: Move sidebar nav after main content in DOM or use tabindex
-  Summary: Tab order generally follows visual layout with one
-  notable exception in the sidebar region.
-```
-
-This is a genuine differentiator — no tool does this today.
-
-### 2. Auto-Generated Fix Suggestions (Implemented)
-
-When the tool detects issues (keyboard trap, unreachable element, missing focus style), `generateFixSuggestions()` inspects the actual HTML/CSS of the offending element and generates a structured `FixSuggestion` with before/after code, WCAG reference, effort estimate (`low`/`medium`/`high`), and explanation. When `--screenshots` is enabled, computed focus styles (outline, boxShadow, border) are included for richer context. Falls back to plain-text suggestions when structured output can't be parsed.
-
-```
-✗ KEYBOARD TRAP at <div role="combobox" class="search-dropdown">
-
-  AI Fix [effort: medium] [WCAG 2.1.2]:
-  Allow Tab/Shift+Tab to pass through the combobox keydown handler.
-
-  Before:
-  onKeyDown={(e) => e.preventDefault()}
-
-  After:
-  onKeyDown={(e) => {
-    if (e.key === 'Tab') return;
-    e.preventDefault();
-  }}
-```
-
-### 3. Accessible Name & Role Inference (Implemented)
-
-`inferAccessibleNames()` examines interactive elements with empty or generic accessible names using the vision model. For each element, it provides a suggested `aria-label`, optional corrected role, confidence score (0–1), and reasoning. Up to 10 elements are analyzed per audit.
-
-```
-⚠ UNNAMED INTERACTIVE ELEMENT
-  <button class="icon-btn-23">
-    Contains: <svg> (hamburger menu icon)
-
-  AI Suggestion (confidence: 0.91):
-  aria-label="Open navigation menu"
-  Reasoning: SVG appears to be a 3-line hamburger icon,
-  positioned in the header next to the site logo.
-```
-
-### 4. Widget Classification (Implemented)
-
-The hardest part of keyboard testing is knowing what to interact with and what should happen after. A modal button should open a modal and trap focus. A dropdown should expand and allow arrow key navigation. An accordion should toggle and move focus.
-
-**AI approach:** `classifyWidgets()` filters interactive elements to complex ARIA roles (excluding generic button/link/textbox), sends up to 20 element descriptions to Claude, and receives APG pattern classifications with confidence scores and expected keyboard behaviors.
-
-Supported patterns: `dialog`, `menu`, `accordion`, `tabs`, `combobox`, `disclosure`, `tooltip`, `unknown`.
-
-```
-Element: <button class="faq-toggle">
-AI Classification: Accordion trigger (confidence: 0.92)
-Expected Keyboard:
-  - Enter/Space: Toggle panel
-  - Arrow Down: Move to next accordion header
-  - Home/End: Move to first/last header
-```
-
-Results appear in both CLI and HTML reports. Classifications with confidence below 0.5 are filtered out.
-
----
-
-## Medium-Impact AI Features
-
-### 5. Focus Indicator Quality Scoring
-
-Beyond just detecting if a focus indicator exists (via screenshot diff), use a vision model to evaluate how good it is. Is it high contrast? Is it clearly visible against the background? Does it look like an intentional design choice or a barely-visible browser default?
-
-```
-Element: <a class="card-link">
-Focus indicator detected: Yes
-AI Quality Score: 2/10
-Reasoning: "Default browser outline is present but the element
-has a dark background (#1a1a2e) and the outline is a thin
-dotted line in dark gray — effectively invisible. Recommend
-a 2px solid outline in a contrasting color or a visible
-box-shadow."
-```
-
-### 6. Natural Language Report Summaries
-
-Generate a human-readable executive summary of the audit results, suitable for sharing with non-technical stakeholders (product managers, designers, compliance teams).
-
-```
-Summary:
-"This page has 47 interactive elements, of which 42 are reachable
-by keyboard. The main issues are a search dropdown that traps
-keyboard focus (critical — users cannot escape it), and 5 buttons
-in the image carousel that are completely unreachable without a
-mouse. The tab order generally follows the visual layout, except
-in the footer where social media links are focused before the
-contact form. Estimated fix effort: 2-4 hours for a frontend
-developer."
-```
-
-### 7. Cross-Page Pattern Detection
-
-Across a multi-page scan, use AI to identify inconsistent keyboard patterns. If the nav bar has one focus order on the homepage but a different order on the pricing page, that's a problem humans would catch but automated geometric checks would miss.
-
-```
-⚠ INCONSISTENT PATTERN DETECTED
-  Navigation bar focus order differs across pages:
-  Homepage:  Logo → Search → Products → Pricing → Login
-  /pricing:  Logo → Products → Search → Pricing → Login
-  AI Note: "Search and Products are swapped on /pricing,
-  likely due to a conditional render that changes DOM order."
-```
-
----
-
-## AI Integration Architecture
-
-Two modes — offering both is the right call:
-
-### Option A: Cloud API (Default)
-
-```bash
-# Uses Claude API for analysis
-npx keylens https://example.com --ai
-```
-
-- Requires an API key (user provides their own)
-- Best results, especially for vision-based features
-- Privacy consideration: screenshots are sent to the API
-
-### Option B: Local/Offline Mode
-
-```bash
-# No AI, pure heuristic checks only
-npx keylens https://example.com
-```
-
-- All geometric/DOM-based rules work without AI
-- Zero dependencies on external services
-- Good baseline — AI enhances but isn't required
-
-**This is important for adoption:** the tool must be fully useful without AI. The AI features are a premium layer on top. This avoids the trap of building something that's useless without an API key.
-
-### Suggested Config
-
-```json
-{
-  "ai": {
-    "enabled": true,
-    "provider": "anthropic",
-    "features": {
-      "focusOrderValidation": true,
-      "fixSuggestions": true,
-      "widgetClassification": true,
-      "reportSummary": true,
-      "focusIndicatorQuality": false,
-      "accessibleNameInference": false
-    }
-  }
-}
-```
 
 ---
 
@@ -362,36 +179,18 @@ npx keylens https://example.com
 - Tab crawling + focus order map
 - 7 rules: keyboard trap, unreachable elements, focus order mismatch, tabindex abuse, missing focus indicator, skip link, focus not obscured
 - CLI + JSON + HTML reporters
-- Optional AI layer (fix suggestions, focus order validation, report summaries)
 - Single-page scan
 
 ### Phase 2 (Complete)
 
 - Skip link functional testing — crawler tests Enter + focus target verification
-- Per-element screenshot capture — `--screenshots` flag, focused/unfocused pairs
 - Focus indicator screenshot diffing — pixelmatch comparison, severity "error" when confirmed
 - HTML visual report with focus overlay — numbered markers on page screenshot with SVG connecting lines, violation markers colored red
-- Multi-page scanning — `auditMultiple()`, CLI reads URLs from config when URL omitted, tabbed HTML report with per-page focus maps
 - HTML output XSS protection — all user-supplied content escaped
 
 ### Phase 3 (Complete)
 
 - Bounded post-activation interaction testing — `--interactions` enables the configured safety policy and the `focus-after-interaction` rule (WCAG 2.4.3/2.4.7, error severity)
-- AI widget classification — `classifyWidgets()` identifies APG patterns (dialog, menu, tabs, accordion, combobox, disclosure, tooltip) with confidence scores and expected keyboard behaviors. Results displayed in CLI and HTML reports
-
-### Phase 5 (AI High-Impact — Complete)
-
-- Vision-based focus order validation — `annotateFocusOrder()` draws numbered markers on screenshot, sent to vision model via `queryVision()`, returns structured `AIFocusOrderResult` with per-element issues and overall assessment
-- Structured fix suggestions — `generateFixSuggestions()` returns `FixSuggestion` with before/after code, WCAG reference, effort estimate; includes computed focus styles when `--screenshots` enabled
-- Accessible name inference — `inferAccessibleNames()` uses vision model to suggest aria-labels for unnamed elements with confidence scores and reasoning
-- Shared `queryVision()` infrastructure — private method on `AIAnalyzer` for sending image+text content blocks to Anthropic vision API
-- Computed focus styles capture — crawler records `outline`, `boxShadow`, `border` during tab crawl
-
-### Phase 6 (AI Medium-Impact — Complete)
-
-- Focus indicator quality scoring — `scoreFocusIndicatorQuality()` sends focused/unfocused screenshot pairs to vision model, returns `FocusIndicatorScore` with score (1-10), contrast assessment, visibility assessment, and improvement recommendations. Only scores elements with confirmed focus indicators (`hasFocusIndicator === true`) and both screenshots present. Limited to 10 per audit
-- Enhanced structured report summaries — `generateSummary()` returns structured `AIReportSummary` with overview, critical issues, prioritized fixes (with effort/impact), an AI severity rating (1-100), and recommendation. Falls back to plain string for backward compatibility. New `generateMultiPageSummary()` for multi-page audits
-- Cross-page pattern detection — `detectCrossPagePatterns()` uses heuristic pre-filtering (`findSharedSelectors`, `findSkipLinkInconsistencies`) to minimize AI calls, then enriches findings via AI. Detects inconsistent tab order, missing components, inconsistent focus styles, and skip link inconsistencies across pages. Falls back to heuristic-only patterns if AI call fails
 
 ### Phase 4 (Ecosystem)
 
@@ -411,7 +210,7 @@ npx keylens https://example.com
 
 **False positives on focus order:** "Logical" order is subjective in complex layouts. Mitigation: flag as warnings not errors, let users configure expected order.
 
-**Screenshot diffing reliability:** Focus styles vary wildly. Currently uses pixelmatch with a 1% pixel difference threshold (`DIFF_THRESHOLD = 0.01`) — below that, the element is flagged as having no focus indicator. CSS heuristic (detecting `outline: none` patterns) runs as a fast-path before screenshot comparison. Could further supplement with computed style comparison (outline, box-shadow, border changes).
+**Focus indicator detection reliability:** Focus styles vary wildly. Uses a computed-style diff (outline, box-shadow, border, background, color, pseudo-elements, parent) between focused and unfocused snapshots, with a targeted pixel comparison for candidates whose visual change is not represented in style data. Runs by default.
 
 ---
 

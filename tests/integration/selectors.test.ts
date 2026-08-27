@@ -60,12 +60,12 @@ describe("Integration: browser selector scripts", () => {
       expect(selector).toBe("#unique-id");
     });
 
-    it("should include classes in selector", async () => {
+    it("should not include classes in selector (classes can be toggled at runtime, e.g. on focus)", async () => {
       const selector = await page.evaluate(
         `(${GET_UNIQUE_SELECTOR_SCRIPT})(document.querySelector('.cls-a'))`,
       );
-      expect(selector).toContain("cls-a");
-      expect(selector).toContain("cls-b");
+      expect(selector).not.toContain("cls-a");
+      expect(selector).not.toContain("cls-b");
     });
 
     it("should build path with > for nested elements", async () => {
@@ -235,6 +235,89 @@ describe("Integration: browser selector scripts", () => {
       expect(first.boundingRect).toHaveProperty("y");
       expect(first.boundingRect).toHaveProperty("width");
       expect(first.boundingRect).toHaveProperty("height");
+    });
+
+    it("should assign the implicit role of a native <a href> element (no role attribute)", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const link = elements.find(
+        (el: { selector: string }) => el.selector === "#titled-link",
+      );
+      expect(link?.role).toBe("link");
+    });
+
+    it("should assign the implicit 'radio' role to a native input[type=radio] with no role attribute", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const radio = elements.find(
+        (el: { selector: string }) => el.selector === "#native-radio-2",
+      );
+      expect(radio?.role).toBe("radio");
+    });
+
+    it("should compute rovingContainerSelector for a native radio input via its implicit role", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const radio = elements.find(
+        (el: { selector: string }) => el.selector === "#native-radio-2",
+      );
+      expect(radio?.rovingContainerSelector).toBe("#native-radiogroup");
+    });
+
+    it("should assign implicit roles for other native form controls", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const byLabel = (label: string) =>
+        elements.find(
+          (el: { accessibleName: string }) => el.accessibleName === label,
+        );
+      expect(byLabel("Select box")?.role).toBe("combobox");
+      expect(byLabel("Text area")?.role).toBe("textbox");
+      expect(byLabel("Text input")?.role).toBe("textbox");
+    });
+
+    it("should exclude an element with aria-hidden=true", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).not.toContain("#aria-hidden-btn");
+    });
+
+    it("should exclude an element whose ancestor has aria-hidden=true", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).not.toContain("#aria-hidden-descendant-btn");
+    });
+
+    it("should exclude an empty structural filler gridcell with no tabindex/name/content", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).not.toContain("#empty-gridcell");
+    });
+
+    it("should keep a gridcell with real text content", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).toContain("#filled-gridcell");
+    });
+
+    it("should keep an empty gridcell that has an explicit tabindex", async () => {
+      const elements = await page.evaluate(
+        `(${GET_INTERACTIVE_ELEMENTS_SCRIPT})()`,
+      );
+      const selectors = elements.map((el: { selector: string }) => el.selector);
+      expect(selectors).toContain("#tabbable-empty-gridcell");
     });
   });
 });

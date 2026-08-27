@@ -2,7 +2,7 @@
 
 The current prerelease contains the intended stable deterministic core contracts.
 Keylens `1.0.0` has not been published, and distribution remains on GitHub Packages.
-AI and MCP remain experimental.
+MCP remains experimental.
 
 This guide covers integrations written against earlier `0.x` behavior.
 
@@ -11,8 +11,8 @@ This guide covers integrations written against earlier `0.x` behavior.
 Pass nested partial options directly:
 
 ```ts
-const report = await auditBase(url, {
-  viewport: { width: 1440 },
+const report = await audit(url, {
+  viewport: { width: 1280 },
   rules: { skipLink: false },
   capture: { page: "none" },
 });
@@ -23,10 +23,9 @@ fail with `CONFIG_ERROR`.
 
 Replace legacy boolean/flat shapes:
 
-| Earlier shape               | Current shape                |
-| --------------------------- | ---------------------------- |
-| `captureElementScreenshots` | `capture.elements`           |
-| `interactions: true`        | `interactions.enabled: true` |
+| Earlier shape        | Current shape                |
+| -------------------- | ---------------------------- |
+| `interactions: true` | `interactions.enabled: true` |
 
 The earlier shapes are not accepted by the current strict config schema.
 
@@ -44,10 +43,8 @@ Use string renderers when no filesystem side effect is desired.
 
 ## Staged pipeline
 
-- `auditBase()` / `auditMultipleBase()`: deterministic crawl and rules.
-- `enrichAudit()` / `enrichMultiPageAudit()`: immutable experimental AI enrichment.
-- `renderAuditReport()` / `renderMultiPageReport()`: explicit output.
-- `audit()` / `auditMultiple()`: in-memory convenience pipeline.
+- `audit()`: deterministic crawl and rules.
+- `renderAuditReport()`: explicit output.
 
 Programmatic logging defaults to `silent`; pass `logLevel` explicitly for diagnostics.
 
@@ -58,8 +55,8 @@ rule status, deterministic score completeness, capture summaries, and optional
 interaction detail. Treat `schemaVersion`, not package version, as the serialized
 contract version.
 
-Screenshots are `AuditAsset` records referenced by IDs. JSON serializers project assets
-with `omit`; use `projectAuditReport()` or `projectMultiPageReport()` to request
+Page screenshots are `AuditAsset` records referenced by IDs. JSON serializers project assets
+with `omit`; use `projectAuditReport()` to request
 `inline` or caller-supplied `references`.
 
 ## Failures, cancellation, and progress
@@ -69,7 +66,7 @@ are not violations: they use rule `status: "error"`, increment `summary.errors`,
 the score incomplete, and produce CLI exit code `2`.
 
 Pass `signal`, `timeouts`, and `onEvent` through `AuditOptions`. Rendering has separate
-`RenderOptions`. Multi-page work reuses a browser with bounded concurrency.
+`RenderOptions`.
 
 ## Screenshots and interactions
 

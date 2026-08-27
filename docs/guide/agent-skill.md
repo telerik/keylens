@@ -35,9 +35,9 @@ invoke the locally installed `keylens` binary through a terminal.
 ```text
 Audit http://127.0.0.1:3000 with Keylens. Save JSON, explain incomplete
 coverage separately from accessibility failures, and propose fixes without
-enabling interactions or AI.
+enabling interactions.
 ```
 
 Agents must distinguish exit code `1` (accessibility findings) from `2` (incomplete
-audit), and must not treat warnings, AI suggestions, or a score as conformance proof.
+audit), and must not treat warnings or a score as conformance proof.
 See [Known limitations](./limitations).

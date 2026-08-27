@@ -5,8 +5,8 @@
 ### `keylens audit [url]`
 
 Alias: `keylens scan [url]`. An HTTP(S) URL can also be passed directly as shorthand.
-The URL argument overrides `urls` from the config file. Without an argument, all
-configured URLs are audited.
+The URL argument overrides `url` from the config file. Without an argument, the
+configured `url` is audited.
 
 | Option                          | Default                | Description                                               |
 | ------------------------------- | ---------------------- | --------------------------------------------------------- |
@@ -27,40 +27,29 @@ configured URLs are audited.
 | `--viewport <WxH>`              | `1280x720`             | Browser viewport                                          |
 | `--timeout <ms>`                | `30000`                | Navigation timeout                                        |
 | `--page-screenshot <mode>`      | capability-based       | `none`, `viewport`, or `full`                             |
-| `--screenshots`                 | `false`                | Capture bounded focus-state pairs                         |
 | `--interactions`                | `false`                | Enable experimental bounded activations                   |
-| `--ai`                          | `false`                | Enable experimental AI                                    |
-| `--ai-model <model>`            | provider default       | Override the AI model                                     |
-| `--ai-provider <provider>`      | `anthropic`            | `anthropic` or `openai`                                   |
-| `--ai-base-url <url>`           | —                      | OpenAI-compatible or Azure endpoint                       |
 | `-q, --quiet`                   | `false`                | Suppress nonessential output                              |
 | `-v, --verbose`                 | `false`                | Enable debug diagnostics                                  |
 
-CLI values override config values. `--headed`, `--screenshots`, `--interactions`, and
-`--ai` enable their features; they do not provide `--no-*` forms.
+CLI values override config values. `--headed` and `--interactions` enable their
+features; they do not provide `--no-*` forms.
 
-### Page screenshots and focus-state pairs
+### Page screenshots
 
 These are separate capture modes:
 
 - `--page-screenshot viewport|full` captures one page image. `none` disables it.
-- `--screenshots` captures a focused image when an element receives focus and an
-  unfocused image after it loses focus.
+  When `--page-screenshot` is omitted, HTML output defaults to `full`; all other output
+  sets page capture to `none`. Explicit config or CLI values take precedence.
 
-When `--page-screenshot` is omitted, HTML output defaults to `full`; all other output
-sets page capture to `none`. Explicit config or CLI values take precedence.
-
-Focus pairs are bounded by `capture.limits`. The CLI progress display reports Tab
-attempts, focus stops, completed pairs, and bytes while work runs. The final CLI report
-shows complete/partial pair coverage plus skipped or failed capture totals.
-
-`missing-focus-indicator` compares only complete pairs. If a pair is absent because of
-a limit, clipping problem, animation, or capture failure, that element receives no
-pixel-diff result. The rule can still apply its much narrower inline-style heuristic.
+`missing-focus-indicator` always runs via a computed-style diff (outline, box-shadow,
+border, background, color, pseudo-elements, and parent styles) taken while each
+element was focused vs. once focus moved away — no flag required. A targeted pixel
+comparison also confirms candidates whose visual change is not visible in style data.
 
 ```bash
 npx keylens audit https://example.com \
-  --screenshots --page-screenshot viewport --output cli,json
+  --page-screenshot viewport --output cli,json
 ```
 
 ### Full-page "faux scroll" containers

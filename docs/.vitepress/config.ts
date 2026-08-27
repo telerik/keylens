@@ -64,7 +64,6 @@ export default defineConfig({
       {
         text: "Experimental",
         items: [
-          { text: "AI Features", link: "/guide/ai" },
           { text: "MCP Server", link: "/guide/mcp" },
           { text: "Agent Skill", link: "/guide/agent-skill" },
         ],

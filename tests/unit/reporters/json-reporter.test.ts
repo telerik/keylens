@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  makeAuditReport,
-  makeMultiPageReport,
-  makeFocusedElement,
-  makeInlineAsset,
-} from "@tests/helpers/factories.js";
+import { makeAuditReport, makeInlineAsset } from "@tests/helpers/factories.js";
 
 // Mock fs/promises
 vi.mock("fs/promises", () => ({
@@ -50,25 +45,13 @@ describe("jsonReporter", () => {
     expect(parsed.summary.totalErrors).toBe(1);
   });
 
-  it("should strip screenshots from JSON output", async () => {
+  it("should omit page screenshot data from JSON output", async () => {
     const { reportJSON: jsonReporter } =
       await import("@/reporters/json-reporter.js");
 
     const report = makeAuditReport({
       pageScreenshotAssetId: "page",
-      assets: [
-        makeInlineAsset("page", "base64-screenshot-data-here"),
-        makeInlineAsset(
-          "focused",
-          "focused-screenshot-data",
-          "focused-element-screenshot",
-        ),
-        makeInlineAsset(
-          "unfocused",
-          "unfocused-screenshot-data",
-          "unfocused-element-screenshot",
-        ),
-      ],
+      assets: [makeInlineAsset("page", "base64-screenshot-data-here")],
       focusSequence: [
         {
           tabIndex: 1,
@@ -79,8 +62,6 @@ describe("jsonReporter", () => {
           boundingRect: { x: 0, y: 0, width: 100, height: 40 },
           tabindexAttr: null,
           hasFocusIndicator: null,
-          focusedScreenshotAssetId: "focused",
-          unfocusedScreenshotAssetId: "unfocused",
           outerHTML: "<a>Test</a>",
         },
       ],
@@ -90,113 +71,5 @@ describe("jsonReporter", () => {
 
     const writtenContent = mockWriteFile.mock.calls[0][1] as string;
     expect(writtenContent).not.toContain("base64-screenshot-data-here");
-    expect(writtenContent).not.toContain("focused-screenshot-data");
-    expect(writtenContent).not.toContain("unfocused-screenshot-data");
-  });
-});
-
-describe("reportMultiJSON", () => {
-  it("should create output directory and write valid JSON", async () => {
-    const { reportMultiJSON } = await import("@/reporters/json-reporter.js");
-
-    const report = makeMultiPageReport({
-      urls: ["https://a.com", "https://b.com"],
-      pages: [
-        makeAuditReport({ url: "https://a.com" }),
-        makeAuditReport({ url: "https://b.com" }),
-      ],
-      summary: {
-        totalPages: 2,
-        totalErrors: 1,
-        totalWarnings: 3,
-        totalInfo: 0,
-        pagesWithErrors: 1,
-      },
-    });
-
-    await reportMultiJSON(report, "./test-output");
-
-    expect(mockMkdir).toHaveBeenCalledWith("./test-output", {
-      recursive: true,
-    });
-    expect(mockWriteFile).toHaveBeenCalledTimes(1);
-
-    const writtenContent = mockWriteFile.mock.calls[0][1] as string;
-    const parsed = JSON.parse(writtenContent);
-    expect(parsed.urls).toEqual(["https://a.com", "https://b.com"]);
-    expect(parsed.summary.totalPages).toBe(2);
-    expect(parsed.summary.totalErrors).toBe(1);
-    expect(parsed.pages).toHaveLength(2);
-  });
-
-  it("should strip screenshots from all pages", async () => {
-    const { reportMultiJSON } = await import("@/reporters/json-reporter.js");
-
-    const report = makeMultiPageReport({
-      pages: [
-        makeAuditReport({
-          url: "https://a.com",
-          pageScreenshotAssetId: "page",
-          assets: [
-            makeInlineAsset("page", "page-screenshot-a"),
-            makeInlineAsset(
-              "focused",
-              "focused-a",
-              "focused-element-screenshot",
-            ),
-            makeInlineAsset(
-              "unfocused",
-              "unfocused-a",
-              "unfocused-element-screenshot",
-            ),
-          ],
-          focusSequence: [
-            makeFocusedElement({
-              focusedScreenshotAssetId: "focused",
-              unfocusedScreenshotAssetId: "unfocused",
-            }),
-          ],
-        }),
-        makeAuditReport({
-          url: "https://b.com",
-          pageScreenshotAssetId: "page",
-          assets: [makeInlineAsset("page", "page-screenshot-b")],
-        }),
-      ],
-    });
-
-    await reportMultiJSON(report, "./test-output");
-
-    const writtenContent = mockWriteFile.mock.calls[0][1] as string;
-    expect(writtenContent).not.toContain("page-screenshot-a");
-    expect(writtenContent).not.toContain("page-screenshot-b");
-    expect(writtenContent).not.toContain("focused-a");
-    expect(writtenContent).not.toContain("unfocused-a");
-  });
-
-  it("should preserve non-screenshot data in pages", async () => {
-    const { reportMultiJSON } = await import("@/reporters/json-reporter.js");
-
-    const report = makeMultiPageReport({
-      pages: [
-        makeAuditReport({
-          url: "https://example.com",
-          summary: {
-            totalErrors: 2,
-            totalWarnings: 1,
-            totalInfo: 0,
-            passed: 4,
-            failed: 2,
-          },
-        }),
-      ],
-    });
-
-    await reportMultiJSON(report, "./test-output");
-
-    const writtenContent = mockWriteFile.mock.calls[0][1] as string;
-    const parsed = JSON.parse(writtenContent);
-    expect(parsed.pages[0].url).toBe("https://example.com");
-    expect(parsed.pages[0].summary.totalErrors).toBe(2);
   });
 });

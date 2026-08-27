@@ -3,9 +3,7 @@ import {
   loadConfig,
   loadConfigInput,
   DEFAULT_CONFIG,
-  hasConfiguredAIAPIKey,
   normalizeConfig,
-  resolveAIAPIKey,
 } from "@/utils/config.js";
 import { ConfigError } from "@/errors.js";
 
@@ -32,8 +30,7 @@ describe("normalizeConfig", () => {
       rules: { keyboardTrap: false },
       capture: {
         page: "none",
-        elements: true,
-        limits: { maxElements: 25 },
+        limits: { maxDimension: 4096 },
       },
       timeouts: { total: 60_000 },
       interactions: {
@@ -41,15 +38,13 @@ describe("normalizeConfig", () => {
         maxCases: 3,
         actions: ["enter"],
       },
-      multiPage: { concurrency: 3 },
     });
 
     expect(config.viewport).toEqual({ width: 800, height: 720 });
     expect(config.rules.keyboardTrap).toBe(false);
     expect(config.rules.skipLink).toBe(true);
     expect(config.capture.page).toBe("none");
-    expect(config.capture.elements).toBe(true);
-    expect(config.capture.limits.maxElements).toBe(25);
+    expect(config.capture.limits.maxDimension).toBe(4096);
     expect(config.capture.limits.maxBytes).toBe(
       DEFAULT_CONFIG.capture.limits.maxBytes,
     );
@@ -62,21 +57,18 @@ describe("normalizeConfig", () => {
         isolation: "reload",
       }),
     );
-    expect(config.multiPage.concurrency).toBe(3);
 
-    config.urls.push("https://example.com");
     config.reporters.push("json");
-    expect(DEFAULT_CONFIG.urls).toEqual([]);
     expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
   });
 
-  it("rejects fractional element capture limits", () => {
+  it("rejects fractional capture dimension limits", () => {
     expect(() =>
-      normalizeConfig({ capture: { limits: { maxElements: 1.5 } } }),
-    ).toThrow("capture.limits.maxElements");
+      normalizeConfig({ capture: { limits: { maxDimension: 1.5 } } }),
+    ).toThrow("capture.limits.maxDimension");
   });
 
-  it("rejects invalid interaction and multi-page limits", () => {
+  it("rejects invalid interaction limits", () => {
     expect(() => normalizeConfig({ interactions: { maxCases: -1 } })).toThrow(
       "interactions.maxCases",
     );
@@ -86,9 +78,6 @@ describe("normalizeConfig", () => {
     expect(() =>
       normalizeConfig({ interactions: { timeout: Number.NaN } }),
     ).toThrow("interactions.timeout");
-    expect(() => normalizeConfig({ multiPage: { concurrency: 0 } })).toThrow(
-      "multiPage.concurrency",
-    );
   });
 
   it("applies execution profiles before explicit overrides", () => {
@@ -115,18 +104,6 @@ describe("normalizeConfig", () => {
     expect(() => normalizeConfig({ rules: { typo: true } } as never)).toThrow(
       "rules.typo",
     );
-  });
-
-  it("accepts only callable programmatic AI transports", () => {
-    expect(() =>
-      normalizeConfig({ ai: { transport: "invalid" } } as never),
-    ).toThrow("ai.transport");
-
-    const transport = {
-      query: vi.fn().mockResolvedValue("ok"),
-      queryVision: vi.fn().mockResolvedValue("ok"),
-    };
-    expect(normalizeConfig({ ai: { transport } }).ai.transport).toBe(transport);
   });
 
   describe("prepare", () => {
@@ -185,9 +162,7 @@ describe("normalizeConfig", () => {
 
 describe("loadConfig", () => {
   it("preserves omitted fields when loading raw CLI input", async () => {
-    mockReadFile.mockResolvedValue(
-      JSON.stringify({ urls: ["https://x.test"] }),
-    );
+    mockReadFile.mockResolvedValue(JSON.stringify({ url: "https://x.test" }));
 
     const input = await loadConfigInput("minimal.json");
 
@@ -215,46 +190,16 @@ describe("loadConfig", () => {
     expect(config.rules.keyboardTrap).toBe(true);
   });
 
-  describe("AI API key resolution", () => {
-    it("detects the provider-independent Keylens environment key", () => {
-      vi.stubEnv("KEYLENS_AI_API_KEY", "keylens-key");
-      const config = normalizeConfig({ ai: { provider: "anthropic" } });
-
-      expect(resolveAIAPIKey(config.ai)).toBe("keylens-key");
-      expect(hasConfiguredAIAPIKey(config.ai)).toBe(true);
-    });
-
-    it("detects the Anthropic provider environment key", () => {
-      vi.stubEnv("KEYLENS_AI_API_KEY", "");
-      vi.stubEnv("ANTHROPIC_API_KEY", "anthropic-key");
-      const config = normalizeConfig({ ai: { provider: "anthropic" } });
-
-      expect(resolveAIAPIKey(config.ai)).toBe("anthropic-key");
-    });
-
-    it("detects the OpenAI provider environment key", () => {
-      vi.stubEnv("KEYLENS_AI_API_KEY", "");
-      vi.stubEnv("OPENAI_API_KEY", "openai-key");
-      const config = normalizeConfig({ ai: { provider: "openai" } });
-
-      expect(resolveAIAPIKey(config.ai)).toBe("openai-key");
-    });
-  });
-
   it("should not share nested mutable values with defaults", async () => {
     const config = await loadConfig();
 
-    config.urls.push("https://example.com");
     config.reporters.push("json");
     config.rules.keyboardTrap = false;
     config.interactions.actions.push("space");
-    config.multiPage.concurrency = 8;
 
-    expect(DEFAULT_CONFIG.urls).toEqual([]);
     expect(DEFAULT_CONFIG.reporters).toEqual(["cli"]);
     expect(DEFAULT_CONFIG.rules.keyboardTrap).toBe(true);
     expect(DEFAULT_CONFIG.interactions.actions).toEqual(["click"]);
-    expect(DEFAULT_CONFIG.multiPage.concurrency).toBe(2);
   });
 
   it("should throw ConfigError when file is not found", async () => {
@@ -283,7 +228,6 @@ describe("loadConfig", () => {
         maxTabs: 200,
         viewport: { width: 800 },
         rules: { keyboardTrap: false },
-        ai: { enabled: true, features: { reportSummary: false } },
       }),
     );
 
@@ -293,14 +237,11 @@ describe("loadConfig", () => {
     expect(config.maxTabs).toBe(200);
     expect(config.viewport.width).toBe(800);
     expect(config.rules.keyboardTrap).toBe(false);
-    expect(config.ai.enabled).toBe(true);
-    expect(config.ai.features.reportSummary).toBe(false);
 
     // Preserved defaults
     expect(config.viewport.height).toBe(720);
     expect(config.rules.unreachableElements).toBe(true);
     expect(config.browser).toBe("chromium");
-    expect(config.ai.features.fixSuggestions).toBe(true);
   });
 
   it("should only override specified keys in partial config", async () => {

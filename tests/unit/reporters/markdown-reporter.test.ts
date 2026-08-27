@@ -1,18 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   makeAuditReport,
-  makeMultiPageReport,
   makeFocusedElement,
 } from "@tests/helpers/factories.js";
-import type {
-  WidgetClassification,
-  AccessibleNameSuggestion,
-  FocusIndicatorScore,
-  AIFocusOrderResult,
-  AIReportSummary,
-  FixSuggestion,
-  CrossPagePattern,
-} from "@/types/index.js";
 
 // Mock fs/promises
 vi.mock("fs/promises", () => ({
@@ -136,6 +126,105 @@ describe("reportMarkdown", () => {
     );
   });
 
+  it("should render dismissed overlays, prepare warnings, and a fast crawl duration", async () => {
+    const reportMarkdown = await getReportMarkdown();
+    const report = makeAuditReport({
+      crawl: {
+        totalFocusableElements: 15,
+        totalInteractiveElements: 20,
+        unreachedElements: 5,
+        cycleCompleted: true,
+        duration: 500,
+        prepare: {
+          attempted: true,
+          dismissals: [
+            { provider: "onetrust", action: "reject", verified: true },
+          ],
+          warnings: ["Consent banner selector matched but click timed out"],
+          duration: 50,
+        },
+      },
+    });
+
+    await reportMarkdown(report, "./test-output");
+    const md = getWrittenMarkdown();
+
+    expect(md).toContain("500ms");
+    expect(md).toContain("**Overlays dismissed:** onetrust (reject)");
+    expect(md).toContain(
+      "**Prepare warnings:** Consent banner selector matched but click timed out",
+    );
+  });
+
+  it("should render a functional skip link and a failing skip link", async () => {
+    const reportMarkdown = await getReportMarkdown();
+    const passing = makeAuditReport({
+      rules: [
+        {
+          ruleId: "skip-link",
+          ruleName: "Skip Link",
+          passed: true,
+          violations: [],
+          duration: 1,
+        },
+      ],
+    });
+
+    await reportMarkdown(passing, "./test-output");
+    const passingMd = getWrittenMarkdown();
+    expect(passingMd).toContain("## Skip Link");
+    expect(passingMd).toContain("Skip link: **functional.**");
+
+    mockWriteFile.mockClear();
+
+    const failing = makeAuditReport({
+      rules: [
+        {
+          ruleId: "skip-link",
+          ruleName: "Skip Link",
+          passed: false,
+          violations: [
+            {
+              ruleId: "skip-link",
+              ruleName: "Skip Link",
+              severity: "error",
+              message: "No skip link found",
+              elements: [],
+              impact: "High",
+            },
+          ],
+          duration: 1,
+        },
+      ],
+    });
+
+    await reportMarkdown(failing, "./test-output");
+    const failingMd = getWrittenMarkdown();
+    expect(failingMd).toContain("**error**: No skip link found");
+  });
+
+  it("should render a rule evaluation error", async () => {
+    const reportMarkdown = await getReportMarkdown();
+    const report = makeAuditReport({
+      rules: [
+        {
+          ruleId: "broken-rule",
+          ruleName: "Broken Rule",
+          status: "error",
+          passed: false,
+          violations: [],
+          duration: 5,
+          error: { code: "RULE_ERROR", message: "Evaluation failed" },
+        },
+      ],
+    });
+
+    await reportMarkdown(report, "./test-output");
+    const md = getWrittenMarkdown();
+
+    expect(md).toContain("**Evaluation error:** Evaluation failed");
+  });
+
   it("should render focus sequence table", async () => {
     const reportMarkdown = await getReportMarkdown();
     const report = makeAuditReport({
@@ -221,241 +310,6 @@ describe("reportMarkdown", () => {
     expect(md).toContain("### Tabindex Abuse [PASS]");
   });
 
-  it("should render string fix suggestions", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const report = makeAuditReport({
-      rules: [
-        {
-          ruleId: "tabindex-abuse",
-          ruleName: "Tabindex Abuse",
-          passed: false,
-          violations: [
-            {
-              ruleId: "tabindex-abuse",
-              ruleName: "Tabindex Abuse",
-              severity: "warning",
-              message: "Positive tabindex detected",
-              elements: [],
-              wcag: ["2.4.3"],
-              impact: "Changes natural tab order",
-              fixSuggestion: "Remove the tabindex attribute",
-            },
-          ],
-          wcag: ["2.4.3"],
-          duration: 1,
-        },
-      ],
-    });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("**Fix:** Remove the tabindex attribute");
-  });
-
-  it("should render structured fix suggestions", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const fix: FixSuggestion = {
-      summary: "Remove tabindex",
-      codeBefore: '<div tabindex="5">',
-      codeAfter: '<div tabindex="0">',
-      wcagRef: "2.4.3",
-      estimatedEffort: "low",
-      explanation: "Positive tabindex disrupts natural focus order",
-    };
-    const report = makeAuditReport({
-      rules: [
-        {
-          ruleId: "tabindex-abuse",
-          ruleName: "Tabindex Abuse",
-          passed: false,
-          violations: [
-            {
-              ruleId: "tabindex-abuse",
-              ruleName: "Tabindex Abuse",
-              severity: "warning",
-              message: "Positive tabindex",
-              elements: [],
-              wcag: ["2.4.3"],
-              impact: "Disrupts order",
-              fixSuggestion: fix,
-            },
-          ],
-          wcag: ["2.4.3"],
-          duration: 1,
-        },
-      ],
-    });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("**Fix:** Remove tabindex");
-    expect(md).toContain("Effort: low");
-    expect(md).toContain("WCAG: 2.4.3");
-    expect(md).toContain("Positive tabindex disrupts natural focus order");
-  });
-
-  it("should render AI focus order analysis (structured)", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const analysis: AIFocusOrderResult = {
-      summary: "Focus order follows a reasonable pattern",
-      issues: [
-        {
-          elementIndex: 3,
-          description: "Sidebar link reached before main content",
-          severity: "warning",
-          suggestion: "Move sidebar after main in DOM",
-        },
-      ],
-      overallAssessment: "acceptable",
-    };
-    const report = makeAuditReport({ aiFocusOrderAnalysis: analysis });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("## AI Analysis");
-    expect(md).toContain("### Focus Order Analysis");
-    expect(md).toContain("**Assessment:** acceptable");
-    expect(md).toContain("Sidebar link reached before main content");
-  });
-
-  it("should render AI focus order analysis (string fallback)", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const report = makeAuditReport({
-      aiFocusOrderAnalysis: "The focus order looks reasonable overall.",
-    });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("The focus order looks reasonable overall.");
-  });
-
-  it("should render widget classifications", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const classifications: WidgetClassification[] = [
-      {
-        element: {
-          selector: "div.dropdown",
-          tagName: "div",
-          role: "combobox",
-          accessibleName: "Category",
-          outerHTML: "<div>...</div>",
-        },
-        pattern: "combobox",
-        confidence: 0.92,
-        expectedKeyboard: [
-          {
-            key: "ArrowDown",
-            expectedBehavior: "Open list or move to next option",
-          },
-        ],
-      },
-    ];
-    const report = makeAuditReport({ widgetClassifications: classifications });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("### Widget Classifications");
-    expect(md).toContain("combobox");
-    expect(md).toContain("92%");
-    expect(md).toContain("ArrowDown");
-  });
-
-  it("should render accessible name suggestions", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const suggestions: AccessibleNameSuggestion[] = [
-      {
-        element: {
-          selector: "button.icon-btn",
-          tagName: "button",
-          role: "button",
-          outerHTML: "<button><svg/></button>",
-        },
-        suggestedLabel: "Close dialog",
-        suggestedRole: "button",
-        confidence: 0.85,
-        reasoning: "Button contains only an X icon",
-      },
-    ];
-    const report = makeAuditReport({
-      accessibleNameSuggestions: suggestions,
-    });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("### Accessible Name Suggestions");
-    expect(md).toContain("Close dialog");
-    expect(md).toContain("85%");
-    expect(md).toContain("Button contains only an X icon");
-  });
-
-  it("should render focus indicator scores", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const scores: FocusIndicatorScore[] = [
-      {
-        element: {
-          selector: "a.nav-link",
-          tagName: "a",
-          role: "link",
-          accessibleName: "Home",
-        },
-        score: 8,
-        contrast: "sufficient",
-        visibility: "clear",
-        recommendation: null,
-      },
-    ];
-    const report = makeAuditReport({ focusIndicatorScores: scores });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("### Focus Indicator Scores");
-    expect(md).toContain("8/10");
-    expect(md).toContain("sufficient");
-    expect(md).toContain("clear");
-  });
-
-  it("should render structured AI summary", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const summary: AIReportSummary = {
-      overview: "The page has moderate accessibility issues.",
-      criticalIssues: ["Keyboard trap on search input"],
-      prioritizedFixes: [
-        { fix: "Remove focus trap", effort: "low", impact: "high" },
-      ],
-      aiSeverityRating: 65,
-      recommendation: "Fix the keyboard trap as the top priority.",
-    };
-    const report = makeAuditReport({ aiSummary: summary });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("### AI Summary");
-    expect(md).toContain("moderate accessibility issues");
-    expect(md).toContain("Keyboard trap on search input");
-    expect(md).toContain("Remove focus trap");
-    expect(md).toContain("65/100");
-  });
-
-  it("should render string AI summary", async () => {
-    const reportMarkdown = await getReportMarkdown();
-    const report = makeAuditReport({
-      aiSummary: "Overall the page has decent keyboard support.",
-    });
-
-    await reportMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("Overall the page has decent keyboard support.");
-  });
-
   it("should render footer", async () => {
     const reportMarkdown = await getReportMarkdown();
     const report = makeAuditReport({ version: "0.1.0" });
@@ -504,123 +358,5 @@ describe("reportMarkdown", () => {
     expect(md).toContain("aria-expanded");
     expect(md).toContain("Context");
     expect(md).toContain("nav");
-  });
-});
-
-describe("reportMultiMarkdown", () => {
-  async function getReportMultiMarkdown() {
-    const mod = await import("@/reporters/markdown-reporter.js");
-    return mod.reportMultiMarkdown;
-  }
-
-  it("should create output directory and write multi markdown file", async () => {
-    const reportMultiMarkdown = await getReportMultiMarkdown();
-    const report = makeMultiPageReport();
-
-    await reportMultiMarkdown(report, "./test-output");
-
-    expect(mockMkdir).toHaveBeenCalledWith("./test-output", {
-      recursive: true,
-    });
-    expect(mockWriteFile).toHaveBeenCalledTimes(1);
-    expect(mockWriteFile.mock.calls[0]![0]).toMatch(
-      /keylens-report-multi\.md$/,
-    );
-  });
-
-  it("should include multi-page header and aggregate summary", async () => {
-    const reportMultiMarkdown = await getReportMultiMarkdown();
-    const report = makeMultiPageReport({
-      urls: ["https://a.com", "https://b.com"],
-      pages: [
-        makeAuditReport({ url: "https://a.com" }),
-        makeAuditReport({ url: "https://b.com" }),
-      ],
-      summary: {
-        totalPages: 2,
-        totalErrors: 5,
-        totalWarnings: 3,
-        totalInfo: 1,
-        pagesWithErrors: 2,
-        score: 60,
-      },
-    });
-
-    await reportMultiMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("# Keylens Multi-Page Keyboard Navigation Report");
-    expect(md).toContain("## Aggregate Summary");
-    expect(md).toContain("| 2 | 5 | 3 | 1 | 0 | 2 | 60/100 |");
-  });
-
-  it("should render individual page sections", async () => {
-    const reportMultiMarkdown = await getReportMultiMarkdown();
-    const report = makeMultiPageReport({
-      urls: ["https://a.com", "https://b.com"],
-      pages: [
-        makeAuditReport({ url: "https://a.com" }),
-        makeAuditReport({ url: "https://b.com" }),
-      ],
-    });
-
-    await reportMultiMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("## Page: https://a.com");
-    expect(md).toContain("## Page: https://b.com");
-  });
-
-  it("should render cross-page patterns", async () => {
-    const reportMultiMarkdown = await getReportMultiMarkdown();
-    const patterns: CrossPagePattern[] = [
-      {
-        type: "inconsistent-order",
-        description: "Nav tab order differs between pages",
-        affectedPages: ["https://a.com", "https://b.com"],
-        severity: "warning",
-        suggestion: "Ensure nav elements have consistent DOM order",
-      },
-    ];
-    const report = makeMultiPageReport({ crossPagePatterns: patterns });
-
-    await reportMultiMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("## Cross-Page Patterns");
-    expect(md).toContain("inconsistent-order");
-    expect(md).toContain("Nav tab order differs between pages");
-    expect(md).toContain("https://a.com");
-  });
-
-  it("should render multi-page AI summary", async () => {
-    const reportMultiMarkdown = await getReportMultiMarkdown();
-    const summary: AIReportSummary = {
-      overview: "Cross-page analysis shows consistent issues.",
-      criticalIssues: ["Missing skip link on /about"],
-      prioritizedFixes: [
-        { fix: "Add skip link to all pages", effort: "low", impact: "high" },
-      ],
-      aiSeverityRating: 55,
-      recommendation: "Standardize skip link across all pages.",
-    };
-    const report = makeMultiPageReport({ aiSummary: summary });
-
-    await reportMultiMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("## AI Summary");
-    expect(md).toContain("Cross-page analysis shows consistent issues.");
-    expect(md).toContain("Missing skip link on /about");
-  });
-
-  it("should include footer", async () => {
-    const reportMultiMarkdown = await getReportMultiMarkdown();
-    const report = makeMultiPageReport();
-
-    await reportMultiMarkdown(report, "./test-output");
-    const md = getWrittenMarkdown();
-
-    expect(md).toContain("Generated by Keylens");
   });
 });

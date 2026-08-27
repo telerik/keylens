@@ -95,7 +95,7 @@ For repeatable CI:
 - freeze or mock changing content;
 - use an explicit viewport and browser;
 - set `timeouts.total` and relevant phase budgets;
-- use `capture.limits`, interaction limits, and bounded multi-page concurrency;
+- use `capture.limits` and interaction limits;
 - audit multiple browsers in separate jobs when cross-browser behavior matters.
 
 See [Configuration](./configuration) and [Known limitations](./limitations).

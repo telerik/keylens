@@ -3,15 +3,10 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { performance } from "node:perf_hooks";
-import {
-  audit,
-  auditMultiple,
-  projectAuditReport,
-  projectMultiPageReport,
-} from "../src/index.js";
+import { audit, projectAuditReport } from "../src/index.js";
 import { normalizeConfig } from "../src/utils/config.js";
 import { setLogLevel } from "../src/utils/logger.js";
-import type { AuditReport, MultiPageReport } from "../src/types/index.js";
+import type { AuditReport } from "../src/types/index.js";
 import { BENCHMARK_BUDGETS } from "./budgets.js";
 
 interface BenchmarkResult {
@@ -23,7 +18,6 @@ interface BenchmarkResult {
   serializedBytes: number;
   compactSerializedBytes: number;
   inlineScreenshotBytes: number;
-  elementScreenshotCount: number;
   interactionResultCount: number;
   focusedElements: number;
 }
@@ -46,58 +40,25 @@ interface BenchmarkReport {
 }
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
-const fixtureNames = ["standard", "interactions", "tall"] as const;
+const fixtureNames = ["standard", "interactions"] as const;
 
-function countScreenshotBytes(report: AuditReport | MultiPageReport): number {
-  const pages = "pages" in report ? report.pages : [report];
-  return pages.reduce(
-    (total, page) =>
-      total +
-      page.assets
-        .filter((asset) => asset.mediaType.startsWith("image/"))
-        .reduce((sum, asset) => sum + asset.byteLength, 0),
-    0,
-  );
+function countScreenshotBytes(report: AuditReport): number {
+  return report.assets
+    .filter((asset) => asset.mediaType.startsWith("image/"))
+    .reduce((sum, asset) => sum + asset.byteLength, 0);
 }
 
-function countFocusedElements(report: AuditReport | MultiPageReport): number {
-  return "pages" in report
-    ? report.pages.reduce(
-        (total, page) => total + page.crawl.totalFocusableElements,
-        0,
-      )
-    : report.crawl.totalFocusableElements;
+function countFocusedElements(report: AuditReport): number {
+  return report.crawl.totalFocusableElements;
 }
 
-function countElementScreenshots(
-  report: AuditReport | MultiPageReport,
-): number {
-  const pages = "pages" in report ? report.pages : [report];
-  return pages.reduce(
-    (total, page) =>
-      total +
-      page.assets.filter(
-        (asset) =>
-          asset.type === "focused-element-screenshot" ||
-          asset.type === "unfocused-element-screenshot",
-      ).length,
-    0,
-  );
-}
-
-function countInteractionResults(
-  report: AuditReport | MultiPageReport,
-): number {
-  const pages = "pages" in report ? report.pages : [report];
-  return pages.reduce(
-    (total, page) => total + (page.crawl.interactions?.attempted ?? 0),
-    0,
-  );
+function countInteractionResults(report: AuditReport): number {
+  return report.crawl.interactions?.attempted ?? 0;
 }
 
 async function measure(
   name: string,
-  operation: () => Promise<AuditReport | MultiPageReport>,
+  operation: () => Promise<AuditReport>,
 ): Promise<BenchmarkResult> {
   const rssStartBytes = process.memoryUsage().rss;
   let rssPeakBytes = rssStartBytes;
@@ -112,9 +73,7 @@ async function measure(
     const report = await operation();
     const serialized = JSON.stringify(report);
     const compact = JSON.stringify(
-      "pages" in report
-        ? projectMultiPageReport(report, { assets: "omit" })
-        : projectAuditReport(report, { assets: "omit" }),
+      projectAuditReport(report, { assets: "omit" }),
     );
     rssPeakBytes = Math.max(rssPeakBytes, process.memoryUsage().rss);
     return {
@@ -126,7 +85,6 @@ async function measure(
       serializedBytes: Buffer.byteLength(serialized),
       compactSerializedBytes: Buffer.byteLength(compact),
       inlineScreenshotBytes: countScreenshotBytes(report),
-      elementScreenshotCount: countElementScreenshots(report),
       interactionResultCount: countInteractionResults(report),
       focusedElements: countFocusedElements(report),
     };
@@ -215,7 +173,6 @@ async function main(): Promise<void> {
   const { server, baseUrl } = await startFixtureServer();
   const baseConfig = normalizeConfig({
     reporters: [],
-    ai: { enabled: false },
     waitAfterLoad: 25,
     tabDelay: 10,
     tabTimeout: 500,
@@ -225,18 +182,6 @@ async function main(): Promise<void> {
   try {
     const results = [
       await measure("standard", () => audit(`${baseUrl}/standard`, baseConfig)),
-      await measure("element-screenshots", () =>
-        audit(
-          `${baseUrl}/standard`,
-          normalizeConfig({
-            ...baseConfig,
-            capture: {
-              ...baseConfig.capture,
-              elements: true,
-            },
-          }),
-        ),
-      ),
       await measure("interactions", () =>
         audit(
           `${baseUrl}/interactions`,
@@ -249,21 +194,7 @@ async function main(): Promise<void> {
           }),
         ),
       ),
-      await measure("multi-page", () =>
-        auditMultiple(
-          [`${baseUrl}/standard`, `${baseUrl}/tall`, `${baseUrl}/interactions`],
-          baseConfig,
-        ),
-      ),
     ];
-    const screenshotResult = results.find(
-      (result) => result.name === "element-screenshots",
-    );
-    if (!screenshotResult || screenshotResult.elementScreenshotCount === 0) {
-      throw new Error(
-        "Element screenshot benchmark completed without capturing element screenshots",
-      );
-    }
     const interactionResult = results.find(
       (result) => result.name === "interactions",
     );

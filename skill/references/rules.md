@@ -20,9 +20,9 @@
 
 - **WCAG**: 2.4.3 Focus Order
 - **Severity**: warning
-- **Detects**: Tab order that significantly diverges from visual layout order (tolerance: 3+ position difference)
-- **Common causes**: CSS reordering (flexbox `order`, grid placement, absolute positioning) without matching DOM order
-- **Fix**: Align DOM order with visual order, or use `tabindex` carefully to correct the sequence
+- **Detects**: Tab order that significantly diverges from DOM (content) order (tolerance: 3+ position difference). Does NOT compare against visual/pixel layout — WCAG 2.4.3 explicitly allows focus order to differ from visual layout (e.g. a nav sidebar fully before main content)
+- **Common causes**: Positive `tabindex` values or scripted focus management reordering the tab sequence away from DOM order
+- **Fix**: Remove positive tabindex values; rely on natural DOM order for focus sequence
 
 ## tabindex-abuse
 
@@ -35,8 +35,8 @@
 ## missing-focus-indicator
 
 - **WCAG**: 2.4.7 Focus Visible
-- **Severity**: error (when confirmed via screenshot diff) or warning (CSS heuristic only)
-- **Detects**: Elements that receive focus but show no visible focus indicator
+- **Severity**: error
+- **Detects**: Elements that receive focus but show no visible focus indicator (computed-style diff between focused/unfocused states, always on — no flag needed)
 - **Common causes**: `outline: none` / `outline: 0` in CSS without replacement styles, transparent outlines, browser default overridden
 - **Fix**: Add visible `:focus-visible` styles (outline, box-shadow, or border change)
 
@@ -55,6 +55,14 @@
 - **Detects**: Focused elements hidden behind sticky headers, fixed footers, or overlay content
 - **Common causes**: Sticky navigation bars, cookie banners, chat widgets covering focused elements
 - **Fix**: Use `scroll-padding-top`/`scroll-padding-bottom` to account for fixed elements, or dynamically scroll focused elements into visible area
+
+## roving-tabindex-broken
+
+- **WCAG**: 2.1.1 Keyboard
+- **Severity**: warning
+- **Detects**: Composite widget members (tabs, menu items, listbox options, etc.) declared with the roving-tabindex pattern (`tabindex="-1"` on inactive members) that are NOT actually reachable via arrow keys from the active member — verified by simulating real key presses, not just inferred from markup
+- **Common causes**: Missing or broken keydown handler on the composite container; wrong assumed arrow-key direction (e.g. handling only Left/Right on a vertically-oriented widget)
+- **Fix**: Attach a keydown handler on the container that moves DOM focus (and updates `tabindex`) between members on the arrow keys appropriate for the widget's role/orientation (see WAI-ARIA APG keyboard interaction patterns for tablist/menu/listbox/tree/toolbar/radiogroup)
 
 ## focus-after-interaction
 

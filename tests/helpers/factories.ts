@@ -1,9 +1,10 @@
 import type {
   FocusedElement,
+  FocusStyleSnapshot,
+  ComputedStyleMap,
   InteractiveElement,
   CrawlResult,
   AuditReport,
-  MultiPageReport,
   AuditAsset,
 } from "@/types/index.js";
 import { AUDIT_REPORT_SCHEMA_VERSION } from "@/types/index.js";
@@ -26,6 +27,65 @@ export function makeFocusedElement(
   };
 }
 
+export function makeFocusStyleSnapshot(
+  overrides: {
+    self?: Partial<FocusStyleSnapshot["self"]>;
+    before?: Partial<FocusStyleSnapshot["before"]>;
+    after?: Partial<FocusStyleSnapshot["after"]>;
+    ancestors?: Partial<ComputedStyleMap>[];
+    descendants?: Partial<ComputedStyleMap>[];
+  } = {},
+): FocusStyleSnapshot {
+  const baseSelf = {
+    "outline-style": "none",
+    "outline-width": "0px",
+    "outline-color": "rgb(0, 0, 0)",
+    "outline-offset": "0px",
+    "box-shadow": "none",
+    "border-top-style": "none",
+    "border-top-width": "0px",
+    "border-top-color": "rgb(0, 0, 0)",
+    "background-color": "rgba(0, 0, 0, 0)",
+    color: "rgb(0, 0, 0)",
+    "text-decoration-line": "none",
+    "text-decoration-color": "rgb(0, 0, 0)",
+    filter: "none",
+    "background-image": "none",
+    "animation-name": "none",
+    "animation-duration": "0s",
+  };
+  const basePseudo = {
+    content: "none",
+    "box-shadow": "none",
+    "background-color": "rgba(0, 0, 0, 0)",
+    width: "0px",
+    height: "0px",
+    opacity: "1",
+    transform: "none",
+  };
+  const baseAncestor = {
+    "box-shadow": "none",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "outline-style": "none",
+  };
+
+  return {
+    self: { ...baseSelf, ...overrides.self },
+    before: { ...basePseudo, ...overrides.before },
+    after: { ...basePseudo, ...overrides.after },
+    ancestors: overrides.ancestors
+      ? overrides.ancestors.map((ancestor) => ({
+          ...baseAncestor,
+          ...ancestor,
+        }))
+      : [{ ...baseAncestor }],
+    descendants: overrides.descendants?.map((descendant) => ({
+      ...baseAncestor,
+      ...descendant,
+    })),
+  };
+}
+
 export function makeInteractiveElement(
   overrides: Partial<InteractiveElement> = {},
 ): InteractiveElement {
@@ -38,6 +98,7 @@ export function makeInteractiveElement(
     reached: false,
     tabindexAttr: null,
     outerHTML: "<button>Test</button>",
+    rovingContainerSelector: null,
     ...overrides,
   };
 }
@@ -86,14 +147,7 @@ export function makeAuditReport(
     version: "0.1.0",
     timestamp: new Date().toISOString(),
     url: "https://example.com",
-    config: {
-      ...normalizeConfig(DEFAULT_CONFIG),
-      ai: {
-        ...DEFAULT_CONFIG.ai,
-        apiKeyConfigured: false,
-        transportConfigured: false,
-      },
-    },
+    config: normalizeConfig(DEFAULT_CONFIG),
     timings: {
       crawl: 1000,
       rules: 0,
@@ -126,33 +180,6 @@ export function makeAuditReport(
       scoreComplete: true,
     },
     assets: [],
-    ...overrides,
-  };
-}
-
-export function makeMultiPageReport(
-  overrides: Partial<MultiPageReport> = {},
-): MultiPageReport {
-  return {
-    schemaVersion: AUDIT_REPORT_SCHEMA_VERSION,
-    version: "0.1.0",
-    timestamp: new Date().toISOString(),
-    urls: ["https://example.com"],
-    pages: [makeAuditReport()],
-    timings: {
-      pages: 1000,
-      total: 1000,
-    },
-    summary: {
-      totalPages: 1,
-      totalErrors: 0,
-      totalWarnings: 0,
-      totalInfo: 0,
-      ruleErrors: 0,
-      pagesWithErrors: 0,
-      score: 100,
-      scoreComplete: true,
-    },
     ...overrides,
   };
 }

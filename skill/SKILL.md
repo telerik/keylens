@@ -2,7 +2,7 @@
 name: keylens
 description: Run keyboard navigation accessibility audits on web pages using a real browser.
 user-invokable: true
-argument-hint: "[url] [--profile <profile>] [--screenshots] [--interactions] [--ai]"
+argument-hint: "[url] [--profile <profile>] [--interactions]"
 license: MIT
 compatibility: VS Code with terminal access
 metadata:
@@ -40,22 +40,10 @@ metadata:
 ### Thorough deterministic audit
 
 ```bash
-npx keylens audit <URL> --profile thorough --screenshots --output cli,json,html
+npx keylens audit <URL> --profile thorough --output cli,json,html
 ```
 
 Execution profiles do not remove capture, interaction, or timeout budgets.
-
-### Full audit with experimental AI analysis
-
-```bash
-npx keylens audit <URL> --ai --output cli,json,html --output-dir ./keylens-report
-```
-
-### Audit with screenshot-based focus indicator detection
-
-```bash
-npx keylens audit <URL> --screenshots --output cli,json
-```
 
 ### Audit with experimental interaction testing
 
@@ -63,7 +51,7 @@ npx keylens audit <URL> --screenshots --output cli,json
 npx keylens audit <URL> --interactions --output cli,json
 ```
 
-### Multi-page audit from config
+### Audit from config file
 
 ```bash
 npx keylens audit --config keylens.config.json --output cli,json,html
@@ -92,8 +80,6 @@ The JSON report contains:
 - `crawl.totalFocusableElements` / `crawl.unreachedElements` — coverage
 - `crawl.capture` — captured, skipped, failed, byte, and pixel counts
 - `interactionResults[]` — detailed passed, failed, skipped, and errored activation cases
-- `widgetClassifications[]` — AI widget pattern identification (when --ai)
-- `aiFocusOrderAnalysis` — AI focus order assessment (when --ai)
 
 ## Key Rules
 
