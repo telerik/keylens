@@ -16,20 +16,21 @@ real Playwright browser, presses Tab, and records the keyboard path users actual
 ## What Keylens tests
 
 Keylens complements static accessibility analysis; it does not replace it. It evaluates
-the runtime focus sequence with eight deterministic rules:
+the runtime focus sequence with nine deterministic rules:
 
 - keyboard traps and incomplete Tab cycles;
 - interactive elements that Tab never reaches;
-- large differences between visual and focus order;
+- large differences between focus order and DOM order;
 - positive `tabindex` values;
 - missing visual focus changes, with optional screenshot evidence;
 - missing or nonfunctional skip links;
 - focus obscured at the focused element's center point;
-- invalid focus after bounded, opt-in activations.
+- invalid focus after bounded, opt-in activations;
+- composite widgets (tabs, menus, listboxes) unreachable via arrow keys despite roving-tabindex markup.
 
-It can audit multiple pages with browser reuse and bounded concurrency, emit CLI, JSON,
-HTML, or Markdown reports, and run as a library with cancellation, progress events,
-phase deadlines, typed errors, and explicit rendering.
+It audits one page per invocation, emits CLI, JSON, HTML, or Markdown reports, and
+runs as a library with cancellation, progress events, phase deadlines, typed errors,
+and explicit rendering.
 
 Before the crawl starts, a bounded prepare phase auto-dismisses cookie/consent banners
 (built-in presets for major CMPs, plus a generic fallback), so audits of real sites
@@ -147,7 +148,7 @@ accessibility conformance evidence.
 | `cli`      | Human-readable terminal report and capture coverage             |
 | `json`     | `keylens-report.json`; semantic data with binary assets omitted |
 | `html`     | `keylens-report.html`; focus map when a page image is available |
-| `markdown` | `keylens-report.md` or `keylens-report-multi.md`                |
+| `markdown` | `keylens-report.md`                                             |
 
 Reports carry an independent `schemaVersion`. A score is marked incomplete when a rule
 could not be evaluated; do not compare that score as if it covered all enabled rules.
@@ -163,7 +164,6 @@ before use.
 - [Support policy and Node/browser matrix](SUPPORT.md)
 - [Security policy and private reporting](SECURITY.md)
 - [Changelog](CHANGELOG.md)
-- [Migration guide](docs/guide/ga-migration.md)
 
 ## License
 

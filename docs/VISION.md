@@ -44,12 +44,13 @@ A CLI tool that uses Playwright under the hood to:
 
 - **Keyboard trap** (WCAG 2.1.2): forward Tab appears stuck (detected via consecutive duplicate selectors) or does not complete a cycle
 - **Unreachable interactives** (WCAG 2.1.1): `<button>`, `<a href>`, `<input>`, etc. discovered on page but never reached via Tab
-- **Focus order vs visual order mismatch** (WCAG 2.4.3): element position in tab sequence doesn't match its screen position (with tolerance for minor discrepancies)
+- **Focus order vs DOM order mismatch** (WCAG 2.4.3): element position in tab sequence differs from its position in DOM/content order by more than a tolerance (WCAG 2.4.3 explicitly allows focus order to differ from visual/pixel layout, so this intentionally does not compare screen position)
 - **Positive tabindex abuse** (WCAG 2.4.3): any `tabindex > 0` detected — disrupts natural tab order
-- **Missing focus indicator** (WCAG 2.4.7): computed-style diff — compares outline, box-shadow, border, background, color, pseudo-elements, and parent styles taken while focused vs. once focus moves away. Runs by default (no flag needed); any difference counts as a visible indicator (severity: error)
+- **Missing focus indicator** (WCAG 2.4.7): computed-style diff — compares outline, box-shadow, border, background, color, pseudo-elements, ancestor, and descendant styles taken while focused vs. once focus moves away, confirmed by a bounded pixel-diff pass for whatever the style diff can't see (e.g. a canvas-painted ring). Runs by default (no flag needed); any difference (or pixel-diff confirmation) counts as a visible indicator (severity: error)
 - **Skip link** (WCAG 2.4.1): crawler tabs through the first 5 elements, identifies a skip-link pattern, presses Enter, and records the resulting focus target. The current pass check only establishes that focus is not lost to the document; manual destination verification remains necessary
 - **Focus not obscured** (WCAG 2.4.11): checks if focused elements are hidden behind overlays or other content using `elementFromPoint` at the element's center
 - **Focus after interaction** (WCAG 2.4.3, 2.4.7): when experimental interactions are enabled, runs bounded configured activations against eligible controls and verifies focus remains on a valid target. Each failed interaction is a separate error-severity violation
+- **Broken roving-tabindex navigation** (WCAG 2.1.1): for composite widgets declaring the roving-tabindex pattern (tabs, menus, listboxes, trees, toolbars, radiogroups, grids), simulates real arrow-key presses to verify every `tabindex="-1"` member is actually reachable, rather than trusting the markup alone. Always runs (no flag); reported as a warning since it's a best-effort simulation, not a structural markup check
 
 ### 3. Report Outputs
 
@@ -63,96 +64,28 @@ A CLI tool that uses Playwright under the hood to:
 
 ```bash
 # Basic scan
-npx keylens https://example.com
+npx keylens audit https://example.com
 
 # With options
-npx keylens https://example.com \
+npx keylens audit https://example.com \
   --output html \
   --interactions \
   --wait-for "#app-loaded"
 
 # Config file
-npx keylens --config keylens.config.json
+npx keylens audit --config keylens.config.json
 ```
 
-### Example Output
-
-```
-keylens v<current> — Keyboard Navigation Audit
-
-URL: https://example.com
-Focusable elements found: 47
-Tab cycle completed: 42 elements reached
-
-✗ TRAP DETECTED at element #12
-  <div role="combobox" class="search-dropdown">
-  Focus remained on the same element during forward Tab navigation
-
-✗ 5 UNREACHABLE INTERACTIVE ELEMENTS
-  <button class="carousel-next"> — not in tab order
-  <a href="/pricing" class="nav-link"> — hidden but interactive
-  ...
-
-⚠ FOCUS ORDER MISMATCH (3 instances)
-  Element #8 (sidebar link) appears before Element #7 (main content)
-  visually below but receives focus first
-
-⚠ MISSING FOCUS INDICATOR (2 instances)
-  <a class="logo-link"> — no visible focus style change detected
-
-✓ Skip link present and functional
-✓ No positive tabindex values found
-
-Result: 2 errors, 4 warnings
-```
+See [Getting started](guide/getting-started.md) and [CLI reference](guide/cli.md) for
+real command output and exit codes; this doc does not duplicate them.
 
 ---
 
 ## Technical Architecture
 
-```
-keylens/
-├── src/
-│   ├── cli/index.ts         # Commander.js CLI entry point
-│   ├── crawler/index.ts     # Playwright tab crawler + skip link testing + element screenshots + interaction testing
-│   ├── rules/
-│   │   ├── keyboard-trap.ts       # WCAG 2.1.2 - focus trap detection
-│   │   ├── unreachable-elements.ts  # WCAG 2.1.1 - interactive elements never reached
-│   │   ├── focus-order-mismatch.ts  # WCAG 2.4.3 - tab order vs visual layout
-│   │   ├── tabindex-abuse.ts      # WCAG 2.4.3 - positive tabindex values
-│   │   ├── missing-focus-indicator.ts  # WCAG 2.4.7 - computed-style diff (focused vs unfocused)
-│   │   ├── skip-link.ts          # WCAG 2.4.1 - skip link presence and functional test
-│   │   ├── focus-not-obscured.ts  # WCAG 2.4.11 - focused element not hidden by overlays
-│   │   └── focus-after-interaction.ts  # WCAG 2.4.3/2.4.7 - focus not lost after clicking
-│   ├── reporters/
-│   │   ├── cli-reporter.ts        # Terminal output
-│   │   ├── json-reporter.ts       # JSON for CI
-│   │   ├── html-reporter.ts       # Interactive HTML with focus map overlay
-│   │   └── index.ts               # Dispatcher: runReporters
-│   ├── types/index.ts       # All core types (AuditReport, etc.)
-│   ├── errors.ts            # Custom error hierarchy
-│   └── utils/
-│       ├── config.ts        # Config loading and deep merging
-│       ├── logger.ts        # Leveled logging (debug/info/warn/error/silent)
-│       └── selectors.ts     # Browser-injected scripts for element discovery
-├── tests/
-│   ├── unit/                # Vitest unit tests (rules, reporters, utils)
-│   ├── integration/         # End-to-end audit pipeline + selector tests
-│   ├── fixtures/            # HTML test pages (clean-page, test-page, skip-link-broken, etc.)
-│   └── helpers/factories.ts # Test factories: makeFocusedElement, makeCrawlResult, etc.
-└── keylens.config.schema.json
-```
-
-### Key Technical Decisions
-
-- **Playwright over Puppeteer** — cross-browser support (Chromium, Firefox, WebKit), better API, actively maintained
-- **Rule-based architecture** — each check is a standalone module, easy to add new rules or let community contribute them
-- **Computed-style diffing for focus indicators** — crawler diffs a computed-style snapshot (outline, box-shadow, border, background, color, `::before`/`::after`, and parent styles for `:focus-within`) taken while focused vs. once focus moves away. Runs by default (no flag needed) since the crawler already focuses every element for real; catches JS/attribute-driven indicators and container-level highlighting that a CSS/HTML text scan would miss
-- **Skip link functional testing** — crawler tabs through first 5 elements, identifies skip links by regex pattern, presses Enter, and records the resulting focus target; current pass logic only checks that focus remains on a non-document element
-- **Targeted focus-indicator pixel confirmation** — candidates missed by computed-style diffing receive a bounded focused-vs-unfocused pixel comparison; this runs automatically and is separate from page screenshot capture
-- **HTML focus order overlay** — `buildFocusMapHTML()` renders page screenshot as background with numbered markers at each focused element, SVG connecting lines showing tab flow. Percentage-based positioning via `pageRect` / `pageDimensions`. Violation markers colored red
-- **HTML escaping throughout** — all user-supplied strings escaped in HTML output to prevent XSS
-- **Use tabbable npm package as a reference** — compare its computed tabbable list against what actually receives focus to find discrepancies
+See `AGENTS.md` in the repository root for the current source layout and technical
+decisions. This vision doc intentionally does not duplicate that reference, to avoid
+the two drifting apart.
 
 ### Comparison Table
 
@@ -166,7 +99,7 @@ keylens/
 | Skip link functional testing | No               | No                     | Yes, verifies Enter + focus target                  |
 | Scriptable / configurable    | Yes              | No                     | Yes, JSON config + CLI flags                        |
 | Cross-browser                | Varies           | Chrome only            | Yes, via Playwright                                 |
-| Post-click interaction test  | No               | No                     | Yes, `--interactions` flag                          |
+| Post-click interaction test  | No               | No                     | Experimental, `--interactions` flag                 |
 
 ---
 
@@ -177,7 +110,9 @@ keylens/
 ### Phase 1 (Complete)
 
 - Tab crawling + focus order map
-- 7 rules: keyboard trap, unreachable elements, focus order mismatch, tabindex abuse, missing focus indicator, skip link, focus not obscured
+- Core deterministic rules: keyboard trap, unreachable elements, focus order mismatch,
+  tabindex abuse, missing focus indicator, skip link, focus not obscured (see
+  [docs/rules/](rules/index.md) for the current full list and severities)
 - CLI + JSON + HTML reporters
 - Single-page scan
 
@@ -191,6 +126,9 @@ keylens/
 ### Phase 3 (Complete)
 
 - Bounded post-activation interaction testing — `--interactions` enables the configured safety policy and the `focus-after-interaction` rule (WCAG 2.4.3/2.4.7, error severity)
+- Broken roving-tabindex navigation rule — arrow-key simulation for composite widgets (WCAG 2.1.1, warning severity)
+- Cookie/consent auto-dismissal and faux-scroll-container handling before the crawl (`prepare` phase)
+- Execution profiles (`fast`/`balanced`/`thorough`), bounded capture/interaction/timeout budgets, and structured progress events
 
 ### Phase 4 (Ecosystem)
 

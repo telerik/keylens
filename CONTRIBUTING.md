@@ -6,7 +6,7 @@ First off, thank you for considering contributing to Keylens! Accessibility tool
 
 ### Prerequisites
 
-- Node.js >= 22
+- Node.js >= 26
 - npm >= 10
 
 ### Setup
@@ -31,11 +31,11 @@ npm run keylens -- audit https://example.com
 ```
 src/
 ├── cli/          # CLI entry point (Commander.js)
-├── crawler/      # Playwright-based tab crawler
+├── crawler/      # Playwright-based tab crawler (+ prepare.ts cookie/consent + faux-scroll handling)
 ├── rules/        # Individual audit rules
 ├── reporters/    # Output formatters (CLI, JSON, HTML, Markdown)
-├── ai/           # AI integration (Anthropic)
 ├── mcp/          # Experimental MCP adapter
+├── guidance.ts   # Static rule remediation catalog (browser-safe)
 ├── utils/        # Shared utilities
 ├── types/        # TypeScript type definitions
 └── index.ts      # Main audit engine & public API

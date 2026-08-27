@@ -8,11 +8,11 @@ renderer is called.
 ## Deterministic analysis
 
 ```ts
-import { auditBase } from "@telerik/keylens";
+import { audit } from "@telerik/keylens";
 
-const report = await auditBase("https://example.com", {
+const report = await audit("https://example.com", {
   profile: "balanced",
-  capture: { page: "none", elements: false },
+  capture: { page: "none" },
   timeouts: { total: 60_000, crawl: 45_000, rules: 10_000 },
 });
 
@@ -21,15 +21,14 @@ if (report.summary.errors > 0) {
 }
 ```
 
-`auditBase(url, options)` runs the crawl and enabled deterministic rules only.
+`audit(url, options)` runs the crawl and enabled deterministic rules, returning an
+in-memory `AuditReport`. It never prints or writes anything; call `renderAuditReport()`
+explicitly for output.
 
 Nested options are partial; do not spread `DEFAULT_CONFIG`.
 
-`audit()` is a convenience pipeline. It runs deterministic analysis but does not render
-or write output.
-
 `crawlOnly()` is a lightweight crawl path intended for specialized experimental
-adapters; prefer the audit APIs for stable integrations.
+adapters; prefer `audit()` for stable integrations.
 
 ## Explicit rendering
 
@@ -88,12 +87,12 @@ the projection.
 ## Cancellation, deadlines, and progress
 
 ```ts
-import { auditBase, KeylensError } from "@telerik/keylens";
+import { audit, KeylensError } from "@telerik/keylens";
 
 const controller = new AbortController();
 
 try {
-  await auditBase("https://example.com", {
+  await audit("https://example.com", {
     signal: controller.signal,
     timeouts: {
       total: 90_000,

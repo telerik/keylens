@@ -27,8 +27,7 @@ const TOTAL_WEIGHT = Object.values(RULE_WEIGHTS).reduce((a, b) => a + b, 0);
  * - Failed rule → partial credit based on severity and proportion of
  *   affected elements relative to total interactive elements.
  *
- * This ensures the same audit data always produces the same score,
- * unlike the AI-generated `aiSeverityRating` which varies between runs.
+ * This ensures the same audit data always produces the same score.
  */
 export function computeScore(report: AuditReport): number {
   const totalInteractive = Math.max(report.crawl.totalInteractiveElements, 1);

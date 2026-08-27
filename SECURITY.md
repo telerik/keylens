@@ -22,7 +22,7 @@ reports as untrusted or sensitive input:
 
 - run against authorized targets only;
 - use isolated test environments and least-privilege accounts;
-- keep GitHub Packages and AI credentials out of source control and reports;
+- keep GitHub Packages credentials out of source control and reports;
 - review HTML, JSON, Markdown, screenshots, selectors, accessible names, and URLs
   before sharing artifacts;
 - keep experimental interactions disabled unless controls are known safe;
@@ -34,11 +34,7 @@ reports as untrusted or sensitive input:
 Interaction safeguards are heuristic and do not guarantee that server-side effects are
 prevented or rolled back.
 
-## AI and MCP
-
-Experimental AI can send page and report data to a configured provider or MCP client's
-model. Review provider retention, training, residency, and access policies before use.
-Do not enable it for sensitive content without organizational approval.
+## MCP
 
 The experimental MCP server grants compatible agents the ability to initiate browser
 audits and optionally write reports. Restrict which clients can launch it, control its

@@ -58,7 +58,6 @@ export default defineConfig({
           { text: "CI/CD", link: "/guide/ci-cd" },
           { text: "Performance", link: "/guide/performance" },
           { text: "Known Limitations", link: "/guide/limitations" },
-          { text: "Migration Guide", link: "/guide/ga-migration" },
         ],
       },
       {
