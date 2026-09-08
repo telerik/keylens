@@ -233,6 +233,16 @@ export interface AuditOptions extends KeylensConfigInput {
   onEvent?: (event: AuditEvent) => void;
   /** Controls internal diagnostic output; programmatic APIs default to silent */
   logLevel?: LogLevel;
+  /**
+   * Disables anonymous usage telemetry for this call only — a per-call
+   * kill switch for programmatic callers. Telemetry is anonymous/aggregate
+   * and inert unless a Telerik Identity API key is configured — see
+   * src/telemetry/README.md. Defaults to enabled (opt out globally with
+   * KEYLENS_TELEMETRY_OFF or TELERIK_TELEMETRY_OFF instead).
+   */
+  telemetry?: boolean;
+  /** Entry point that produced this audit run; set by the CLI/MCP server, defaults to "library" for direct programmatic callers. */
+  telemetrySurface?: "cli" | "mcp" | "library";
 }
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
