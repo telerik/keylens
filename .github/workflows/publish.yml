@@ -29,15 +29,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: telerik/actions/setup-node@master
         with:
           node-version: 26
           cache: npm
           registry-url: https://npm.pkg.github.com
           scope: "@telerik"
 
-      - run: npm ci
+      - uses: telerik/actions/npm-ci@master
+        env:
+          GH_TOKEN: ${{ github.token }}
       - run: npm run build
+        env:
+          KEYLENS_TELEMETRY_IDENTITY_API_KEY: ${{ secrets.KEYLENS_TELEMETRY_IDENTITY_API_KEY }}
+          KEYLENS_TELEMETRY_TOKEN_URL: ${{ vars.KEYLENS_TELEMETRY_TOKEN_URL }}
+          KEYLENS_TELEMETRY_ENDPOINT: ${{ vars.KEYLENS_TELEMETRY_ENDPOINT }}
 
       - name: Verify dist
         run: |

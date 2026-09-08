@@ -265,6 +265,7 @@ program
         logLevel,
         signal: totalScope.signal,
         onEvent,
+        telemetrySurface: "cli",
       });
       spinner.stop();
       await renderAuditReport(report, config.reporters, config.outputDir, {

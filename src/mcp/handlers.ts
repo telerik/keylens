@@ -206,7 +206,10 @@ export async function handleAudit(params: {
 
   try {
     const config = buildConfig(params.options);
-    const report = await audit(params.url, config);
+    const report = await audit(params.url, {
+      ...config,
+      telemetrySurface: "mcp",
+    });
     if (config.reporters.length > 0) {
       await renderAuditReport(
         report,

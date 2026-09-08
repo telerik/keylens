@@ -40,6 +40,12 @@ src/
   mcp/
     server.ts            # MCP server entry point (stdio transport, tool registration)
     handlers.ts          # Tool handler functions + helpers (buildConfig, compactReport)
+  telemetry/              # Anonymous, aggregate usage telemetry (see telemetry/README.md; no barrel index.ts, imported directly like utils/)
+    constants.ts         # Shared Source enum + the 2 public opt-out env vars
+    notice.ts            # One-time telemetry notice, persisted per-machine at ~/.keylens/telemetry-notice-version
+    event.ts             # Allow-list building the flat JSON payload from an AuditReport/error - the only place PII could leak, so the only place it's prevented
+    call-home-client.ts   # Plain-fetch OAuth2 client-credentials exchange + event upload
+    context.ts            # recordAuditSuccess()/recordAuditFailure()/toCallHomeSource() - resolve machine id, show notice, never throw
   guidance.ts             # Static rule remediation catalog (WCAG refs, guidance, code example, configKey) - no browser dependency
   types/index.ts          # All core types (config, crawl results, rules, reports, events, errors)
   errors.ts               # Custom error hierarchy (KeylensError, CrawlError, ConfigError, NavigationError, AuditAbortedError, AuditTimeoutError, ReporterError)
@@ -97,6 +103,7 @@ npm run docs:build        # vitepress build docs
 - **pixelmatch** + **pngjs** for focus indicator screenshot diffing
 - **zod** for config schema validation and MCP tool input schemas
 - **@modelcontextprotocol/sdk** for the MCP server
+- **@telerik/machine-id** for the one-way hashed machine identifier used in telemetry (see "Anonymous telemetry" below)
 - **VitePress** for the docs site (`docs/`)
 
 ## Key Technical Decisions
@@ -122,6 +129,7 @@ npm run docs:build        # vitepress build docs
 - **Browser-safe `@telerik/keylens/guidance` subpath** - `src/guidance.ts` is a static, framework-agnostic catalog (`RULE_CATALOG`/`getRuleRemediation`/`getWcagReference`) of WCAG references, human guidance, and code examples per rule/config key. It never imports Playwright, so it can be bundled for browser/edge consumers without pulling in the crawler
 - **MCP server via stdio** - `src/mcp/server.ts` uses `StdioServerTransport`, silences logger (`setLogLevel("silent")`) to prevent stdout pollution. Handler logic in `handlers.ts` is separated for testability. Only two tools are registered: `keylens_audit` (single-page audit, compact report) and `keylens_get_rule_guidance` (static lookup over `guidance.ts`, no browser involved). MCP does not expose the full config surface (capture limits, phase timeouts, interaction policy, page capture mode); use the CLI/library for those
 - **Roving-tabindex arrow-key verification** - `verifyRovingTabindexGroups()` runs as the LAST crawl phase (after tab crawl and interactions) since arrow-key presses can visibly mutate page state (e.g. switching the active tab panel). Simulates real key presses per composite widget to confirm every `tabindex="-1"` member is actually reachable, rather than trusting the markup pattern alone. Reached members' live `pageRect`s feed dashed satellite markers on the HTML focus map (they never appear in the Tab-order `focusSequence`)
+- **Anonymous telemetry** - `audit()` in `src/index.ts` is the single instrumentation chokepoint for all three surfaces (CLI/MCP/library); callers only tag `AuditOptions.telemetrySurface`. `src/telemetry/event.ts` is a fixed allow-list (never a spread) building one flat JSON payload per run — version, surface, result (success/partial/failure/aborted/timeout), a one-way hashed machine id (`@telerik/machine-id`, used only to deduplicate installs), categorical config knobs, and per-rule status/violation counts; never URLs, HTML, selectors, accessible names, screenshots, reports, or IPs. The API key is injected at publish time via tsup `define` (mirroring `__VERSION__`) and is never present in an unconfigured local build — a local `npm run build`/`npm test` never touches the network, but official published builds have telemetry enabled by default (users are notified and can opt out). Once a key is configured, the one-time notice (stderr only, never stdout) is shown before the first event, then persisted at `~/.keylens/telemetry-notice-version`. Opt out with `KEYLENS_TELEMETRY_OFF=1`, the shared `TELERIK_TELEMETRY_OFF=1`, or `{ telemetry: false }` for programmatic callers. See `src/telemetry/README.md`
 
 ## Crawler Pipeline
 

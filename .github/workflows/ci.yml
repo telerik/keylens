@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   lint:
@@ -20,11 +21,13 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v7
+      - uses: telerik/actions/setup-node@master
         with:
           node-version: 26
           cache: npm
-      - run: npm ci
+      - uses: telerik/actions/npm-ci@master
+        env:
+          GH_TOKEN: ${{ github.token }}
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run benchmark:typecheck
@@ -39,11 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: telerik/actions/setup-node@master
         with:
           node-version: 26
           cache: npm
-      - run: npm ci
+      - uses: telerik/actions/npm-ci@master
+        env:
+          GH_TOKEN: ${{ github.token }}
       - run: npm run test:coverage
 
   build:
@@ -52,11 +57,13 @@ jobs:
     needs: [lint, test]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: telerik/actions/setup-node@master
         with:
           node-version: 26
           cache: npm
-      - run: npm ci
+      - uses: telerik/actions/npm-ci@master
+        env:
+          GH_TOKEN: ${{ github.token }}
       - run: npm run build
       - name: Verify dist
         run: |
@@ -79,11 +86,13 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: telerik/actions/setup-node@master
         with:
           node-version: 26
           cache: npm
-      - run: npm ci
+      - uses: telerik/actions/npm-ci@master
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v6
@@ -108,11 +117,13 @@ jobs:
         browser: [firefox, webkit]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: telerik/actions/setup-node@master
         with:
           node-version: 26
           cache: npm
-      - run: npm ci
+      - uses: telerik/actions/npm-ci@master
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Cache Playwright browser
         id: playwright-cache
         uses: actions/cache@v6
@@ -135,11 +146,13 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: telerik/actions/setup-node@master
         with:
           node-version: 26
           cache: npm
-      - run: npm ci
+      - uses: telerik/actions/npm-ci@master
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Cache Chromium
         id: playwright-cache
         uses: actions/cache@v6

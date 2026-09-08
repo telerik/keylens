@@ -61,7 +61,7 @@
     "SUPPORT.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "node --env-file-if-exists=.env node_modules/.bin/tsup",
     "dev": "tsup --watch",
     "lint": "eslint src/ tests/ benchmarks/",
     "lint:fix": "eslint src/ tests/ benchmarks/ --fix",
@@ -77,7 +77,7 @@
     "benchmark:typecheck": "tsc --noEmit -p benchmarks/tsconfig.json",
     "package:verify": "npm run build && node scripts/verify-package.mjs",
     "validate": "npm run format:check && npm run lint && npm run typecheck && npm run benchmark:typecheck && npm run build && npm run docs:build && npm run test:coverage",
-    "keylens": "tsx src/cli/index.ts",
+    "keylens": "node --env-file-if-exists=.env node_modules/.bin/tsx src/cli/index.ts",
     "prepublishOnly": "npm run build",
     "prepare": "git config core.hooksPath .husky",
     "docs:dev": "vitepress dev docs",
@@ -86,6 +86,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@telerik/machine-id": "^1.6.14",
     "chalk": "^6.0.0",
     "commander": "^15.0.0",
     "ora": "^9.4.1",
