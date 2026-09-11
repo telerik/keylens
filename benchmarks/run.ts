@@ -40,7 +40,7 @@ interface BenchmarkReport {
 }
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
-const fixtureNames = ["standard", "interactions"] as const;
+const fixtureNames = ["standard", "interactions", "tall"] as const;
 
 function countScreenshotBytes(report: AuditReport): number {
   return report.assets
@@ -191,6 +191,18 @@ async function main(): Promise<void> {
               ...baseConfig.interactions,
               enabled: true,
             },
+          }),
+        ),
+      ),
+      // Full-page screenshot capture is one of the most expensive code paths
+      // (page-length measurement, rasterization, encoding, capture budgets) and
+      // had no performance regression coverage until this scenario was added.
+      await measure("tall", () =>
+        audit(
+          `${baseUrl}/tall`,
+          normalizeConfig({
+            ...baseConfig,
+            capture: { ...baseConfig.capture, page: "full" },
           }),
         ),
       ),
