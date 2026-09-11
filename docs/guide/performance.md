@@ -46,17 +46,19 @@ npm run --silent benchmark
 ```
 
 It prints machine-readable JSON and writes no report artifacts. Its fixtures cover a
-standard page and interactions. The harness uses
+standard page, interactions, and a tall page audited with full-page screenshot
+capture. The harness uses
 aggressive timing to expose implementation overhead; it is not a recommended audit
 profile.
 
 CI runs `npm run benchmark:ci`, writes `benchmark-results.json`, and rejects
 order-of-magnitude regressions against conservative ceilings:
 
-| Scenario     | Wall time | RSS increase | Compact payload | Inline images |
-| ------------ | --------: | -----------: | --------------: | ------------: |
-| Standard     |      15 s |       256 MB |          512 KB |           n/a |
-| Interactions |      30 s |       256 MB |            1 MB |           n/a |
+| Scenario                 | Wall time | RSS increase | Compact payload | Inline images |
+| ------------------------ | --------: | -----------: | --------------: | ------------: |
+| Standard                 |      15 s |       256 MB |          512 KB |           n/a |
+| Interactions             |      30 s |       256 MB |            1 MB |           n/a |
+| Tall (full-page capture) |      15 s |       256 MB |          512 KB |          2 MB |
 
 These are regression alarms, not product performance guarantees. Runtime configuration
 limits remain the authoritative per-audit bounds.

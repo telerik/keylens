@@ -55,6 +55,21 @@ function createFrame(selectorMap: Record<string, FakeLocator> = {}) {
   };
 }
 
+/** A locator whose count() rejects the way Playwright does for malformed CSS. */
+function createSyntaxErrorLocator(selector: string): FakeLocator {
+  const error = new Error(
+    `locator.count: Unexpected token "${selector[0]}" while parsing css selector "${selector}". Did you mean to CSS.escape it?`,
+  );
+  const locator: FakeLocator = {
+    first: vi.fn(() => locator),
+    count: vi.fn().mockRejectedValue(error),
+    isVisible: vi.fn(),
+    click: vi.fn(),
+    waitFor: vi.fn(),
+  };
+  return locator;
+}
+
 function createPage(
   options: {
     frames?: ReturnType<typeof createFrame>[];
@@ -399,7 +414,7 @@ describe("preparePage", () => {
   });
 
   describe("custom dismiss selectors", () => {
-    it("clicks custom selectors that are present and skips missing ones", async () => {
+    it("clicks custom selectors that are present and warns about missing ones", async () => {
       const frame = createFrame({
         "#a": createLocator(),
         "#b": createLocator(),
@@ -426,6 +441,9 @@ describe("preparePage", () => {
           verified: true,
         },
       ]);
+      expect(result.warnings).toEqual([
+        "Custom dismiss selector not found: #missing",
+      ]);
     });
 
     it("records a warning when a custom selector click fails", async () => {
@@ -443,6 +461,27 @@ describe("preparePage", () => {
       expect(result.dismissals).toHaveLength(0);
       expect(result.warnings).toEqual([
         expect.stringContaining("Custom dismiss selector failed: #a (boom)"),
+      ]);
+    });
+
+    it("records a distinct warning for a syntactically invalid selector, not 'not found'", async () => {
+      const badSelector = ":::invalid(((";
+      const frame = createFrame({
+        [badSelector]: createSyntaxErrorLocator(badSelector),
+      });
+      const page = createPage({ frames: [frame] });
+      const config = withPrepare({
+        dismissOverlays: false,
+        dismissSelectors: [badSelector],
+      });
+
+      const result = await preparePage(page, config);
+
+      expect(result.dismissals).toHaveLength(0);
+      expect(result.warnings).toEqual([
+        expect.stringContaining(
+          `Custom dismiss selector has invalid syntax: ${badSelector}`,
+        ),
       ]);
     });
   });
@@ -492,6 +531,42 @@ describe("preparePage", () => {
       const config = withPrepare({
         dismissOverlays: false,
         steps: [{ type: "click", selector: "#missing", optional: true }],
+      });
+
+      const result = await preparePage(page, config);
+
+      expect(result.warnings).toHaveLength(0);
+    });
+
+    it("warns distinctly for a syntactically invalid required click selector", async () => {
+      const badSelector = ":::invalid(((";
+      const frame = createFrame({
+        [badSelector]: createSyntaxErrorLocator(badSelector),
+      });
+      const page = createPage({ frames: [frame] });
+      const config = withPrepare({
+        dismissOverlays: false,
+        steps: [{ type: "click", selector: badSelector }],
+      });
+
+      const result = await preparePage(page, config);
+
+      expect(result.warnings).toEqual([
+        expect.stringContaining(
+          `Prepare step: click selector has invalid syntax: ${badSelector}`,
+        ),
+      ]);
+    });
+
+    it("does not warn for an optional click selector with invalid syntax", async () => {
+      const badSelector = ":::invalid(((";
+      const frame = createFrame({
+        [badSelector]: createSyntaxErrorLocator(badSelector),
+      });
+      const page = createPage({ frames: [frame] });
+      const config = withPrepare({
+        dismissOverlays: false,
+        steps: [{ type: "click", selector: badSelector, optional: true }],
       });
 
       const result = await preparePage(page, config);

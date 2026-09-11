@@ -22,4 +22,13 @@ export const BENCHMARK_BUDGETS: Record<string, BenchmarkBudget> = {
     rssDeltaBytes: 256 * MIB,
     compactSerializedBytes: 1024 * 1024,
   },
+  // Full-page screenshot capture: rasterization, encoding, and capture-budget
+  // enforcement are a distinct, comparatively expensive code path from a
+  // nonvisual audit and deserve their own regression ceiling.
+  tall: {
+    wallTimeMs: 15_000,
+    rssDeltaBytes: 256 * MIB,
+    compactSerializedBytes: 512 * 1024,
+    inlineScreenshotBytes: 2 * MIB,
+  },
 };
