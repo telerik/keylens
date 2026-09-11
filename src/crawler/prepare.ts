@@ -42,6 +42,13 @@ interface FoundControl {
   selector: string;
 }
 
+/** Playwright's own wording for a CSS selector it couldn't parse at all. */
+function isSelectorSyntaxError(error: unknown): boolean {
+  return /unexpected token|is not a valid selector/i.test(
+    (error as Error).message,
+  );
+}
+
 /**
  * Find the first visible element matching any of the given selectors, searching
  * the main frame and all child frames (Sourcepoint-style CMPs live in an iframe).
@@ -57,8 +64,10 @@ async function findVisible(
         const locator = frame.locator(selector).first();
         if ((await locator.count()) === 0) continue;
         if (await locator.isVisible()) return { locator, selector };
-      } catch {
-        // Detached or cross-origin-restricted frame — try the next one.
+      } catch (error) {
+        // A syntax error is selector-invariant — retrying other frames can't help.
+        if (isSelectorSyntaxError(error)) throw error;
+        // Otherwise: detached or cross-origin-restricted frame — try the next one.
       }
     }
   }
@@ -370,8 +379,19 @@ async function dismissCustomSelectors(
 ): Promise<OverlayDismissal[]> {
   const dismissals: OverlayDismissal[] = [];
   for (const selector of selectors) {
-    const found = await findVisible(page, [selector]);
-    if (!found) continue;
+    let found: FoundControl | undefined;
+    try {
+      found = await findVisible(page, [selector]);
+    } catch (error) {
+      warnings.push(
+        `Custom dismiss selector has invalid syntax: ${selector} (${(error as Error).message})`,
+      );
+      continue;
+    }
+    if (!found) {
+      warnings.push(`Custom dismiss selector not found: ${selector}`);
+      continue;
+    }
     try {
       await found.locator.click({ timeout: 2000 });
       dismissals.push({
@@ -396,7 +416,17 @@ async function runPrepareStep(
 ): Promise<void> {
   switch (step.type) {
     case "click": {
-      const found = await findVisible(page, [step.selector]);
+      let found: FoundControl | undefined;
+      try {
+        found = await findVisible(page, [step.selector]);
+      } catch (error) {
+        if (!step.optional) {
+          warnings.push(
+            `Prepare step: click selector has invalid syntax: ${step.selector} (${(error as Error).message})`,
+          );
+        }
+        return;
+      }
       if (!found) {
         if (!step.optional) {
           warnings.push(
