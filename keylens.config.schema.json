@@ -80,6 +80,16 @@
       "minLength": 1,
       "default": "./keylens-report"
     },
+    "outputFileName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Base file name (without extension) for report files. Defaults to \"keylens-report\"."
+    },
+    "appendTimestamp": {
+      "type": "boolean",
+      "default": true,
+      "description": "Append a \"-YYYY-MM-DDTHH-mm-ss\" timestamp to report file names so repeated runs don't overwrite each other."
+    },
     "browser": {
       "type": "string",
       "enum": ["chromium", "firefox", "webkit"],

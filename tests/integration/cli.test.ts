@@ -9,7 +9,14 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { spawn } from "node:child_process";
 import { createServer, type Server } from "node:http";
 import { readFileSync } from "node:fs";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  mkdtemp,
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -99,6 +106,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -120,6 +128,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(1);
@@ -147,6 +156,7 @@ describe("Integration: CLI entry point", () => {
       "html,markdown",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -160,6 +170,73 @@ describe("Integration: CLI entry point", () => {
       "utf-8",
     );
     expect(markdown).toContain("#");
+  });
+
+  it("appends a timestamp to the report file name by default", async () => {
+    const outputDir = join(tmpDir, "timestamped-report");
+    const result = await runCli([
+      "audit",
+      cleanUrl,
+      "--profile",
+      "fast",
+      "--output",
+      "json",
+      "--output-dir",
+      outputDir,
+    ]);
+
+    expect(result.status).toBe(0);
+    const files = await readdir(outputDir);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toMatch(
+      /^keylens-report-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.json$/,
+    );
+  });
+
+  it("uses --output-name as the report file's base name", async () => {
+    const outputDir = join(tmpDir, "custom-name-report");
+    const result = await runCli([
+      "audit",
+      cleanUrl,
+      "--profile",
+      "fast",
+      "--output",
+      "json",
+      "--output-dir",
+      outputDir,
+      "--output-name",
+      "my-site",
+      "--no-timestamp",
+    ]);
+
+    expect(result.status).toBe(0);
+    const report = JSON.parse(
+      await readFile(join(outputDir, "my-site.json"), "utf-8"),
+    );
+    expect(report.summary.totalErrors).toBe(0);
+  });
+
+  it("combines --output-name with the default timestamp suffix", async () => {
+    const outputDir = join(tmpDir, "custom-name-timestamped-report");
+    const result = await runCli([
+      "audit",
+      cleanUrl,
+      "--profile",
+      "fast",
+      "--output",
+      "json",
+      "--output-dir",
+      outputDir,
+      "--output-name",
+      "my-site",
+    ]);
+
+    expect(result.status).toBe(0);
+    const files = await readdir(outputDir);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toMatch(
+      /^my-site-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.json$/,
+    );
   });
 
   it("exits 2 with no URL and no config file", async () => {
@@ -208,6 +285,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -292,6 +370,7 @@ describe("Integration: CLI entry point", () => {
         "json",
         "--output-dir",
         outputDir,
+        "--no-timestamp",
       ]);
 
       expect(result.status).toBe(0);
@@ -321,6 +400,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -353,6 +433,7 @@ describe("Integration: CLI entry point", () => {
         "json",
         "--output-dir",
         outputDir,
+        "--no-timestamp",
       ]);
 
       expect(result.status).toBeLessThanOrEqual(1);
@@ -385,6 +466,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     const report = JSON.parse(
@@ -433,6 +515,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status === 0 || result.status === 1).toBe(true);
@@ -456,6 +539,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status === 0 || result.status === 1).toBe(true);
@@ -479,6 +563,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -517,6 +602,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -539,6 +625,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -561,6 +648,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -583,6 +671,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -605,6 +694,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -626,6 +716,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -732,6 +823,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status).toBe(0);
@@ -764,6 +856,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status === 0 || result.status === 1).toBe(true);
@@ -797,6 +890,7 @@ describe("Integration: CLI entry point", () => {
       "json",
       "--output-dir",
       outputDir,
+      "--no-timestamp",
     ]);
 
     expect(result.status === 0 || result.status === 1).toBe(true);

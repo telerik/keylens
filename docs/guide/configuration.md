@@ -105,12 +105,20 @@ or timeout limits.
     "rovingTabindexBroken": true
   },
   "reporters": ["cli", "json"],
-  "outputDir": "./keylens-report"
+  "outputDir": "./keylens-report",
+  "outputFileName": "keylens-report",
+  "appendTimestamp": true
 }
 ```
 
 All timeout values and capture byte limits are milliseconds and bytes respectively.
 Omit optional `include`, `exclude`, and timeout budgets when they are not needed.
+
+`outputFileName` sets the base name used by the json/html/markdown reporters (default
+`keylens-report`); `appendTimestamp` (default `true`) appends a
+`-YYYY-MM-DDTHH-mm-ss` suffix so repeated runs against the same `outputDir` never
+overwrite a prior report. Set `appendTimestamp: false` for a stable file name, e.g. in
+a CI job that always reads the same known path.
 
 ## Cookie/consent prepare phase {#prepare}
 

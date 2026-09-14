@@ -1,5 +1,8 @@
 import type { AuditReport } from "../types/index.js";
-import { writeReportFile } from "../utils/report-writer.js";
+import {
+  writeReportFile,
+  buildReportFileName,
+} from "../utils/report-writer.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -244,7 +247,12 @@ export async function reportMarkdown(
 ): Promise<void> {
   await writeReportFile(
     outputDir,
-    "keylens-report.md",
+    buildReportFileName(
+      "keylens-report",
+      "md",
+      report.config,
+      report.timestamp,
+    ),
     renderMarkdown(report),
     "Markdown",
     signal,

@@ -83,6 +83,14 @@ program
   )
   .option("-d, --output-dir <dir>", "output directory for reports")
   .option(
+    "--output-name <name>",
+    "base file name for report files (default: keylens-report)",
+  )
+  .option(
+    "--no-timestamp",
+    "do not append a timestamp to report file names (they will be overwritten on each run)",
+  )
+  .option(
     "-b, --browser <browser>",
     "browser engine (chromium, firefox, webkit)",
   )
@@ -191,6 +199,8 @@ program
         },
         reporters,
         ...(options.outputDir ? { outputDir: options.outputDir } : {}),
+        ...(options.outputName ? { outputFileName: options.outputName } : {}),
+        ...(options.timestamp === false ? { appendTimestamp: false } : {}),
         ...(options.browser ? { browser: options.browser } : {}),
         headed: options.headed || fileConfig.headed || false,
         waitForSelector: options.waitFor || fileConfig.waitForSelector,

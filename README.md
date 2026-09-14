@@ -143,12 +143,17 @@ accessibility conformance evidence.
 
 ## Reports
 
-| Reporter   | Output                                                          |
-| ---------- | --------------------------------------------------------------- |
-| `cli`      | Human-readable terminal report and capture coverage             |
-| `json`     | `keylens-report.json`; semantic data with binary assets omitted |
-| `html`     | `keylens-report.html`; focus map when a page image is available |
-| `markdown` | `keylens-report.md`                                             |
+| Reporter   | Output                                                                      |
+| ---------- | --------------------------------------------------------------------------- |
+| `cli`      | Human-readable terminal report and capture coverage                         |
+| `json`     | `keylens-report-<timestamp>.json`; semantic data with binary assets omitted |
+| `html`     | `keylens-report-<timestamp>.html`; focus map when a page image is available |
+| `markdown` | `keylens-report-<timestamp>.md`                                             |
+
+A `-YYYY-MM-DDTHH-mm-ss` timestamp is appended to file reporter names by default so
+repeated runs against the same `--output-dir` never overwrite a prior report. Use
+`--output-name <name>` for a custom base name (e.g. a per-URL prefix) or
+`--no-timestamp` for a stable name.
 
 Reports carry an independent `schemaVersion`. A score is marked incomplete when a rule
 could not be evaluated; do not compare that score as if it covered all enabled rules.

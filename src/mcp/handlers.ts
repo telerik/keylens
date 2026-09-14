@@ -33,6 +33,7 @@ export interface AuditOptions {
   interactions?: boolean;
   reporters?: ReporterType[];
   outputDir?: string;
+  outputFileName?: string;
   keepOverlays?: boolean;
   dismissSelectors?: string[];
 }
@@ -86,6 +87,7 @@ export function buildConfig(options?: AuditOptions): KeylensConfig {
     }
     if (options.reporters) input.reporters = options.reporters;
     if (options.outputDir) input.outputDir = options.outputDir;
+    if (options.outputFileName) input.outputFileName = options.outputFileName;
   }
 
   return normalizeConfig(input);

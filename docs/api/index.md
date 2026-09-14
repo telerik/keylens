@@ -55,8 +55,11 @@ const markdown = renderMarkdown(report);
 - Render functions accept an `AbortSignal`; file renderers also honor the reporter
   timeout from `RenderOptions` or `config.timeouts.reporters`.
 
-Report file names are `keylens-report.json`, `keylens-report.html`, and
-`keylens-report.md`.
+Report file names default to `keylens-report-<timestamp>.json`,
+`keylens-report-<timestamp>.html`, and `keylens-report-<timestamp>.md` (a
+`-YYYY-MM-DDTHH-mm-ss` suffix, so repeated runs never overwrite a prior report).
+Set `config.outputFileName` for a custom base name, or `config.appendTimestamp: false`
+for a stable, un-suffixed name.
 
 ## Assets and projections
 
