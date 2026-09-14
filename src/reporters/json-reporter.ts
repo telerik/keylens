@@ -1,5 +1,8 @@
 import type { AuditReport } from "../types/index.js";
-import { writeReportFile } from "../utils/report-writer.js";
+import {
+  writeReportFile,
+  buildReportFileName,
+} from "../utils/report-writer.js";
 import { projectAuditReport } from "../utils/assets.js";
 
 export function serializeJSON(report: AuditReport, pretty = true): string {
@@ -20,7 +23,12 @@ export async function reportJSON(
 ): Promise<void> {
   await writeReportFile(
     outputDir,
-    "keylens-report.json",
+    buildReportFileName(
+      "keylens-report",
+      "json",
+      report.config,
+      report.timestamp,
+    ),
     serializeJSON(report),
     "JSON",
     signal,

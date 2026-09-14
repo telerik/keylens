@@ -27,8 +27,11 @@ metadata:
 2. Run a basic audit:
 
    ```bash
-   npx keylens audit <URL> --output cli,json --output-dir ./keylens-report
+   npx keylens audit <URL> --output cli,json --output-dir ./keylens-report --no-timestamp
    ```
+
+   `--no-timestamp` keeps the file name stable (`keylens-report.json`) for scripting;
+   omit it to keep each run's report (default file names include a timestamp).
 
 3. Read the JSON report for structured results:
    ```bash
@@ -66,7 +69,7 @@ npx keylens audit <URL> --viewport 375x667
 ### Markdown report for LLM piping
 
 ```bash
-npx keylens audit <URL> --output markdown --output-dir ./keylens-report
+npx keylens audit <URL> --output markdown --output-dir ./keylens-report --no-timestamp
 cat ./keylens-report/keylens-report.md
 ```
 

@@ -6,7 +6,10 @@ import type {
   BoundingRect,
   Severity,
 } from "../types/index.js";
-import { writeReportFile } from "../utils/report-writer.js";
+import {
+  writeReportFile,
+  buildReportFileName,
+} from "../utils/report-writer.js";
 import { getInlineAssetData } from "../utils/assets.js";
 
 /**
@@ -19,7 +22,12 @@ export async function reportHTML(
 ): Promise<void> {
   await writeReportFile(
     outputDir,
-    "keylens-report.html",
+    buildReportFileName(
+      "keylens-report",
+      "html",
+      report.config,
+      report.timestamp,
+    ),
     renderHTML(report),
     "HTML",
     signal,

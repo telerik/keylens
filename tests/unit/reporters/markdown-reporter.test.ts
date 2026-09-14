@@ -38,7 +38,9 @@ describe("reportMarkdown", () => {
       recursive: true,
     });
     expect(mockWriteFile).toHaveBeenCalledTimes(1);
-    expect(mockWriteFile.mock.calls[0]![0]).toMatch(/keylens-report\.md$/);
+    expect(mockWriteFile.mock.calls[0]![0]).toMatch(
+      /keylens-report-[\d-T]+\.md$/,
+    );
   });
 
   it("should include report header with URL, version, and timestamp", async () => {

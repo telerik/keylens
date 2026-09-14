@@ -41,6 +41,12 @@ export interface KeylensConfig {
   /** Output directory for reports */
   outputDir: string;
 
+  /** Base file name (without extension) for report files. Defaults to "keylens-report" */
+  outputFileName?: string;
+
+  /** Append a "-YYYY-MM-DDTHH-mm-ss" timestamp to report file names so repeated runs don't overwrite each other */
+  appendTimestamp: boolean;
+
   /** Browser to use */
   browser: "chromium" | "firefox" | "webkit";
 

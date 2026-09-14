@@ -14,6 +14,8 @@ configured `url` is audited.
 | `--profile <profile>`           | `balanced`             | `fast`, `balanced`, or `thorough`                         |
 | `-o, --output <reporters>`      | `cli`                  | Comma-separated `cli,json,html,markdown`                  |
 | `-d, --output-dir <dir>`        | `./keylens-report`     | File reporter destination                                 |
+| `--output-name <name>`          | `keylens-report`       | Base file name for report files                           |
+| `--no-timestamp`                | `false` (timestamp on) | Don't append a timestamp to report file names             |
 | `-b, --browser <browser>`       | `chromium`             | `chromium`, `firefox`, or `webkit`                        |
 | `--headed`                      | `false`                | Show the browser                                          |
 | `--wait-for <selector>`         | —                      | Wait for a CSS selector before the fixed delay            |
@@ -110,12 +112,23 @@ action, resulting focus, and duration.
 
 ### Reports
 
-| Reporter   | File                  |
-| ---------- | --------------------- |
-| `cli`      | stdout                |
-| `json`     | `keylens-report.json` |
-| `html`     | `keylens-report.html` |
-| `markdown` | `keylens-report.md`   |
+Each reporter writes a base name of `keylens-report` (or `--output-name <name>` /
+`outputFileName` in a config file) with a `-YYYY-MM-DDTHH-mm-ss` timestamp appended by
+default, so repeated runs against the same `--output-dir` never silently overwrite a
+prior report:
+
+| Reporter   | File                                      |
+| ---------- | ----------------------------------------- |
+| `cli`      | stdout                                    |
+| `json`     | `keylens-report-2026-01-15T09-30-00.json` |
+| `html`     | `keylens-report-2026-01-15T09-30-00.html` |
+| `markdown` | `keylens-report-2026-01-15T09-30-00.md`   |
+
+Use `--no-timestamp` (or `appendTimestamp: false` in a config file) for a stable file
+name, e.g. when a CI job always reads the same known path. Use `--output-name <name>`
+(or `outputFileName` in a config file) to set a custom base name instead of
+`keylens-report` — useful when auditing many URLs in a loop and prefixing reports with
+a per-URL slug.
 
 The JSON reporter omits binary assets and screenshot asset IDs. Use the programmatic
 projection APIs when inline bytes or external references are required.

@@ -70,6 +70,10 @@ jobs:
 existing server-readiness command. Pin package versions in the project lockfile rather
 than downloading an unpinned CLI during the job.
 
+Report file names include a `-YYYY-MM-DDTHH-mm-ss` timestamp by default, so a script
+that reads a fixed path (rather than uploading the whole directory, as above) should
+pass `--no-timestamp` for a stable `keylens-report.json`.
+
 ## Inspecting JSON
 
 The JSON report omits binary assets but retains semantic coverage:

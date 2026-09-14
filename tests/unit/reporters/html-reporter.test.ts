@@ -40,7 +40,35 @@ describe("HTML Reporter", () => {
       recursive: true,
     });
     expect(mockWriteFile).toHaveBeenCalledTimes(1);
+    expect(mockWriteFile.mock.calls[0]![0]).toMatch(
+      /keylens-report-[\d-T]+\.html$/,
+    );
+  });
+
+  it("omits the timestamp suffix when appendTimestamp is false", async () => {
+    const reportHTML = await getReportHTML();
+    const report = makeAuditReport({
+      config: { ...makeAuditReport().config, appendTimestamp: false },
+    });
+
+    await reportHTML(report, "./test-output");
+
     expect(mockWriteFile.mock.calls[0]![0]).toContain("keylens-report.html");
+  });
+
+  it("uses outputFileName as the base name when configured", async () => {
+    const reportHTML = await getReportHTML();
+    const report = makeAuditReport({
+      config: {
+        ...makeAuditReport().config,
+        outputFileName: "my-site",
+        appendTimestamp: false,
+      },
+    });
+
+    await reportHTML(report, "./test-output");
+
+    expect(mockWriteFile.mock.calls[0]![0]).toContain("my-site.html");
   });
 
   it("should produce valid HTML structure", async () => {

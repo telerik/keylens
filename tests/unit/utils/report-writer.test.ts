@@ -100,3 +100,57 @@ describe("writeReportFile", () => {
     expect(mockWriteFile).not.toHaveBeenCalled();
   });
 });
+
+describe("buildReportFileName", () => {
+  it("appends a filesystem-safe timestamp by default", async () => {
+    const { buildReportFileName } = await import("@/utils/report-writer.js");
+
+    const name = buildReportFileName(
+      "keylens-report",
+      "json",
+      { appendTimestamp: true },
+      "2026-09-14T10:23:05.123Z",
+    );
+
+    expect(name).toBe("keylens-report-2026-09-14T10-23-05.json");
+  });
+
+  it("omits the timestamp when appendTimestamp is false", async () => {
+    const { buildReportFileName } = await import("@/utils/report-writer.js");
+
+    const name = buildReportFileName(
+      "keylens-report",
+      "html",
+      { appendTimestamp: false },
+      "2026-09-14T10:23:05.123Z",
+    );
+
+    expect(name).toBe("keylens-report.html");
+  });
+
+  it("uses outputFileName as the base name when provided", async () => {
+    const { buildReportFileName } = await import("@/utils/report-writer.js");
+
+    const name = buildReportFileName(
+      "keylens-report",
+      "md",
+      { outputFileName: "my-site", appendTimestamp: false },
+      "2026-09-14T10:23:05.123Z",
+    );
+
+    expect(name).toBe("my-site.md");
+  });
+
+  it("falls back to the default base name when outputFileName is blank", async () => {
+    const { buildReportFileName } = await import("@/utils/report-writer.js");
+
+    const name = buildReportFileName(
+      "keylens-report",
+      "json",
+      { outputFileName: "   ", appendTimestamp: false },
+      "2026-09-14T10:23:05.123Z",
+    );
+
+    expect(name).toBe("keylens-report.json");
+  });
+});

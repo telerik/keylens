@@ -57,6 +57,12 @@ const auditOptionsSchema = z
       .describe(
         "Directory where json/html report files will be written. Defaults to the current working directory.",
       ),
+    outputFileName: z
+      .string()
+      .optional()
+      .describe(
+        "Base file name (without extension) for report files. Defaults to 'keylens-report'; a timestamp is still appended unless disabled in a config file.",
+      ),
   })
   .strict()
   .optional();

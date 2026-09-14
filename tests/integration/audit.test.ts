@@ -503,7 +503,11 @@ describe("Integration: audit pipeline", () => {
     try {
       const report = await audit(
         testPageUrl,
-        makeConfig({ reporters: ["json"], outputDir }),
+        makeConfig({
+          reporters: ["json"],
+          outputDir,
+          appendTimestamp: false,
+        }),
       );
 
       await expect(access(reportPath)).rejects.toThrow();
