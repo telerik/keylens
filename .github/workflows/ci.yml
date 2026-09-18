@@ -21,13 +21,14 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: telerik/actions/setup-node@master
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 26
           cache: npm
-      - uses: telerik/actions/npm-ci@master
+      - name: Install dependencies
         env:
           GH_TOKEN: ${{ github.token }}
+        run: npm ci --no-audit --no-fund
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run benchmark:typecheck
@@ -42,13 +43,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: telerik/actions/setup-node@master
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 26
           cache: npm
-      - uses: telerik/actions/npm-ci@master
+      - name: Install dependencies
         env:
           GH_TOKEN: ${{ github.token }}
+        run: npm ci --no-audit --no-fund
       - run: npm run test:coverage
 
   build:
@@ -57,13 +59,14 @@ jobs:
     needs: [lint, test]
     steps:
       - uses: actions/checkout@v7
-      - uses: telerik/actions/setup-node@master
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 26
           cache: npm
-      - uses: telerik/actions/npm-ci@master
+      - name: Install dependencies
         env:
           GH_TOKEN: ${{ github.token }}
+        run: npm ci --no-audit --no-fund
       - run: npm run build
       - name: Verify dist
         run: |
@@ -86,13 +89,14 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v7
-      - uses: telerik/actions/setup-node@master
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 26
           cache: npm
-      - uses: telerik/actions/npm-ci@master
+      - name: Install dependencies
         env:
           GH_TOKEN: ${{ github.token }}
+        run: npm ci --no-audit --no-fund
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v6
@@ -117,13 +121,14 @@ jobs:
         browser: [firefox, webkit]
     steps:
       - uses: actions/checkout@v7
-      - uses: telerik/actions/setup-node@master
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 26
           cache: npm
-      - uses: telerik/actions/npm-ci@master
+      - name: Install dependencies
         env:
           GH_TOKEN: ${{ github.token }}
+        run: npm ci --no-audit --no-fund
       - name: Cache Playwright browser
         id: playwright-cache
         uses: actions/cache@v6
@@ -146,13 +151,14 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v7
-      - uses: telerik/actions/setup-node@master
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 26
           cache: npm
-      - uses: telerik/actions/npm-ci@master
+      - name: Install dependencies
         env:
           GH_TOKEN: ${{ github.token }}
+        run: npm ci --no-audit --no-fund
       - name: Cache Chromium
         id: playwright-cache
         uses: actions/cache@v6
