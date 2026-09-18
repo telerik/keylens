@@ -9,7 +9,6 @@
  * the network.
  */
 
-import loadMachineId from "@telerik/machine-id";
 import type { AuditReport } from "../types/index.js";
 import {
   ENV_KEYLENS_TELEMETRY_OFF,
@@ -82,8 +81,13 @@ async function send(
   }
 
   try {
-    // loadMachineId() caches internally, so this only resolves once per
-    // process regardless of how many events are sent.
+    // @telerik/machine-id is an optionalDependency (see package.json) so
+    // that npm install never fails for consumers who can't reach its
+    // registry — imported dynamically so a missing/failed install only
+    // disables telemetry (caught below), instead of crashing this module
+    // for every caller. loadMachineId() caches internally, so this only
+    // resolves once per process regardless of how many events are sent.
+    const { default: loadMachineId } = await import("@telerik/machine-id");
     const { id: machineId } = await loadMachineId();
     const event = buildEvent({
       source: surface,
