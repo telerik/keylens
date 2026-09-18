@@ -11,8 +11,6 @@ concurrency:
 permissions:
   contents: write
   packages: write
-  issues: write
-  pull-requests: write
 
 jobs:
   ci:
@@ -24,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ci]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -46,13 +44,8 @@ jobs:
           KEYLENS_TELEMETRY_TOKEN_URL: ${{ vars.KEYLENS_TELEMETRY_TOKEN_URL }}
           KEYLENS_TELEMETRY_ENDPOINT: ${{ vars.KEYLENS_TELEMETRY_ENDPOINT }}
 
-      - name: Verify dist
-        run: |
-          test -f dist/index.js
-          test -f dist/index.d.ts
-          test -f dist/cli/index.js
-          test -f dist/mcp/server.js
-          test -f dist/mcp/server.d.ts
+      - name: Verify package
+        run: node scripts/verify-package.mjs
 
       - name: Release
         run: npx semantic-release
