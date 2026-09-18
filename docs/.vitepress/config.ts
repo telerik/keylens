@@ -99,6 +99,10 @@ export default defineConfig({
             link: "https://github.com/telerik/keylens/blob/master/SECURITY.md",
           },
           {
+            text: "Telemetry",
+            link: "https://github.com/telerik/keylens/blob/master/src/telemetry/README.md",
+          },
+          {
             text: "Changelog",
             link: "https://github.com/telerik/keylens/blob/master/CHANGELOG.md",
           },

@@ -4,6 +4,17 @@ import { readFileSync, rmSync } from "fs";
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
 rmSync("./dist", { recursive: true, force: true });
 
+// Never a literal secret in source: only set in the CI publish workflow's
+// environment. Local/dev builds omit it, which keeps telemetry dormant by
+// default (see src/telemetry/call-home-client.ts).
+const TELEMETRY_API_KEY = process.env.KEYLENS_TELEMETRY_IDENTITY_API_KEY ?? "";
+// Same rule as the API key: no literal URL anywhere in source. These must
+// come from the CI environment (or a local override for testing); an empty
+// value here means a real build has no token URL/endpoint and telemetry
+// stays inert (see src/telemetry/call-home-client.ts).
+const TELEMETRY_TOKEN_URL = process.env.KEYLENS_TELEMETRY_TOKEN_URL ?? "";
+const TELEMETRY_ENDPOINT = process.env.KEYLENS_TELEMETRY_ENDPOINT ?? "";
+
 export default defineConfig([
   {
     entry: { index: "src/index.ts" },
@@ -17,6 +28,9 @@ export default defineConfig([
     external: ["playwright"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
+      __TELEMETRY_API_KEY__: JSON.stringify(TELEMETRY_API_KEY),
+      __TELEMETRY_TOKEN_URL__: JSON.stringify(TELEMETRY_TOKEN_URL),
+      __TELEMETRY_ENDPOINT__: JSON.stringify(TELEMETRY_ENDPOINT),
     },
   },
   {
@@ -43,6 +57,9 @@ export default defineConfig([
     external: ["playwright"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
+      __TELEMETRY_API_KEY__: JSON.stringify(TELEMETRY_API_KEY),
+      __TELEMETRY_TOKEN_URL__: JSON.stringify(TELEMETRY_TOKEN_URL),
+      __TELEMETRY_ENDPOINT__: JSON.stringify(TELEMETRY_ENDPOINT),
     },
   },
   {
@@ -58,6 +75,9 @@ export default defineConfig([
     external: ["playwright", "@modelcontextprotocol/sdk", "zod"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
+      __TELEMETRY_API_KEY__: JSON.stringify(TELEMETRY_API_KEY),
+      __TELEMETRY_TOKEN_URL__: JSON.stringify(TELEMETRY_TOKEN_URL),
+      __TELEMETRY_ENDPOINT__: JSON.stringify(TELEMETRY_ENDPOINT),
     },
   },
 ]);

@@ -18,6 +18,11 @@ import { AUDIT_REPORT_SCHEMA_VERSION } from "./types/index.js";
 import { normalizeConfig } from "./utils/config.js";
 import { createExecutionScope, throwIfAborted } from "./utils/execution.js";
 import { getUnreachedInteractiveElements } from "./utils/roving-tabindex.js";
+import {
+  recordAuditSuccess,
+  recordAuditFailure,
+  toCallHomeSource,
+} from "./telemetry/context.js";
 
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
@@ -27,6 +32,8 @@ interface ResolvedAuditOptions {
   logLevel: LogLevel;
   signal?: AbortSignal;
   onEvent?: (event: AuditEvent) => void;
+  telemetryEnabled: boolean;
+  telemetrySurface: "cli" | "mcp" | "library";
 }
 
 function resolveAuditOptions(
@@ -36,6 +43,8 @@ function resolveAuditOptions(
     signal,
     onEvent,
     logLevel = "silent",
+    telemetry = true,
+    telemetrySurface = "library",
     ...configInput
   } = options as AuditOptions;
   return {
@@ -43,6 +52,8 @@ function resolveAuditOptions(
     logLevel,
     signal,
     onEvent,
+    telemetryEnabled: telemetry,
+    telemetrySurface,
   };
 }
 
@@ -240,11 +251,19 @@ export async function audit(
   options: AuditOptions | KeylensConfig = {},
 ): Promise<AuditReport> {
   const resolved = resolveAuditOptions(options);
-  return withLogLevel(resolved.logLevel, () =>
-    withTotalBudget(resolved.config, resolved, url, (controls) =>
-      auditBaseWithConfig(url, resolved.config, controls),
-    ),
-  );
+  const source = toCallHomeSource(resolved.telemetrySurface);
+  try {
+    const report = await withLogLevel(resolved.logLevel, () =>
+      withTotalBudget(resolved.config, resolved, url, (controls) =>
+        auditBaseWithConfig(url, resolved.config, controls),
+      ),
+    );
+    await recordAuditSuccess(report, source, resolved.telemetryEnabled);
+    return report;
+  } catch (error) {
+    await recordAuditFailure(error, VERSION, source, resolved.telemetryEnabled);
+    throw error;
+  }
 }
 
 /** Explicitly render or write configured report formats. */
@@ -375,3 +394,7 @@ export {
 } from "./errors.js";
 export { projectAuditReport } from "./utils/assets.js";
 export type { KeylensErrorCode, KeylensErrorOptions } from "./errors.js";
+export {
+  ENV_KEYLENS_TELEMETRY_OFF,
+  ENV_TELERIK_TELEMETRY_OFF,
+} from "./telemetry/constants.js";

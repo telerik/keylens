@@ -164,6 +164,18 @@ The `@telerik/keylens/mcp` subpath and `keylens-mcp` binary expose the determini
 single-page audit and rule guidance tools over stdio. Review [MCP](docs/guide/mcp.md)
 before use.
 
+## Telemetry
+
+Keylens can collect anonymous, aggregate usage data (audit counts, options used,
+pass/fail results, and accessibility issue categories), correlated with a one-way
+hashed machine identifier, to help improve the tool. No URLs, page content,
+selectors, accessible names, screenshots, reports, or IP addresses are ever
+collected. Telemetry is enabled by default, and a one-time notice is always
+shown before anything is collected. Opt out anytime with `KEYLENS_TELEMETRY_OFF=1`
+or `TELERIK_TELEMETRY_OFF=1`. See
+[src/telemetry/README.md](src/telemetry/README.md) for the full data-collection
+policy.
+
 ## Support and security
 
 - [Support policy and Node/browser matrix](SUPPORT.md)

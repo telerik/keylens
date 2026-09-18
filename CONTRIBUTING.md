@@ -19,12 +19,23 @@ cd keylens
 # Install dependencies exactly as locked
 npm ci
 
+# One-time: install git hooks (skipped automatically above, see note below)
+npm run prepare
+
 # Install every engine used by CI
 npx playwright install chromium firefox webkit
 
 # Run from source
 npm run keylens -- audit https://example.com
 ```
+
+> **Note:** `.npmrc` sets `ignore-scripts=true` (an org-wide security default), so
+> `npm ci`/`npm install` no longer auto-run the `prepare` script that wires up git
+> hooks — run `npm run prepare` once after installing. It also declares
+> `@telerik/*` packages (e.g. `@telerik/machine-id`) as coming from GitHub
+> Packages; make sure a `GH_TOKEN` environment variable (a classic PAT with
+> `packages: read` permission) is set in your shell before running `npm ci`, or
+> that install step will fail.
 
 ### Project Structure
 
