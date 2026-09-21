@@ -113,8 +113,8 @@ export default defineConfig({
       { icon: "github", link: "https://github.com/telerik/keylens" },
     ],
     footer: {
-      message: "Released under the MIT License.",
-      copyright: "Copyright © 2026 Keylens Contributors",
+      message: "Released under the Apache License 2.0.",
+      copyright: "Copyright © 2026 Progress Software Corporation",
     },
   },
 });

@@ -3,7 +3,7 @@ name: keylens
 description: Run keyboard navigation accessibility audits on web pages using a real browser.
 user-invokable: true
 argument-hint: "[url] [--profile <profile>] [--interactions]"
-license: MIT
+license: Apache-2.0
 compatibility: VS Code with terminal access
 metadata:
   author: Telerik
