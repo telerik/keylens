@@ -39,6 +39,7 @@ try {
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "LICENSE",
+    "NOTICE",
     "README.md",
     "SECURITY.md",
     "SUPPORT.md",
@@ -186,6 +187,16 @@ try {
 
   const packedManifestPath = join(installedPackage, "package.json");
   const packedManifest = JSON.parse(await readFile(packedManifestPath, "utf8"));
+  if (packedManifest.license !== "Apache-2.0") {
+    throw new Error("Packed package must declare the Apache-2.0 license");
+  }
+  for (const file of ["LICENSE", "NOTICE"]) {
+    const expected = await readFile(join(root, file), "utf8");
+    const actual = await readFile(join(installedPackage, file), "utf8");
+    if (actual !== expected) {
+      throw new Error(`Packed ${file} does not match the repository copy`);
+    }
+  }
   for (const binary of binaries) {
     if (packedManifest.bin?.[binary.name] !== binary.target) {
       throw new Error(
