@@ -25,7 +25,7 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Progress Software Corporation",
   "sideEffects": false,
   "type": "module",
@@ -55,6 +55,7 @@
     "keylens.config.schema.json",
     "README.md",
     "LICENSE",
+    "NOTICE",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
