@@ -1,6 +1,6 @@
 import type { RuleRemediation, WcagReference } from "./types/index.js";
 
-const WCAG_REFERENCES: Readonly<Record<string, WcagReference>> = {
+const WCAG_REFERENCES = {
   "1.3.1": {
     id: "1.3.1",
     title: "Info and Relationships",
@@ -51,14 +51,16 @@ const WCAG_REFERENCES: Readonly<Record<string, WcagReference>> = {
     title: "Name, Role, Value",
     url: "https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html",
   },
-};
+} satisfies Record<string, WcagReference>;
 for (const reference of Object.values(WCAG_REFERENCES)) {
   Object.freeze(reference);
 }
 Object.freeze(WCAG_REFERENCES);
 
-const wcag = (...ids: string[]): readonly WcagReference[] =>
-  Object.freeze(ids.map((id) => WCAG_REFERENCES[id]!));
+const wcag = (
+  ...ids: (keyof typeof WCAG_REFERENCES)[]
+): readonly WcagReference[] =>
+  Object.freeze(ids.map((id) => WCAG_REFERENCES[id]));
 
 const RULE_CATALOG_DATA: RuleRemediation[] = [
   {
@@ -200,5 +202,5 @@ export function getRuleRemediation(
 }
 
 export function getWcagReference(id: string): WcagReference | undefined {
-  return WCAG_REFERENCES[id];
+  return (WCAG_REFERENCES as Record<string, WcagReference>)[id];
 }
