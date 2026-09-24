@@ -241,8 +241,10 @@ export function validateConfigInput(input: unknown): KeylensConfigInput {
       .join("; ");
     throw new ConfigError(`Invalid configuration: ${issues}`);
   }
-  const { $schema: _schema, ...config } = parsed.data;
-  void _schema;
+  const config: Partial<KeylensConfigInput> & { $schema?: string } = {
+    ...parsed.data,
+  };
+  delete config.$schema;
   return config as KeylensConfigInput;
 }
 
