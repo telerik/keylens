@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { resolve } from "path";
 import { setLogLevel } from "@/utils/logger.js";
 
 // Mock fs/promises
@@ -99,6 +100,37 @@ describe("writeReportFile", () => {
     expect(mockMkdir).toHaveBeenCalledTimes(1);
     expect(mockWriteFile).not.toHaveBeenCalled();
   });
+
+  it("confines the write to outputDir even if fileName contains traversal segments", async () => {
+    const { writeReportFile } = await import("@/utils/report-writer.js");
+
+    await writeReportFile(
+      "./test-output",
+      "../../etc/passwd",
+      "malicious",
+      "JSON",
+    );
+
+    expect(mockWriteFile).toHaveBeenCalledTimes(1);
+    const [filePath] = mockWriteFile.mock.calls[0]!;
+    // basename() strips the traversal segments, so the file still lands
+    // inside the resolved output directory.
+    expect(String(filePath)).toBe(
+      resolve(process.cwd(), "test-output", "passwd"),
+    );
+  });
+
+  it("confines the write to outputDir even if fileName is an absolute path", async () => {
+    const { writeReportFile } = await import("@/utils/report-writer.js");
+
+    await writeReportFile("./test-output", "/etc/passwd", "malicious", "JSON");
+
+    expect(mockWriteFile).toHaveBeenCalledTimes(1);
+    const [filePath] = mockWriteFile.mock.calls[0]!;
+    expect(String(filePath)).toBe(
+      resolve(process.cwd(), "test-output", "passwd"),
+    );
+  });
 });
 
 describe("buildReportFileName", () => {
@@ -152,5 +184,31 @@ describe("buildReportFileName", () => {
     );
 
     expect(name).toBe("keylens-report.json");
+  });
+
+  it("strips directory traversal segments from outputFileName", async () => {
+    const { buildReportFileName } = await import("@/utils/report-writer.js");
+
+    const name = buildReportFileName(
+      "keylens-report",
+      "json",
+      { outputFileName: "../../etc/passwd", appendTimestamp: false },
+      "2026-09-14T10:23:05.123Z",
+    );
+
+    expect(name).toBe("passwd.json");
+  });
+
+  it("strips an absolute path down to its base name", async () => {
+    const { buildReportFileName } = await import("@/utils/report-writer.js");
+
+    const name = buildReportFileName(
+      "keylens-report",
+      "json",
+      { outputFileName: "/etc/passwd", appendTimestamp: false },
+      "2026-09-14T10:23:05.123Z",
+    );
+
+    expect(name).toBe("passwd.json");
   });
 });
