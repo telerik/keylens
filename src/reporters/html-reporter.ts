@@ -364,14 +364,14 @@ export function buildFocusMapHTML(
 
   const segments = points
     .slice(1)
-    .map((p2, i) => buildFocusMapSegment(points[i]!, p2));
+    .map((p2, i) => buildFocusMapSegment(points[i], p2));
 
   const issuesFlags = focusSequence.map((el) =>
     violationsBySelector?.get(el.selector),
   );
 
   const markers = focusSequence.map((el, i) => {
-    const { xPct, yPct } = points[i]!;
+    const { xPct, yPct } = points[i];
     const issues = issuesFlags[i];
     const severity = highestSeverity(issues);
     const cls =
