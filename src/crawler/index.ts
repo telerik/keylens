@@ -390,7 +390,7 @@ export async function crawlPage(
         interactionScope.dispose();
       }
       logger.debug(
-        `Processed ${interactionResults!.length} interaction cases, ${interactionResults!.filter((result) => result.status === "failed").length} focus issue(s)`,
+        `Processed ${interactionResults.length} interaction cases, ${interactionResults.filter((result) => result.status === "failed").length} focus issue(s)`,
       );
     }
     const interactionSummary = interactionResults
@@ -1482,24 +1482,28 @@ async function verifyRovingTabindexGroups(
   // exactly one OTHER container sharing the same member role DOES have one,
   // merge them so the whole shared domain is verified together instead of
   // silently skipping the orphaned containers.
-  const containersByMemberRole = new Map<string, string[]>();
-  for (const [containerSelector, members] of groups) {
+  const containersByMemberRole = new Map<
+    string,
+    Array<[selector: string, members: InteractiveElement[]]>
+  >();
+  for (const entry of groups) {
+    const [, members] = entry;
     const role = members[0]?.role ?? "";
-    const selectors = containersByMemberRole.get(role) ?? [];
-    selectors.push(containerSelector);
-    containersByMemberRole.set(role, selectors);
+    const entries = containersByMemberRole.get(role) ?? [];
+    entries.push(entry);
+    containersByMemberRole.set(role, entries);
   }
-  for (const containerSelectors of containersByMemberRole.values()) {
-    const hosts = containerSelectors.filter((sel) =>
-      groups.get(sel)!.some((el) => isRealTabStop(el.tabindexAttr)),
+  for (const entries of containersByMemberRole.values()) {
+    const hosts = entries.filter(([, members]) =>
+      members.some((el) => isRealTabStop(el.tabindexAttr)),
     );
-    const orphans = containerSelectors.filter(
-      (sel) => !groups.get(sel)!.some((el) => isRealTabStop(el.tabindexAttr)),
+    const orphans = entries.filter(
+      ([, members]) => !members.some((el) => isRealTabStop(el.tabindexAttr)),
     );
     if (hosts.length === 1 && orphans.length > 0) {
-      const hostMembers = groups.get(hosts[0]!)!;
-      for (const orphanSelector of orphans) {
-        hostMembers.push(...groups.get(orphanSelector)!);
+      const [, hostMembers] = hosts[0];
+      for (const [orphanSelector, orphanMembers] of orphans) {
+        hostMembers.push(...orphanMembers);
         groups.delete(orphanSelector);
       }
     }
