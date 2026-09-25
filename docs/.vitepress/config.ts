@@ -30,6 +30,11 @@ export default defineConfig({
     ["meta", { name: "twitter:card", content: "summary" }],
   ],
   cleanUrls: true,
+  // VISION.md is an internal roadmap/go-to-market doc, not linked from any
+  // nav or sidebar; kept in docs/ only so tests/unit/docs-drift.test.ts can
+  // cross-check it against source. Exclude it from the built site so it
+  // never ships as an orphaned, sitemapped public page.
+  srcExclude: ["VISION.md"],
   sitemap: {
     hostname: "https://telerik.github.io/keylens/",
   },
