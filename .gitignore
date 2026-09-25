@@ -47,3 +47,6 @@ tmp/
 
 # npm pack output
 *.tgz
+
+# Local tool caches
+.impeccable/

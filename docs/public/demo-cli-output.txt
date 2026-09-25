@@ -1,0 +1,54 @@
+
+Keylens v0.1.0
+See your site through the lens of keyboard users.
+
+ℹ Starting deterministic Keylens audit for http://127.0.0.1:60542/
+ℹ Launching chromium browser...
+ℹ Navigating to http://127.0.0.1:60542/
+ℹ Preparing page...
+ℹ Testing skip link...
+ℹ Discovering interactive elements...
+ℹ Crawling tab order...
+ℹ Verifying roving-tabindex composite widgets...
+ℹ Confirming possible missing focus indicators via pixel diff...
+✓ Crawl completed in 6196ms
+ℹ Running 9 rules...
+  ✓ Keyboard Trap
+  ✗ Unreachable Interactive Elements — 1 violation(s)
+  ✓ Focus Order Mismatch
+  ✓ Tabindex Abuse
+  ✗ Missing Focus Indicator — 1 violation(s)
+  ✗ Skip Link — 1 violation(s)
+  ✓ Focus Not Obscured
+  ✓ Focus After Interaction
+  ✓ Broken Roving Tabindex Navigation
+
+🔍 Keylens v0.1.0 — Keyboard Navigation Audit
+────────────────────────────────────────────────────────────
+URL: http://127.0.0.1:60542/
+Focusable elements: 6
+Interactive elements: 7
+Unreached: 1
+Tab cycle completed: Yes
+Duration: 6196ms
+
+────────────────────────────────────────────────────────────
+Rules:
+
+  ✓ keyboard-trap
+  ✗ unreachable-elements — 1 issue(s)
+  ● 1 interactive element(s) are not reachable via keyboard.
+    └─ main > div:nth-of-type(3)
+  ✓ focus-order-mismatch
+  ✓ tabindex-abuse
+  ✗ missing-focus-indicator — 1 issue(s)
+  ● 1 element(s) show no visible change between focused and unfocused states.
+    └─ main > div:nth-of-type(1) > a
+  ✗ skip-link — 1 issue(s)
+  ● No skip navigation link found among the first focusable elements. Keyboard users must tab through all navigation items to reach main content.
+  ✓ focus-not-obscured
+  ✓ focus-after-interaction
+  ✓ roving-tabindex-broken
+
+────────────────────────────────────────────────────────────
+Result: 2 error(s), 1 warning(s)  — Score: 89/100
