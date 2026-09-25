@@ -13,7 +13,7 @@ maintainers review the report; no fixed response or remediation time is guarante
 ## Supported versions
 
 Keylens is currently prerelease software. Security fixes are provided for the latest
-documented GitHub Packages prerelease only. `1.0.0` is not published.
+documented npm prerelease only. `1.0.0` is not published.
 
 ## Security considerations for audits
 
@@ -22,7 +22,7 @@ reports as untrusted or sensitive input:
 
 - run against authorized targets only;
 - use isolated test environments and least-privilege accounts;
-- keep GitHub Packages credentials out of source control and reports;
+- keep npm publish and CI credentials out of source control and reports;
 - review HTML, JSON, Markdown, screenshots, selectors, accessible names, and URLs
   before sharing artifacts;
 - keep experimental interactions disabled unless controls are known safe;

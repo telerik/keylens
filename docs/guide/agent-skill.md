@@ -23,7 +23,7 @@ The skill gives compatible coding agents a compact workflow for:
 
 Before asking an agent to audit:
 
-1. install Keylens from GitHub Packages and install the selected Playwright browser;
+1. install Keylens from npm and install the selected Playwright browser;
 2. start the target application yourself;
 3. use a test environment without production secrets or customer data;
 4. keep interactions disabled unless the target controls and limits are known safe;

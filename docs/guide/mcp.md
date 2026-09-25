@@ -5,7 +5,8 @@ The Model Context Protocol server uses stdio and is exposed as a separate execut
 
 ## Installation
 
-Install Keylens and Chromium first.
+Install Keylens and Chromium first. Prefer a project or global installation over
+asking an agent to download an unpinned package on every run.
 
 ```bash
 npm install @telerik/keylens

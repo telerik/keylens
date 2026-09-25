@@ -2,9 +2,9 @@
 
 ## Release status
 
-Keylens is currently a prerelease distributed through GitHub Packages. `1.0.0` is not
-published. During prerelease, only the latest package on the documented `@dev` channel
-is supported; upgrade before reporting a defect.
+Keylens is currently a prerelease distributed through the public npm registry. `1.0.0`
+is not published. During prerelease, only the latest package on the documented `@dev`
+channel is supported; upgrade before reporting a defect.
 
 The deterministic CLI, report schema, and programmatic core are the intended stable
 surface. Experimental MCP and agent-skill contracts can change independently and
@@ -14,7 +14,7 @@ do not carry compatibility guarantees.
 
 | Surface           | Supported                                                                             |
 | ----------------- | ------------------------------------------------------------------------------------- |
-| Node.js           | 26 and later                                                                          |
+| Node.js           | 20 and later (verified on 20, 22, 24, and 26)                                         |
 | Module system     | ESM                                                                                   |
 | Browser engines   | Chromium, Firefox, and WebKit revisions installed by the package's Playwright version |
 | Browser mode      | Headless and headed                                                                   |

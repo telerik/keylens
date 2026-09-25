@@ -6,26 +6,20 @@ actually happens.
 
 ## Requirements
 
-- Node.js 26 or later
+- Node.js 20 or later (verified on 20, 22, 24, and 26)
 - A Playwright-supported operating system
-- Access to the `@telerik/keylens` GitHub Package
-- A GitHub token with `read:packages`
 
-Keylens is not currently distributed from the public npm registry, and `1.0.0` is not
-published.
+Keylens is distributed from the public npm registry as a prerelease; `1.0.0` is not
+published yet.
 
-## Authenticate and install
+## Install
 
 ```bash
-gh auth login --scopes read:packages
-npm config set @telerik:registry https://npm.pkg.github.com
-npm config set //npm.pkg.github.com/:_authToken "$(gh auth token)"
 npm install --save-dev @telerik/keylens@dev
 npx playwright install chromium
 ```
 
-The `@dev` tag is the current prerelease channel. Keep credentials in user or CI
-configuration; do not commit tokens to `.npmrc`.
+The `@dev` tag is the current prerelease channel.
 
 ## Run the first audit
 

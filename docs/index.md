@@ -31,6 +31,6 @@ features:
 Keylens complements static accessibility analysis; it does not replace it. Use static tools
 for markup and semantics, then use Keylens to verify the runtime keyboard experience.
 
-[Install from GitHub Packages](/guide/getting-started) ·
+[Install from npm](/guide/getting-started) ·
 [Choose an execution profile](/guide/configuration#execution-profiles) ·
 [Review known limitations](/guide/limitations)

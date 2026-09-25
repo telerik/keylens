@@ -2,11 +2,13 @@
 
 First off, thank you for considering contributing to Keylens! Accessibility tooling benefits everyone, and your help makes the web a more inclusive place.
 
+By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js >= 26
+- Node.js >= 22
 - npm >= 10
 
 ### Setup
@@ -31,11 +33,9 @@ npm run keylens -- audit https://example.com
 
 > **Note:** `.npmrc` sets `ignore-scripts=true` (an org-wide security default), so
 > `npm ci`/`npm install` no longer auto-run the `prepare` script that wires up git
-> hooks — run `npm run prepare` once after installing. It also declares
-> `@telerik/*` packages (e.g. `@telerik/machine-id`) as coming from GitHub
-> Packages; make sure a `GH_TOKEN` environment variable (a classic PAT with
-> `packages: read` permission) is set in your shell before running `npm ci`, or
-> that install step will fail.
+> hooks — run `npm run prepare` once after installing. `@telerik/machine-id` is an
+> optional dependency used only for telemetry; if it can't be resolved, `npm ci`
+> still succeeds (npm skips failed optional dependencies).
 
 ### Project Structure
 
@@ -143,10 +143,10 @@ Create `tests/unit/rules/my-new-rule.test.ts` with test cases covering pass and 
 3. **Run the full checks** before opening a PR:
    ```bash
    npm run validate
-   npm run docs:build
    npm run package:verify
    ```
-   Crawler changes should also run `npm run test:integration` with
+   `npm run validate` already runs `docs:build` as part of its checks. Crawler
+   changes should also run `npm run test:integration` with
    `KEYLENS_TEST_BROWSER` set to `chromium`, `firefox`, and `webkit`.
 4. **Keep PRs focused** — one feature or fix per PR.
 5. **Update docs** if your change affects the public API or CLI.
