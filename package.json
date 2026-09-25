@@ -83,7 +83,8 @@
     "prepare": "git config core.hooksPath .husky",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "docs:og-image": "node scripts/generate-og-image.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
