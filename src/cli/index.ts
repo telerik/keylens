@@ -312,7 +312,7 @@ program
 
     const config = {
       $schema:
-        "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
+        "https://raw.githubusercontent.com/telerik/keylens/develop/keylens.config.schema.json",
       profile: "balanced",
       url: "https://example.com",
       viewport: { width: 1280, height: 720 },

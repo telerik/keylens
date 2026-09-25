@@ -85,4 +85,4 @@ A CLI URL argument takes precedence over the config file's `url`.
 - [CI/CD](./ci-cd)
 - [Known limitations](./limitations)
 - [Rules](/rules/)
-- [Telemetry and privacy](https://github.com/telerik/keylens/blob/master/src/telemetry/README.md)
+- [Telemetry and privacy](https://github.com/telerik/keylens/blob/develop/src/telemetry/README.md)
