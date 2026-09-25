@@ -1,0 +1,10 @@
+# Code owners for Keylens.
+#
+# This file is intentionally left without an active blanket owner. Fill in
+# entries below (e.g. `* @telerik/keylens-maintainers` or per-path owners)
+# once the maintaining team/usernames are decided. See
+# https://docs.github.com/articles/about-code-owners for syntax.
+#
+# Example:
+# * @some-user @some-org/some-team
+# /src/rules/ @some-user
