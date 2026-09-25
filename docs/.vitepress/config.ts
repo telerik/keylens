@@ -27,7 +27,26 @@ export default defineConfig({
           "Keyboard navigation testing with real browsers. Press Tab and record what actually happens.",
       },
     ],
-    ["meta", { name: "twitter:card", content: "summary" }],
+    // Matches the sitemap hostname below: the public URL this site will be
+    // served at once the repo goes public, not wherever it's previewed from.
+    [
+      "meta",
+      {
+        property: "og:image",
+        content: "https://telerik.github.io/keylens/og-image.png",
+      },
+    ],
+    ["meta", { property: "og:image:width", content: "1200" }],
+    ["meta", { property: "og:image:height", content: "630" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
+    [
+      "meta",
+      {
+        name: "twitter:image",
+        content: "https://telerik.github.io/keylens/og-image.png",
+      },
+    ],
+    ["meta", { name: "theme-color", content: "#3d57d8" }],
   ],
   cleanUrls: true,
   // VISION.md is an internal roadmap/go-to-market doc, not linked from any
@@ -42,6 +61,15 @@ export default defineConfig({
   themeConfig: {
     search: {
       provider: "local",
+    },
+    outline: "deep",
+    editLink: {
+      pattern: "https://github.com/telerik/keylens/edit/develop/docs/:path",
+      text: "Edit this page on GitHub",
+    },
+    docFooter: {
+      prev: "Previous page",
+      next: "Next page",
     },
     nav: [
       { text: "Guide", link: "/guide/getting-started" },
@@ -89,6 +117,10 @@ export default defineConfig({
           {
             text: "Focus After Interaction",
             link: "/rules/focus-after-interaction",
+          },
+          {
+            text: "Broken Roving Tabindex Navigation",
+            link: "/rules/roving-tabindex-broken",
           },
         ],
       },
