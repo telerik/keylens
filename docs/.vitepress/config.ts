@@ -97,19 +97,19 @@ export default defineConfig({
         items: [
           {
             text: "Support Policy",
-            link: "https://github.com/telerik/keylens/blob/master/SUPPORT.md",
+            link: "https://github.com/telerik/keylens/blob/develop/SUPPORT.md",
           },
           {
             text: "Security",
-            link: "https://github.com/telerik/keylens/blob/master/SECURITY.md",
+            link: "https://github.com/telerik/keylens/blob/develop/SECURITY.md",
           },
           {
             text: "Telemetry",
-            link: "https://github.com/telerik/keylens/blob/master/src/telemetry/README.md",
+            link: "https://github.com/telerik/keylens/blob/develop/src/telemetry/README.md",
           },
           {
             text: "Changelog",
-            link: "https://github.com/telerik/keylens/blob/master/CHANGELOG.md",
+            link: "https://github.com/telerik/keylens/blob/develop/CHANGELOG.md",
           },
         ],
       },

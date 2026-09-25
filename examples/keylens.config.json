@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
+  "$schema": "https://raw.githubusercontent.com/telerik/keylens/develop/keylens.config.schema.json",
   "url": "https://example.com",
   "viewport": { "width": 1280, "height": 720 },
   "rules": {

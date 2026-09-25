@@ -11,7 +11,7 @@ the audit. Partial nested objects are accepted and merged with defaults.
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
+  "$schema": "https://raw.githubusercontent.com/telerik/keylens/develop/keylens.config.schema.json",
   "url": "https://example.com",
   "profile": "balanced",
   "capture": { "page": "none" },
