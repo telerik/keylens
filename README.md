@@ -44,21 +44,18 @@ aren't dominated by banner noise. Disable with `--keep-overlays`; see
 [Configuration](./docs/guide/configuration.md#prepare).
 
 > [!IMPORTANT]
-> The deterministic CLI, reports, and programmatic core are the stable surface.
-> MCP distribution and interaction testing are experimental and may change independently.
+> Keylens is available as a stable package from the public npm registry.
+> MCP distribution and interaction testing may change independently.
 
 ## Install
 
 Keylens is distributed through the public npm registry. Node.js 20 or later is
-required (verified on 20, 22, 24, and 26).
+required.
 
 ```bash
-npm install --save-dev @telerik/keylens@dev
+npm install --save-dev @telerik/keylens
 npx playwright install chromium
 ```
-
-The `@dev` tag is the current prerelease distribution channel. Keylens `1.0.0` is not
-published.
 
 ## Run an audit
 
@@ -67,7 +64,7 @@ npx keylens audit https://example.com
 ```
 
 ```text
-🔍 Keylens v0.1.0 — Keyboard Navigation Audit
+🔍 Keylens v1.0.0 — Keyboard Navigation Audit
 URL: https://example.com
 Focusable elements: 42
 Interactive elements: 40 (2 unreachable)
