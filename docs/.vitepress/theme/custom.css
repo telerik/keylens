@@ -204,14 +204,12 @@
   z-index: 1;
 }
 
-.VPNavBar.VPNavBar:not(.has-sidebar):not(.home.top) {
-  background-color: color-mix(in srgb, var(--vp-c-bg) 65%, transparent);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+.VPNavBar.VPNavBar:not(.home.top) {
+  background-color: var(--vp-nav-bg-color);
 }
 
 .VPNavBar.VPNavBar:not(.home.top) .content-body {
-  background-color: transparent;
+  background-color: var(--vp-nav-bg-color);
 }
 
 .keylens-comparison,
