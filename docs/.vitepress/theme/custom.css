@@ -51,6 +51,26 @@
   --vp-local-search-bg: #f5f6f7;
   --vp-local-search-result-bg: #fafafa;
   --vp-local-search-result-selected-bg: #ebf2fc;
+
+  /* Homepage "See it in action" demo band */
+  --klx-bg-1: #101534;
+  --klx-bg-2: #131a3f;
+  --klx-stripe: rgba(255, 255, 255, 0.025);
+  --klx-window-bg: #1a2049;
+  --klx-window-border: rgba(152, 185, 254, 0.2);
+  --klx-bar-bg: rgba(255, 255, 255, 0.03);
+  --klx-bar-border: rgba(152, 185, 254, 0.14);
+  --klx-eyebrow: #b7cbff;
+  --klx-heading: #ffffff;
+  --klx-sub: #c3cbec;
+  --klx-body: #e4e7f7;
+  --klx-dim: #8890b8;
+  --klx-pill-bg: rgba(255, 255, 255, 0.06);
+  --klx-ok: #4ade80;
+  --klx-fail: #f87171;
+  --klx-badge-bg: rgba(248, 113, 113, 0.16);
+  --klx-badge-text: #fca5a5;
+  --klx-score: #b7cbff;
 }
 
 .dark {
@@ -106,4 +126,25 @@
   --vp-local-search-bg: #151950;
   --vp-local-search-result-bg: #1a1f5e;
   --vp-local-search-result-selected-bg: #1a1f5e;
+
+  /* Homepage "See it in action" demo band — echoes the site's own dark
+     palette so the band reads as part of the page, not a fixed overlay. */
+  --klx-bg-1: #06163e;
+  --klx-bg-2: #0a0d24;
+  --klx-stripe: rgba(255, 255, 255, 0.02);
+  --klx-window-bg: #11184b;
+  --klx-window-border: rgba(152, 185, 254, 0.16);
+  --klx-bar-bg: rgba(255, 255, 255, 0.03);
+  --klx-bar-border: rgba(152, 185, 254, 0.12);
+  --klx-eyebrow: #98b9fe;
+  --klx-heading: #ffffff;
+  --klx-sub: #b6bfe6;
+  --klx-body: #dedeeb;
+  --klx-dim: #7d84ac;
+  --klx-pill-bg: rgba(255, 255, 255, 0.06);
+  --klx-ok: #4ade80;
+  --klx-fail: #f87171;
+  --klx-badge-bg: rgba(248, 113, 113, 0.15);
+  --klx-badge-text: #fca5a5;
+  --klx-score: #98b9fe;
 }
