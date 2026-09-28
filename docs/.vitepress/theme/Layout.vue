@@ -109,10 +109,8 @@ const { page } = useData();
 </template>
 
 <style scoped>
-/* Homepage "See it in action" demo — a self-contained dark band that
-   breaks out of VitePress's centered home-page container on both sides,
-   independent of the site's light/dark toggle (like a dark code-editor
-   card sitting on any background). */
+/* Homepage "See it in action" demo — a self-contained themed band that
+   breaks out of VitePress's centered home-page container on both sides. */
 .keylens-demo {
   width: 100vw;
   margin: 48px calc(50% - 50vw) 64px;
