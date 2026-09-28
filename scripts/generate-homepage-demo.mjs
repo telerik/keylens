@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * Runs a real `keylens audit` against a small, purpose-built demo fixture
- * (scripts/demo/homepage-demo-page.html — three intentional issues: an
- * unreachable div-as-button, a link with no visible focus indicator, and a
- * missing skip link) and captures two artifacts for the docs homepage:
+ * Runs a real `keylens audit` against a purpose-built demo fixture
+ * (scripts/demo/homepage-demo-page.html — a small marketing-site-style page
+ * with a nav, hero, pricing cards, FAQ, newsletter form, and footer, plus
+ * three intentional issues: an unreachable `role="button"` icon, a pricing
+ * CTA link with no visible focus indicator, and no skip link) and captures
+ * two artifacts for the docs homepage:
  *
- *  - docs/public/demo-cli-output.txt: the real, plain-text CLI report
- *  - docs/public/demo-focus-map.png: a screenshot of the real HTML report's
- *    focus-order overlay (numbered markers + connecting lines)
+ *  - docs/public/demo-cli-output.txt: the plain-text CLI report
+ *  - docs/public/demo-focus-map.png: a screenshot of the HTML report's
+ *    focus-order overlay (numbered markers + connecting lines), cropped to
+ *    a representative top slice rather than the full (very tall) page
  *
  * Run with `npm run docs:demo` after `npm run build`. Re-run whenever the
  * fixture, CLI report format, or HTML focus-map rendering changes.
@@ -61,14 +64,25 @@ await writeFile(
   cliOutput.trimEnd() + "\n",
 );
 
-// Screenshot the HTML report's focus-map overlay region.
+// Screenshot the HTML report's focus-map overlay, cropped to a
+// representative top slice (the full page is much taller than the demo
+// card is wide, so the full-height overlay doesn't read well at a glance).
 const browser = await chromium.launch();
 const page = await browser.newPage({
-  viewport: { width: 1000, height: 1400 },
+  viewport: { width: 1100, height: 1400 },
 });
 await page.goto(`file://${resolve(outDir, "keylens-report.html")}`);
 const overlay = page.locator(".focus-map").first();
-await overlay.screenshot({ path: resolve(publicDir, "demo-focus-map.png") });
+const box = await overlay.boundingBox();
+await page.screenshot({
+  path: resolve(publicDir, "demo-focus-map.png"),
+  clip: {
+    x: box.x,
+    y: box.y,
+    width: box.width,
+    height: Math.min(box.height, 900),
+  },
+});
 await browser.close();
 server.close();
 

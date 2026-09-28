@@ -2,16 +2,16 @@
 Keylens v0.1.0
 See your site through the lens of keyboard users.
 
-ℹ Starting deterministic Keylens audit for http://127.0.0.1:60542/
+ℹ Starting deterministic Keylens audit for http://127.0.0.1:56995/
 ℹ Launching chromium browser...
-ℹ Navigating to http://127.0.0.1:60542/
+ℹ Navigating to http://127.0.0.1:56995/
 ℹ Preparing page...
 ℹ Testing skip link...
 ℹ Discovering interactive elements...
 ℹ Crawling tab order...
 ℹ Verifying roving-tabindex composite widgets...
 ℹ Confirming possible missing focus indicators via pixel diff...
-✓ Crawl completed in 6196ms
+✓ Crawl completed in 12665ms
 ℹ Running 9 rules...
   ✓ Keyboard Trap
   ✗ Unreachable Interactive Elements — 1 violation(s)
@@ -25,12 +25,12 @@ See your site through the lens of keyboard users.
 
 🔍 Keylens v0.1.0 — Keyboard Navigation Audit
 ────────────────────────────────────────────────────────────
-URL: http://127.0.0.1:60542/
-Focusable elements: 6
-Interactive elements: 7
+URL: http://127.0.0.1:56995/
+Focusable elements: 26
+Interactive elements: 27
 Unreached: 1
 Tab cycle completed: Yes
-Duration: 6196ms
+Duration: 12665ms
 
 ────────────────────────────────────────────────────────────
 Rules:
@@ -38,12 +38,14 @@ Rules:
   ✓ keyboard-trap
   ✗ unreachable-elements — 1 issue(s)
   ● 1 interactive element(s) are not reachable via keyboard.
-    └─ main > div:nth-of-type(3)
+    └─ section:nth-of-type(4) > form > div
   ✓ focus-order-mismatch
   ✓ tabindex-abuse
   ✗ missing-focus-indicator — 1 issue(s)
-  ● 1 element(s) show no visible change between focused and unfocused states.
-    └─ main > div:nth-of-type(1) > a
+  ● 3 element(s) show no visible change between focused and unfocused states.
+    └─ section:nth-of-type(2) > div > div:nth-of-type(1) > a
+    └─ section:nth-of-type(2) > div > div:nth-of-type(2) > a
+    └─ section:nth-of-type(2) > div > div:nth-of-type(3) > a
   ✗ skip-link — 1 issue(s)
   ● No skip navigation link found among the first focusable elements. Keyboard users must tab through all navigation items to reach main content.
   ✓ focus-not-obscured
