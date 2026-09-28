@@ -116,7 +116,7 @@ const { page } = useData();
 .keylens-demo {
   width: 100vw;
   margin: 48px calc(50% - 50vw) 0;
-  padding: 64px 24px;
+  padding: 72px 24px 96px;
   background:
     repeating-linear-gradient(
       135deg,
