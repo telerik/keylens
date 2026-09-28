@@ -2,8 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Keylens homepage demo</title>
+    <title>Acme Cloud — Keylens homepage demo</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
       body {
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -13,85 +16,291 @@
       }
       header {
         display: flex;
-        gap: 24px;
+        justify-content: space-between;
         align-items: center;
-        padding: 20px 32px;
+        padding: 18px 40px;
         border-bottom: 1px solid #e5e7eb;
+      }
+      .brand {
+        font-weight: 700;
+        font-size: 18px;
+      }
+      nav {
+        display: flex;
+        gap: 28px;
       }
       header a {
         color: #1a1a2e;
         text-decoration: none;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 500;
       }
-      main {
-        max-width: 640px;
-        margin: 0 auto;
-        padding: 48px 32px;
+      .cta {
+        background: #3d57d8;
+        color: #fff !important;
+        padding: 8px 16px;
+        border-radius: 6px;
       }
-      h1 {
-        font-size: 28px;
-        margin: 0 0 8px;
+      .hero {
+        text-align: center;
+        padding: 72px 32px 56px;
+        background: #f7f8fc;
       }
-      p.lede {
+      .hero h1 {
+        font-size: 40px;
+        margin: 0 0 16px;
+      }
+      .hero p {
         color: #4b5563;
-        margin: 0 0 32px;
+        max-width: 520px;
+        margin: 0 auto 28px;
       }
-      .card {
+      .hero-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+      .btn-primary {
+        background: #3d57d8;
+        color: #fff;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-secondary {
+        background: #fff;
+        border: 1px solid #d1d5db;
+        padding: 12px 22px;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      section {
+        padding: 56px 32px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      section h2 {
+        text-align: center;
+        font-size: 26px;
+        margin: 0 0 36px;
+      }
+      .pricing {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .plan {
         border: 1px solid #e5e7eb;
         border-radius: 10px;
         padding: 24px;
-        margin-bottom: 20px;
+      }
+      .plan h3 {
+        margin: 0 0 4px;
+      }
+      .plan .price {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 8px 0 16px;
+      }
+      .plan ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px;
+        color: #4b5563;
+        font-size: 14px;
+        line-height: 1.8;
       }
       /* Intentional: focused state is visually identical to unfocused. */
-      .no-focus-indicator:focus {
+      .plan-cta:focus {
         outline: none;
       }
-      button,
-      input,
-      a.button {
-        font-size: 15px;
+      .faq {
+        border-top: 1px solid #e5e7eb;
       }
-      .fake-button {
-        display: inline-block;
-        padding: 10px 18px;
-        background: #3d57d8;
-        color: #fff;
-        border-radius: 6px;
+      .faq-item {
+        padding: 18px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .faq-item summary {
         cursor: pointer;
         font-weight: 600;
+      }
+      .newsletter {
+        background: #f7f8fc;
+        text-align: center;
+      }
+      .newsletter form {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .newsletter input {
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        width: 260px;
+      }
+      /* Intentional: div styled and behaving like a button, but only
+         focusable via role — never reachable by a keyboard user, since it
+         has no tabindex. */
+      .icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #eef0f2;
+        cursor: pointer;
+      }
+      footer {
+        border-top: 1px solid #e5e7eb;
+        padding: 32px;
+      }
+      .footer-grid {
+        max-width: 1000px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        font-size: 14px;
+      }
+      .footer-grid h4 {
+        margin: 0 0 12px;
+        font-size: 13px;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+      .footer-grid a {
+        display: block;
+        color: #4b5563;
+        text-decoration: none;
+        margin-bottom: 8px;
       }
     </style>
   </head>
   <body>
     <!-- Intentional: no skip link before the nav. -->
     <header>
-      <a href="/">Acme</a>
-      <a href="/pricing">Pricing</a>
-      <a href="/docs">Docs</a>
+      <div class="brand">Acme Cloud</div>
+      <nav>
+        <a href="/product">Product</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/docs">Docs</a>
+        <a href="/blog">Blog</a>
+        <a href="/login" class="cta">Sign in</a>
+      </nav>
     </header>
-    <main>
-      <h1>Upgrade your plan</h1>
-      <p class="lede">Pick the plan that fits your team.</p>
 
-      <div class="card">
-        <h2>Pro</h2>
-        <p>Everything in Free, plus priority support.</p>
-        <a href="/checkout" class="no-focus-indicator">Continue to checkout</a>
+    <section class="hero">
+      <h1>Ship accessible software, faster</h1>
+      <p>
+        Acme Cloud helps teams monitor uptime, performance, and accessibility
+        across every release.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary">Start free trial</button>
+        <button class="btn-secondary">Book a demo</button>
       </div>
+    </section>
 
-      <div class="card">
-        <h2>Newsletter</h2>
-        <label for="email">Email address</label><br />
+    <section>
+      <h2>Plans for every team</h2>
+      <div class="pricing">
+        <div class="plan">
+          <h3>Starter</h3>
+          <div class="price">$0</div>
+          <ul>
+            <li>1 project</li>
+            <li>Community support</li>
+            <li>Weekly reports</li>
+          </ul>
+          <a href="/signup/starter" class="plan-cta">Get started</a>
+        </div>
+        <div class="plan">
+          <h3>Pro</h3>
+          <div class="price">$49/mo</div>
+          <ul>
+            <li>Unlimited projects</li>
+            <li>Priority support</li>
+            <li>Daily reports</li>
+          </ul>
+          <a href="/signup/pro" class="plan-cta">Get started</a>
+        </div>
+        <div class="plan">
+          <h3>Enterprise</h3>
+          <div class="price">Custom</div>
+          <ul>
+            <li>SSO &amp; audit logs</li>
+            <li>Dedicated support</li>
+            <li>Custom SLAs</li>
+          </ul>
+          <a href="/contact" class="plan-cta">Contact sales</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq">
+      <h2>Frequently asked questions</h2>
+      <details class="faq-item">
+        <summary>Can I cancel anytime?</summary>
+        <p>Yes, plans are month-to-month with no lock-in.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do you offer a free trial?</summary>
+        <p>Every plan includes a 14-day free trial, no card required.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my data encrypted?</summary>
+        <p>All data is encrypted in transit and at rest.</p>
+      </details>
+    </section>
+
+    <section class="newsletter">
+      <h2>Stay in the loop</h2>
+      <form>
+        <label for="email" class="sr-only">Email address</label>
         <input id="email" type="email" placeholder="you@example.com" />
-        <button type="submit">Subscribe</button>
-      </div>
+        <button type="submit" class="btn-primary">Subscribe</button>
+        <!-- Intentional: role="button" with no tabindex — clickable, never
+             reachable via Tab. -->
+        <div class="icon-button" role="button" title="Dismiss">&times;</div>
+      </form>
+    </section>
 
-      <!-- Intentional: has role="button" (so it's discovered as an
-           interactive control) but no tabindex, so real users can never
-           Tab to it — only click it with a mouse. -->
-      <div class="fake-button" role="button" onclick="alert('clicked')">
-        Dismiss
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <h4>Product</h4>
+          <a href="/features">Features</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/changelog">Changelog</a>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <a href="/about">About</a>
+          <a href="/careers">Careers</a>
+          <a href="/contact">Contact</a>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <a href="/docs">Docs</a>
+          <a href="/blog">Blog</a>
+          <a href="/support">Support</a>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+        </div>
       </div>
-    </main>
+    </footer>
   </body>
 </html>

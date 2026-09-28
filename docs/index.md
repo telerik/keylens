@@ -37,22 +37,17 @@ for markup and semantics, then use Keylens to verify the runtime keyboard experi
 
 ## See it in action
 
-This is a real `keylens audit` run — not a mockup — against a small page with three
-intentional keyboard issues: a `role="button"` element with no `tabindex` (so a mouse
-can click it but Tab never reaches it), a link with no visible focus state, and no
-skip link.
-
 <div class="demo-grid">
 
 ```txt
 🔍 Keylens v0.1.0 — Keyboard Navigation Audit
 ────────────────────────────────────────────────────────────
-URL: http://127.0.0.1:60542/
-Focusable elements: 6
-Interactive elements: 7
+URL: http://127.0.0.1:56995/
+Focusable elements: 26
+Interactive elements: 27
 Unreached: 1
 Tab cycle completed: Yes
-Duration: 6196ms
+Duration: 12665ms
 
 ────────────────────────────────────────────────────────────
 Rules:
@@ -60,12 +55,14 @@ Rules:
   ✓ keyboard-trap
   ✗ unreachable-elements — 1 issue(s)
   ● 1 interactive element(s) are not reachable via keyboard.
-    └─ main > div:nth-of-type(3)
+    └─ section:nth-of-type(4) > form > div
   ✓ focus-order-mismatch
   ✓ tabindex-abuse
   ✗ missing-focus-indicator — 1 issue(s)
-  ● 1 element(s) show no visible change between focused and unfocused states.
-    └─ main > div:nth-of-type(1) > a
+  ● 3 element(s) show no visible change between focused and unfocused states.
+    └─ section:nth-of-type(2) > div > div:nth-of-type(1) > a
+    └─ section:nth-of-type(2) > div > div:nth-of-type(2) > a
+    └─ section:nth-of-type(2) > div > div:nth-of-type(3) > a
   ✗ skip-link — 1 issue(s)
   ● No skip navigation link found among the first focusable elements.
   ✓ focus-not-obscured
@@ -77,8 +74,8 @@ Result: 2 error(s), 1 warning(s)  — Score: 89/100
 ```
 
 <div class="demo-image">
-<img src="/demo-focus-map.png" alt="Keylens HTML report focus-order map: numbered markers 1 through 6 connected by dashed lines over the demo page, with marker 4 (a link with no visible focus indicator) highlighted in red as a violation." />
-<p class="demo-caption">The same run's HTML report — numbered Tab stops with a red marker on the violation.</p>
+<img src="/demo-focus-map.png" alt="Keylens HTML report focus-order map over a marketing page: numbered markers connected by dashed lines, with red violation markers on three pricing-card links that have no visible focus indicator." />
+<p class="demo-caption">The same run's HTML report — numbered Tab stops with red markers on the violations.</p>
 </div>
 
 </div>
