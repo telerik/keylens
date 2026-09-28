@@ -4,6 +4,7 @@ import DefaultTheme from "vitepress/theme";
 
 const { Layout } = DefaultTheme;
 const { page } = useData();
+const installCommand = "npm install -D @telerik/keylens";
 </script>
 
 <template>
@@ -15,28 +16,47 @@ const { page } = useData();
       demo page, not a static screenshot of any real product.
     -->
     <template #home-hero-after>
-      <section v-if="page.relativePath === 'index.md'" class="keylens-demo">
-        <div class="keylens-demo-inner">
-          <p class="keylens-demo-eyebrow">See it in action</p>
-          <h2 class="keylens-demo-heading">
-            Tab through it. See exactly what breaks.
-          </h2>
-          <p class="keylens-demo-sub">
-            Keylens drives a real browser, presses Tab, and renders the actual
-            focus path — not a static markup check.
-          </p>
+      <div
+        v-if="page.relativePath === 'index.md'"
+        class="keylens-home-sections"
+      >
+        <div class="keylens-install">
+          <div class="keylens-install-copy">
+            <p class="keylens-install-eyebrow">Try it in one command</p>
+            <p class="keylens-install-title">
+              Install Keylens where your tests already live.
+            </p>
+          </div>
+          <CopyCommand :command="installCommand" label="install command" />
+          <a
+            class="keylens-install-link"
+            :href="withBase('/guide/getting-started')"
+            >Read the guide <span aria-hidden="true">→</span></a
+          >
+        </div>
 
-          <div class="keylens-demo-grid">
-            <div class="keylens-window keylens-terminal">
-              <div class="keylens-window-bar">
-                <span class="dot dot-red"></span>
-                <span class="dot dot-yellow"></span>
-                <span class="dot dot-green"></span>
-                <span class="keylens-window-title">keylens audit</span>
-              </div>
-              <pre
-                class="keylens-terminal-body"
-              ><code><span class="t-prompt">$ </span><span class="t-cmd">keylens audit</span> ./sample-interface
+        <section class="keylens-demo">
+          <div class="keylens-demo-inner">
+            <p class="keylens-demo-eyebrow">See it in action</p>
+            <h2 class="keylens-demo-heading">
+              Tab through it. See exactly what breaks.
+            </h2>
+            <p class="keylens-demo-sub">
+              Keylens drives a real browser, presses Tab, and renders the actual
+              focus path — not a static markup check.
+            </p>
+
+            <div class="keylens-demo-grid">
+              <div class="keylens-window keylens-terminal">
+                <div class="keylens-window-bar">
+                  <span class="dot dot-red"></span>
+                  <span class="dot dot-yellow"></span>
+                  <span class="dot dot-green"></span>
+                  <span class="keylens-window-title">keylens audit</span>
+                </div>
+                <pre
+                  class="keylens-terminal-body"
+                ><code><span class="t-prompt">$ </span><span class="t-cmd">keylens audit</span> ./sample-interface
 <span class="t-dim">Crawling tab order in a real browser…</span>
 
 <span class="t-ok">✓</span> keyboard-trap
@@ -51,33 +71,36 @@ const { page } = useData();
 
 <span class="t-dim">────────────────────────────────</span>
 <span class="t-result">2 errors, 1 warning</span> <span class="t-dim">·</span> <span class="t-score">score 89/100</span></code></pre>
-            </div>
-
-            <div class="keylens-window keylens-browser">
-              <div class="keylens-window-bar">
-                <span class="dot dot-red"></span>
-                <span class="dot dot-yellow"></span>
-                <span class="dot dot-green"></span>
-                <span class="keylens-address-pill">focus order · 23 stops</span>
               </div>
-              <img
-                class="keylens-browser-img"
-                :src="withBase('/demo-focus-map.png')"
-                alt="Numbered markers tracing the Tab order across a small generic sample page, with three markers highlighted in red where the focus indicator is invisible and one interactive control skipped entirely because it's unreachable by keyboard."
-                width="1036"
-                height="856"
-                loading="lazy"
-              />
-            </div>
-          </div>
 
-          <p class="keylens-demo-footnote">
-            <a :href="withBase('/demo-cli-output.txt')"
-              >View the full CLI output</a
-            >
-          </p>
-        </div>
-      </section>
+              <div class="keylens-window keylens-browser">
+                <div class="keylens-window-bar">
+                  <span class="dot dot-red"></span>
+                  <span class="dot dot-yellow"></span>
+                  <span class="dot dot-green"></span>
+                  <span class="keylens-address-pill"
+                    >focus order · 23 stops</span
+                  >
+                </div>
+                <img
+                  class="keylens-browser-img"
+                  :src="withBase('/demo-focus-map.png')"
+                  alt="Numbered markers tracing the Tab order across a small generic sample page, with three markers highlighted in red where the focus indicator is invisible and one interactive control skipped entirely because it's unreachable by keyboard."
+                  width="1036"
+                  height="856"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
+            <p class="keylens-demo-footnote">
+              <a :href="withBase('/demo-cli-output.txt')"
+                >View the full CLI output</a
+              >
+            </p>
+          </div>
+        </section>
+      </div>
     </template>
 
     <!--
@@ -109,6 +132,55 @@ const { page } = useData();
 </template>
 
 <style scoped>
+/* Homepage action and proof sections */
+.keylens-home-sections {
+  width: 100%;
+}
+
+.keylens-install {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 1152px;
+  margin: 8px auto 0;
+  padding: 16px 20px;
+  border: 1px solid var(--vp-c-border);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.keylens-install-copy {
+  flex: 1;
+}
+
+.keylens-install-eyebrow {
+  margin: 0 0 3px;
+  color: var(--vp-c-brand-1);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.keylens-install-title {
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.keylens-install-link {
+  flex-shrink: 0;
+  color: var(--vp-c-brand-1);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.keylens-install-link:hover {
+  text-decoration: underline;
+}
+
 /* Homepage "See it in action" demo — a self-contained themed band that
    breaks out of VitePress's centered home-page container on both sides. */
 .keylens-demo {
@@ -301,9 +373,22 @@ const { page } = useData();
   color: var(--klx-eyebrow);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
+  .keylens-install {
+    margin-right: 24px;
+    margin-left: 24px;
+  }
+
   .keylens-demo-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .keylens-install {
+    display: block;
+    margin-top: 0;
+    padding: 16px;
   }
 }
 
