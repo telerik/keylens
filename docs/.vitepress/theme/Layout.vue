@@ -5,10 +5,44 @@ import DefaultTheme from "vitepress/theme";
 const { Layout } = DefaultTheme;
 const { page } = useData();
 const installCommand = "npm install -D @telerik/keylens";
+
+function updateHeroKeyShadow(event: PointerEvent) {
+  const key = event.currentTarget as HTMLElement;
+  const rect = key.getBoundingClientRect();
+  const side = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  const distance = Math.abs(side);
+
+  key.style.setProperty("--klx-hero-key-shadow-x", `${-side * 22}px`);
+  key.style.setProperty("--klx-hero-key-shadow-y", `${26 + distance * 8}px`);
+  key.style.setProperty("--klx-hero-key-shadow-blur", `${52 - distance * 8}px`);
+  key.style.setProperty("--klx-hero-key-shift-x", `${side * 4}px`);
+  key.style.setProperty("--klx-hero-key-shift-y", `${distance * 2}px`);
+}
+
+function resetHeroKeyShadow(event: PointerEvent) {
+  const key = event.currentTarget as HTMLElement;
+  key.style.removeProperty("--klx-hero-key-shadow-x");
+  key.style.removeProperty("--klx-hero-key-shadow-y");
+  key.style.removeProperty("--klx-hero-key-shadow-blur");
+  key.style.removeProperty("--klx-hero-key-shift-x");
+  key.style.removeProperty("--klx-hero-key-shift-y");
+}
 </script>
 
 <template>
   <Layout>
+    <template #home-hero-before>
+      <div
+        v-if="page.relativePath === 'index.md'"
+        class="klx-hero-key"
+        aria-hidden="true"
+        @pointermove="updateHeroKeyShadow"
+        @pointerleave="resetHeroKeyShadow"
+      >
+        <span>tab</span>
+      </div>
+    </template>
+
     <!--
       Rendered between the hero and the feature grid (VitePress's
       `home-hero-after` slot) only on the homepage — a hand-styled preview

@@ -174,11 +174,11 @@
   overflow-x: clip;
 }
 
-.VPHomeHero::after {
+.klx-hero-key {
   position: absolute;
-  top: 50%;
-  right: 5%;
-  z-index: 0;
+  top: 40%;
+  right: 10%;
+  z-index: 3;
   display: flex;
   width: clamp(190px, 24vw, 300px);
   height: clamp(110px, 12vw, 154px);
@@ -194,22 +194,37 @@
     transparent 72%
   );
   box-shadow:
-    0 24px 48px rgba(61, 87, 216, 0.08),
-    inset 0 -8px 0 rgba(61, 87, 216, 0.06);
+    var(--klx-hero-key-shadow-x, 0px) var(--klx-hero-key-shadow-y, 24px)
+      var(--klx-hero-key-shadow-blur, 48px) rgba(61, 87, 216, 0.16),
+    inset 0 -8px 0 rgba(61, 87, 216, 0.1);
   color: var(--klx-hero-key-text);
-  content: "tab";
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: clamp(17px, 2.2vw, 26px);
   font-weight: 700;
   letter-spacing: 0.1em;
-  pointer-events: none;
+  pointer-events: auto;
+  translate: var(--klx-hero-key-shift-x, 0px) var(--klx-hero-key-shift-y, 0px);
   transform: translateY(-50%) rotate(9deg);
+  transition:
+    box-shadow 180ms ease-out,
+    translate 180ms ease-out;
+  user-select: none;
+}
+
+.klx-hero-key span {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klx-hero-key {
+    transition: none;
+  }
 }
 
 .VPHomeHero > .container {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .VPNavBar.VPNavBar:not(.has-sidebar):not(.home.top) {
@@ -302,7 +317,7 @@
     grid-template-columns: 1fr;
   }
 
-  .VPHomeHero::after {
+  .klx-hero-key {
     display: none;
   }
 }
