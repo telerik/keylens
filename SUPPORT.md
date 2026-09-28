@@ -6,7 +6,7 @@ Keylens is distributed through the public npm registry. The latest stable releas
 supported; upgrade before reporting a defect.
 
 The deterministic CLI, report schema, and programmatic core are the intended stable
-surface. Experimental MCP and agent-skill contracts can change independently and
+surface. MCP and agent-skill contracts can change independently and
 do not carry compatibility guarantees.
 
 ## Runtime support

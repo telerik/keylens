@@ -244,9 +244,7 @@ const installCommand = "npm install -D @telerik/keylens";
   overflow: hidden;
   background: var(--klx-window-bg);
   border: 1px solid var(--klx-window-border);
-  box-shadow:
-    0 20px 40px -20px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.02);
+  box-shadow: var(--klx-window-shadow);
   display: flex;
   flex-direction: column;
   transition:

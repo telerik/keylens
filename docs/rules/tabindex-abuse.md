@@ -5,6 +5,7 @@
 | ID       | `tabindex-abuse`                                                                  |
 | Severity | Warning                                                                           |
 | WCAG     | [2.4.3 Focus Order](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html) |
+| Config   | `tabindexAbuse`                                                                   |
 
 ## What it checks
 

@@ -5,6 +5,7 @@
 | ID       | `focus-not-obscured`                                                                                     |
 | Severity | Error                                                                                                    |
 | WCAG     | [2.4.11 Focus Not Obscured](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html) |
+| Config   | `focusNotObscured`                                                                                       |
 
 ## What it checks
 

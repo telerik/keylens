@@ -46,7 +46,22 @@ export default defineConfig({
         content: "https://telerik.github.io/keylens/og-image.png",
       },
     ],
-    ["meta", { name: "theme-color", content: "#3d57d8" }],
+    [
+      "meta",
+      {
+        name: "theme-color",
+        content: "#ffffff",
+        media: "(prefers-color-scheme: light)",
+      },
+    ],
+    [
+      "meta",
+      {
+        name: "theme-color",
+        content: "#07183f",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
   ],
   cleanUrls: true,
   // VISION.md is an internal roadmap/go-to-market doc, not linked from any
@@ -88,13 +103,15 @@ export default defineConfig({
           { text: "CLI Reference", link: "/guide/cli" },
           { text: "Configuration", link: "/guide/configuration" },
           { text: "Programmatic API", link: "/api/" },
+          { text: "Reporters & Output", link: "/guide/reporters" },
           { text: "CI/CD", link: "/guide/ci-cd" },
           { text: "Performance", link: "/guide/performance" },
+          { text: "Telemetry & Privacy", link: "/guide/telemetry" },
           { text: "Known Limitations", link: "/guide/limitations" },
         ],
       },
       {
-        text: "Experimental",
+        text: "Integrations",
         items: [
           { text: "MCP Server", link: "/guide/mcp" },
           { text: "Agent Skill", link: "/guide/agent-skill" },

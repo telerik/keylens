@@ -13,8 +13,8 @@ For each attempted activation, focus must remain on the original control or move
 visible interactive or managed target. Lost focus and unexpected noninteractive focus
 are failures.
 
-The rule requires experimental interactions. Without interaction data it passes with
-no violations, which means “not tested,” not that activation behavior is valid.
+The rule requires interaction testing to be enabled. Without interaction data it passes
+with no violations, which means “not tested,” not that activation behavior is valid.
 
 ## Eligible controls
 
@@ -44,7 +44,7 @@ Each `interactionResults[]` item has:
   `navigation-blocked`;
 - `error` with `element-missing` or `action-failed`.
 
-Failed cases become error-severity violations. If there are only errored cases, the rule
+Failed cases become error-severity violations. If there are only error cases, the rule
 has `status: "error"`, the score is incomplete, and the CLI exits `2`. Inspect JSON for
 the action, resulting focus, stable reason, message, and duration of every case.
 

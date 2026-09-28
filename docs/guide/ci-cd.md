@@ -19,7 +19,7 @@ required to install it.
 ```yaml
 - uses: actions/setup-node@v4
   with:
-    node-version: 26
+    node-version: 20
 - run: npm ci
 ```
 
@@ -37,11 +37,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 26
+          node-version: 20
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run start &
-      - run: npx wait-on http://127.0.0.1:3000
+      - run: npx --no-install wait-on http://127.0.0.1:3000
       - name: Audit keyboard navigation
         run: >-
           npx keylens audit http://127.0.0.1:3000
@@ -55,9 +55,10 @@ jobs:
           path: ./keylens-report/
 ```
 
-`wait-on` must already be a project dependency or be replaced with the project's
-existing server-readiness command. Pin package versions in the project lockfile rather
-than downloading an unpinned CLI during the job.
+`wait-on` must already be a project dependency for `npx --no-install` to use it; add it
+to `devDependencies` or replace that step with the project's existing server-readiness
+command. Pin package versions in the project lockfile rather than downloading an
+unpinned CLI during the job.
 
 Report file names include a `-YYYY-MM-DDTHH-mm-ss` timestamp by default, so a script
 that reads a fixed path (rather than uploading the whole directory, as above) should
@@ -72,8 +73,8 @@ The JSON report omits binary assets but retains semantic coverage:
 - `summary.scoreComplete`: whether all enabled rules were evaluated;
 - `crawl.cycleCompleted`: whether focus returned to the first stop;
 - `crawl.capture`: captured, skipped, and failed asset totals;
-- `crawl.interactions`: aggregate experimental interaction outcomes;
-- `interactionResults`: each passed, failed, skipped, or errored interaction case.
+- `crawl.interactions`: aggregate interaction outcomes;
+- `interactionResults`: each passed, failed, skipped, or error interaction case.
 
 Archive JSON even when the command exits nonzero. Treat `scoreComplete: false`, capture
 omissions, an incomplete Tab cycle, and interaction errors as coverage signals, not as

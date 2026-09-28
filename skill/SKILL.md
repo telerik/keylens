@@ -20,9 +20,8 @@ metadata:
    npx keylens --version
    ```
 
-   If it is not installed, explain that Keylens currently comes from GitHub
-   Packages and follow the authenticated installation steps in the repository
-   README. Do not assume the package is available from the public npm registry.
+   If it is not installed, explain that Keylens is installed from the public npm
+   registry and follow the installation steps in the Getting Started guide.
 
 2. Run a basic audit:
 
@@ -48,7 +47,7 @@ npx keylens audit <URL> --profile thorough --output cli,json,html
 
 Execution profiles do not remove capture, interaction, or timeout budgets.
 
-### Audit with experimental interaction testing
+### Audit with interaction testing
 
 ```bash
 npx keylens audit <URL> --interactions --output cli,json
@@ -82,7 +81,7 @@ The JSON report contains:
 - `rules[].status` — `passed`, `failed`, or `error`; evaluator errors make the score incomplete
 - `crawl.totalFocusableElements` / `crawl.unreachedElements` — coverage
 - `crawl.capture` — captured, skipped, failed, byte, and pixel counts
-- `interactionResults[]` — detailed passed, failed, skipped, and errored activation cases
+- `interactionResults[]` — detailed passed, failed, skipped, and error activation cases
 
 ## Key Rules
 

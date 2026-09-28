@@ -5,6 +5,7 @@
 | ID       | `missing-focus-indicator`                                                             |
 | Severity | Error                                                                                 |
 | WCAG     | [2.4.7 Focus Visible](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html) |
+| Config   | `missingFocusIndicator`                                                               |
 
 ## What it checks
 

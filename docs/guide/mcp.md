@@ -66,6 +66,7 @@ The audit tool accepts:
 | `dismissSelectors` | array of strings — extra selectors to click before the crawl |
 | `reporters`        | array of `cli`, `json`, `html`, `markdown`                   |
 | `outputDir`        | string                                                       |
+| `outputFileName`   | string                                                       |
 
 By default, the prepare phase auto-dismisses known cookie/consent banners (built-in
 CMP presets + a generic heuristic fallback) before the crawl, preferring the reject
@@ -98,8 +99,9 @@ large fields. File reporters contain their normal output.
 
 ## Environment variables
 
-| Variable                                                                 | Purpose               |
-| ------------------------------------------------------------------------ | --------------------- |
-| `KEYLENS_BROWSER`                                                        | MCP default browser   |
-| `KEYLENS_MAX_TABS`                                                       | MCP default Tab limit |
-| Use the normal config or CLI for options not exposed by the MCP adapter. |
+| Variable           | Purpose               |
+| ------------------ | --------------------- |
+| `KEYLENS_BROWSER`  | MCP default browser   |
+| `KEYLENS_MAX_TABS` | MCP default Tab limit |
+
+Use the normal config or CLI for options not exposed by the MCP adapter.
