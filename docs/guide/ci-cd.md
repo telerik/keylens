@@ -41,7 +41,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run start &
-      - run: npx --no-install wait-on http://127.0.0.1:3000
+      - run: npx wait-on http://127.0.0.1:3000
       - name: Audit keyboard navigation
         run: >-
           npx keylens audit http://127.0.0.1:3000
@@ -55,10 +55,9 @@ jobs:
           path: ./keylens-report/
 ```
 
-`wait-on` must already be a project dependency for `npx --no-install` to use it; add it
-to `devDependencies` or replace that step with the project's existing server-readiness
-command. Pin package versions in the project lockfile rather than downloading an
-unpinned CLI during the job.
+`wait-on` must already be a project dependency; add it to `devDependencies` or replace
+that step with the project's existing server-readiness command. Pin package versions in
+the project lockfile rather than downloading an unpinned CLI during the job.
 
 Report file names include a `-YYYY-MM-DDTHH-mm-ss` timestamp by default, so a script
 that reads a fixed path (rather than uploading the whole directory, as above) should
