@@ -28,9 +28,49 @@ features:
     details: Run deterministic analysis and rendering as separate stages with progress, cancellation, and deadlines.
 ---
 
-Keylens complements static accessibility analysis; it does not replace it. Use static tools
-for markup and semantics, then use Keylens to verify the runtime keyboard experience.
+## Why runtime keyboard testing?
 
-[Install from npm](/guide/getting-started) ·
-[Choose an execution profile](/guide/configuration#execution-profiles) ·
-[Review known limitations](/guide/limitations)
+Static analysis can identify interactive elements and inspect their semantics. Keylens
+adds the missing runtime question: **can a person actually move through the page with a
+keyboard?**
+
+<div class="keylens-comparison">
+  <article>
+    <span class="keylens-comparison-label">Static analysis</span>
+    <h3>What the markup allows</h3>
+    <p>Inspect roles, names, states, and relationships in the rendered DOM.</p>
+  </article>
+  <article>
+    <span class="keylens-comparison-label">Keylens</span>
+    <h3>What the browser delivers</h3>
+    <p>Press Tab, observe focus, and report the controls and states users can reach.</p>
+  </article>
+</div>
+
+## Built for CI and local debugging
+
+Run the same audit from a terminal, a test script, or an MCP client. Use the terminal
+report while fixing a page, then switch to JSON for a repeatable CI contract.
+
+<div class="keylens-code-grid">
+  <div>
+    <h3>Run an audit</h3>
+    <CopyCommand
+      command="npx keylens audit https://example.com"
+      label="audit command"
+    />
+    <a href="/guide/cli">Explore the CLI reference →</a>
+  </div>
+  <div>
+    <h3>Automate the result</h3>
+    <CopyCommand command="keylens audit --reporter json" label="CI command" />
+    <a href="/guide/ci-cd">Set up CI/CD →</a>
+  </div>
+</div>
+
+<p class="keylens-home-links">
+  <a href="/guide/getting-started">Getting started</a>
+  <a href="/rules/">Explore the rules</a>
+  <a href="/api/">Programmatic API</a>
+  <a href="/guide/limitations">Known limitations</a>
+</p>
