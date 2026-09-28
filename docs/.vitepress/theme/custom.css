@@ -1,4 +1,6 @@
 :root {
+  color-scheme: light;
+
   --klx-hero-key-fill: rgba(61, 87, 216, 0.1);
   --klx-hero-key-border: rgba(61, 87, 216, 0.22);
   --klx-hero-key-text: rgba(61, 87, 216, 0.35);
@@ -62,6 +64,8 @@
   --klx-stripe: rgba(61, 87, 216, 0.06);
   --klx-window-bg: #ffffff;
   --klx-window-border: rgba(61, 87, 216, 0.18);
+  --klx-window-shadow:
+    0 14px 30px -22px rgba(61, 87, 216, 0.2), 0 0 0 1px rgba(61, 87, 216, 0.04);
   --klx-bar-bg: rgba(61, 87, 216, 0.045);
   --klx-bar-border: rgba(61, 87, 216, 0.12);
   --klx-eyebrow: #3d57d8;
@@ -78,6 +82,8 @@
 }
 
 .dark {
+  color-scheme: dark;
+
   --klx-hero-key-fill: rgba(152, 185, 254, 0.1);
   --klx-hero-key-border: rgba(152, 185, 254, 0.24);
   --klx-hero-key-text: rgba(152, 185, 254, 0.42);
@@ -142,6 +148,8 @@
   --klx-stripe: rgba(255, 255, 255, 0.02);
   --klx-window-bg: #11184b;
   --klx-window-border: rgba(152, 185, 254, 0.16);
+  --klx-window-shadow:
+    0 14px 30px -22px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(152, 185, 254, 0.04);
   --klx-bar-bg: rgba(255, 255, 255, 0.03);
   --klx-bar-border: rgba(152, 185, 254, 0.12);
   --klx-eyebrow: #98b9fe;
@@ -204,12 +212,18 @@
   z-index: 1;
 }
 
-.VPNavBar.VPNavBar:not(.home.top) {
-  background-color: var(--vp-nav-bg-color);
+.VPNavBar.VPNavBar:not(.has-sidebar):not(.home.top) {
+  background-color: color-mix(in srgb, var(--vp-c-bg) 65%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
-.VPNavBar.VPNavBar:not(.home.top) .content-body {
-  background-color: var(--vp-nav-bg-color);
+.VPNavBar.VPNavBar.has-sidebar:not(.home.top) {
+  background-color: var(--vp-c-bg);
+}
+
+.VPNavBar.VPNavBar.has-sidebar:not(.home.top) .content-body {
+  background-color: var(--vp-c-bg);
 }
 
 .keylens-comparison,

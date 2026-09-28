@@ -5,6 +5,7 @@
 | ID       | `focus-order-mismatch`                                                            |
 | Severity | Warning                                                                           |
 | WCAG     | [2.4.3 Focus Order](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html) |
+| Config   | `focusOrderMismatch`                                                              |
 
 ## What it checks
 
@@ -48,7 +49,7 @@ Per the [WCAG 2.4.3 Understanding doc](https://www.w3.org/WAI/WCAG21/Understandi
 
 ## How to fix
 
-- Remove positive `tabindex` values and let elements follow natural DOM order (see [Tabindex Abuse](/rules/tabindex-abuse))
+- Remove positive `tabindex` values and let elements follow natural DOM order (see [Tabindex Abuse](./tabindex-abuse))
 - Avoid scripted focus management (e.g. manual `.focus()` calls) that jumps focus somewhere other than the next logical element
 - When inserting dynamic content (menus, dialogs), place it adjacent to its trigger in the DOM so focus order stays adjacent to the trigger control (see [F85](https://www.w3.org/WAI/WCAG21/Techniques/failures/F85))
 - Keep DOM order aligned with content sequence and relationships — visual/CSS layout does not need to match focus order as long as meaning and operability are preserved

@@ -71,13 +71,17 @@ The following regex patterns are matched against element text and HTML:
 </nav>
 ```
 
-### Fail (broken)
+### Potentially broken
 
 ```html
 <!-- Skip link points to non-existent target -->
 <a href="#content" class="skip-link">Skip to content</a>
 <main id="main-content"><!-- wrong ID --></main>
 ```
+
+The current functional check may still pass this example if focus remains on the
+skip link after activation, because it only requires focus to leave the document
+element. Confirm the recorded target manually.
 
 ## How to fix
 

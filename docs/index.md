@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Keylens
-  text: Press Tab. Record what actually happens.
-  tagline: Static accessibility tools tell you whether markup could work. Keylens drives a real browser and tests the keyboard path users actually get.
+  text: Test the keyboard path users actually take.
+  tagline: Keylens drives a real browser, follows the tab order, and reports where keyboard navigation breaks.
   actions:
     - theme: brand
       text: Get Started
@@ -59,18 +59,18 @@ report while fixing a page, then switch to JSON for a repeatable CI contract.
       command="npx keylens audit https://example.com"
       label="audit command"
     />
-    <a href="/guide/cli">Explore the CLI reference →</a>
+    <a href="./guide/cli">Explore the CLI reference →</a>
   </div>
   <div>
     <h3>Automate the result</h3>
     <CopyCommand command="keylens audit --reporter json" label="CI command" />
-    <a href="/guide/ci-cd">Set up CI/CD →</a>
+    <a href="./guide/ci-cd">Set up CI/CD →</a>
   </div>
 </div>
 
 <p class="keylens-home-links">
-  <a href="/guide/getting-started">Getting started</a>
-  <a href="/rules/">Explore the rules</a>
-  <a href="/api/">Programmatic API</a>
-  <a href="/guide/limitations">Known limitations</a>
+  <a href="./guide/getting-started">Getting started</a>
+  <a href="./rules/">Explore the rules</a>
+  <a href="./api/">Programmatic API</a>
+  <a href="./guide/limitations">Known limitations</a>
 </p>

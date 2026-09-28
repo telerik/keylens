@@ -35,7 +35,7 @@ prevented or rolled back.
 
 ## MCP
 
-The experimental MCP server grants compatible agents the ability to initiate browser
+The MCP server grants compatible agents the ability to initiate browser
 audits and optionally write reports. Restrict which clients can launch it, control its
 working directory and environment, and do not expose its stdio transport as an
 unauthenticated network service.
