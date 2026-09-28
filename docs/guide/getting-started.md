@@ -6,20 +6,17 @@ actually happens.
 
 ## Requirements
 
-- Node.js 20 or later (verified on 20, 22, 24, and 26)
+- Node.js 20 or later
 - A Playwright-supported operating system
 
-Keylens is distributed from the public npm registry as a prerelease; `1.0.0` is not
-published yet.
+Keylens is distributed from the public npm registry.
 
 ## Install
 
 ```bash
-npm install --save-dev @telerik/keylens@dev
+npm install --save-dev @telerik/keylens
 npx playwright install chromium
 ```
-
-The `@dev` tag is the current prerelease channel.
 
 ## Run the first audit
 

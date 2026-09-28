@@ -1,5 +1,5 @@
 
-Keylens v0.1.0
+Keylens v1.0.0
 See your site through the lens of keyboard users.
 
 ℹ Starting deterministic Keylens audit for http://127.0.0.1:57334/
@@ -23,7 +23,7 @@ See your site through the lens of keyboard users.
   ✓ Focus After Interaction
   ✓ Broken Roving Tabindex Navigation
 
-🔍 Keylens v0.1.0 — Keyboard Navigation Audit
+🔍 Keylens v1.0.0 — Keyboard Navigation Audit
 ────────────────────────────────────────────────────────────
 URL: http://127.0.0.1:57334/
 Focusable elements: 23

@@ -2,9 +2,8 @@
 
 ## Release status
 
-Keylens is currently a prerelease distributed through the public npm registry. `1.0.0`
-is not published. During prerelease, only the latest package on the documented `@dev`
-channel is supported; upgrade before reporting a defect.
+Keylens is distributed through the public npm registry. The latest stable release is
+supported; upgrade before reporting a defect.
 
 The deterministic CLI, report schema, and programmatic core are the intended stable
 surface. Experimental MCP and agent-skill contracts can change independently and
@@ -14,7 +13,7 @@ do not carry compatibility guarantees.
 
 | Surface           | Supported                                                                             |
 | ----------------- | ------------------------------------------------------------------------------------- |
-| Node.js           | 20 and later (verified on 20, 22, 24, and 26)                                         |
+| Node.js           | 20 and later                                                                          |
 | Module system     | ESM                                                                                   |
 | Browser engines   | Chromium, Firefox, and WebKit revisions installed by the package's Playwright version |
 | Browser mode      | Headless and headed                                                                   |
@@ -30,19 +29,15 @@ server require Node.js and must not be bundled for browser execution.
 
 ## Compatibility
 
-Until `1.0.0` is actually published, prerelease changes can include breaking changes
-documented in the changelog. A future stable major line will follow Semantic
-Versioning for the stable surface; this statement does not announce or schedule that
-release.
-
-Report JSON has its own `schemaVersion`. Consumers should validate that field rather
-than infer report compatibility from the package version.
+Stable releases follow Semantic Versioning for the supported surface. Report JSON has
+its own `schemaVersion`, so consumers should validate that field rather than infer
+report compatibility from the package version.
 
 ## Getting help
 
 Before opening an issue:
 
-1. reproduce with the latest supported prerelease;
+1. reproduce with the latest supported release;
 2. include Node, OS, Keylens, Playwright, and browser-engine versions;
 3. include the command/config with credentials removed;
 4. attach semantic JSON where safe, after reviewing URLs, selectors, names, and HTML

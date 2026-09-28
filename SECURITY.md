@@ -12,8 +12,7 @@ maintainers review the report; no fixed response or remediation time is guarante
 
 ## Supported versions
 
-Keylens is currently prerelease software. Security fixes are provided for the latest
-documented npm prerelease only. `1.0.0` is not published.
+Security fixes are provided for the latest stable release.
 
 ## Security considerations for audits
 
