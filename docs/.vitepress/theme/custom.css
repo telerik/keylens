@@ -162,6 +162,10 @@
   overflow: hidden;
 }
 
+.VPHome {
+  overflow-x: clip;
+}
+
 .VPHomeHero::after {
   position: absolute;
   top: 50%;

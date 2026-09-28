@@ -184,7 +184,6 @@ const installCommand = "npm install -D @telerik/keylens";
 /* Homepage "See it in action" demo — a self-contained themed band that
    breaks out of VitePress's centered home-page container on both sides. */
 .keylens-demo {
-  width: 100vw;
   margin: 48px calc(50% - 50vw) 64px;
   padding: 72px 24px;
   background:
