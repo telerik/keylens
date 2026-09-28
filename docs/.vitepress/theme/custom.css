@@ -83,10 +83,10 @@
   --klx-hero-key-text: rgba(152, 185, 254, 0.42);
 
   /* Backgrounds */
-  --vp-c-bg: #20256c;
-  --vp-c-bg-alt: #1a1f5e;
-  --vp-c-bg-elv: #06163e;
-  --vp-c-bg-soft: #151950;
+  --vp-c-bg: #07183f;
+  --vp-c-bg-alt: #061436;
+  --vp-c-bg-elv: #0b214f;
+  --vp-c-bg-soft: #102855;
 
   /* Text */
   --vp-c-text-1: #ffffff;
@@ -127,13 +127,13 @@
   --vp-custom-block-caution-border: #f42e19;
 
   /* Nav / sidebar */
-  --vp-nav-bg-color: #20256c;
-  --vp-sidebar-bg-color: #20256c;
+  --vp-nav-bg-color: #181d5c;
+  --vp-sidebar-bg-color: #07183f;
 
   /* Local search */
-  --vp-local-search-bg: #151950;
-  --vp-local-search-result-bg: #1a1f5e;
-  --vp-local-search-result-selected-bg: #1a1f5e;
+  --vp-local-search-bg: #102855;
+  --vp-local-search-result-bg: #0b214f;
+  --vp-local-search-result-selected-bg: #122f66;
 
   /* Homepage "See it in action" demo band — echoes the site's own dark
      palette so the band reads as part of the page, not a fixed overlay. */
@@ -204,6 +204,10 @@
   background-color: color-mix(in srgb, var(--vp-c-bg) 65%, transparent);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
+}
+
+.VPNavBar.VPNavBar:not(.home.top) .content-body {
+  background-color: transparent;
 }
 
 .keylens-comparison,
