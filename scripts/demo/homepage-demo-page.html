@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Acme Cloud — Keylens homepage demo</title>
+    <title>Keylens demo surface</title>
     <style>
       * {
         box-sizing: border-box;
@@ -21,12 +21,15 @@
         padding: 18px 40px;
         border-bottom: 1px solid #e5e7eb;
       }
-      .brand {
-        font-weight: 700;
-        font-size: 18px;
+      .logo-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #3d57d8, #7c9bff);
       }
       nav {
         display: flex;
+        align-items: center;
         gap: 28px;
       }
       header a {
@@ -43,17 +46,17 @@
       }
       .hero {
         text-align: center;
-        padding: 72px 32px 56px;
+        padding: 64px 32px 48px;
         background: #f7f8fc;
       }
       .hero h1 {
-        font-size: 40px;
-        margin: 0 0 16px;
+        font-size: 34px;
+        margin: 0 0 14px;
       }
       .hero p {
         color: #4b5563;
-        max-width: 520px;
-        margin: 0 auto 28px;
+        max-width: 480px;
+        margin: 0 auto 24px;
       }
       .hero-actions {
         display: flex;
@@ -80,72 +83,68 @@
         cursor: pointer;
       }
       section {
-        padding: 56px 32px;
-        max-width: 1000px;
+        padding: 48px 32px;
+        max-width: 900px;
         margin: 0 auto;
       }
       section h2 {
         text-align: center;
-        font-size: 26px;
-        margin: 0 0 36px;
+        font-size: 22px;
+        margin: 0 0 32px;
       }
-      .pricing {
+      .panels {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
       }
-      .plan {
+      .panel {
         border: 1px solid #e5e7eb;
         border-radius: 10px;
         padding: 24px;
       }
-      .plan h3 {
-        margin: 0 0 4px;
+      .panel-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: #eef0f2;
+        margin-bottom: 14px;
       }
-      .plan .price {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 8px 0 16px;
+      .panel h3 {
+        margin: 0 0 6px;
+        font-size: 16px;
       }
-      .plan ul {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 20px;
+      .panel p {
         color: #4b5563;
         font-size: 14px;
-        line-height: 1.8;
+        line-height: 1.6;
+        margin: 0 0 16px;
       }
       /* Intentional: focused state is visually identical to unfocused. */
-      .plan-cta:focus {
+      .panel-cta:focus {
         outline: none;
       }
-      .faq {
-        border-top: 1px solid #e5e7eb;
-      }
-      .faq-item {
-        padding: 18px 0;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      .faq-item summary {
-        cursor: pointer;
+      .panel-cta {
+        color: #3d57d8;
+        font-size: 14px;
         font-weight: 600;
+        text-decoration: none;
       }
-      .newsletter {
+      .subscribe {
         background: #f7f8fc;
         text-align: center;
       }
-      .newsletter form {
+      .subscribe form {
         display: flex;
         gap: 10px;
         justify-content: center;
         margin-top: 20px;
       }
-      .newsletter input {
+      .subscribe input {
         padding: 10px 14px;
         border: 1px solid #d1d5db;
         border-radius: 6px;
         font-size: 14px;
-        width: 260px;
+        width: 240px;
       }
       /* Intentional: div styled and behaving like a button, but only
          focusable via role — never reachable by a keyboard user, since it
@@ -165,7 +164,7 @@
         padding: 32px;
       }
       .footer-grid {
-        max-width: 1000px;
+        max-width: 900px;
         margin: 0 auto;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -174,7 +173,7 @@
       }
       .footer-grid h4 {
         margin: 0 0 12px;
-        font-size: 13px;
+        font-size: 12px;
         text-transform: uppercase;
         color: #6b7280;
       }
@@ -189,82 +188,54 @@
   <body>
     <!-- Intentional: no skip link before the nav. -->
     <header>
-      <div class="brand">Acme Cloud</div>
+      <div class="logo-mark"></div>
       <nav>
-        <a href="/product">Product</a>
+        <a href="/overview">Overview</a>
+        <a href="/features">Features</a>
         <a href="/pricing">Pricing</a>
         <a href="/docs">Docs</a>
-        <a href="/blog">Blog</a>
-        <a href="/login" class="cta">Sign in</a>
+        <a href="/sign-in" class="cta">Sign in</a>
       </nav>
     </header>
 
     <section class="hero">
-      <h1>Ship accessible software, faster</h1>
+      <h1>A sample interface</h1>
       <p>
-        Acme Cloud helps teams monitor uptime, performance, and accessibility
-        across every release.
+        A small generic page used only to demonstrate keyboard navigation
+        testing — not a real product.
       </p>
       <div class="hero-actions">
-        <button class="btn-primary">Start free trial</button>
-        <button class="btn-secondary">Book a demo</button>
+        <button class="btn-primary">Primary action</button>
+        <button class="btn-secondary">Secondary action</button>
       </div>
     </section>
 
     <section>
-      <h2>Plans for every team</h2>
-      <div class="pricing">
-        <div class="plan">
-          <h3>Starter</h3>
-          <div class="price">$0</div>
-          <ul>
-            <li>1 project</li>
-            <li>Community support</li>
-            <li>Weekly reports</li>
-          </ul>
-          <a href="/signup/starter" class="plan-cta">Get started</a>
+      <h2>Three feature panels</h2>
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-icon"></div>
+          <h3>Feature A</h3>
+          <p>A short description of the first panel's purpose.</p>
+          <a href="/features/a" class="panel-cta">Learn more</a>
         </div>
-        <div class="plan">
-          <h3>Pro</h3>
-          <div class="price">$49/mo</div>
-          <ul>
-            <li>Unlimited projects</li>
-            <li>Priority support</li>
-            <li>Daily reports</li>
-          </ul>
-          <a href="/signup/pro" class="plan-cta">Get started</a>
+        <div class="panel">
+          <div class="panel-icon"></div>
+          <h3>Feature B</h3>
+          <p>A short description of the second panel's purpose.</p>
+          <a href="/features/b" class="panel-cta">Learn more</a>
         </div>
-        <div class="plan">
-          <h3>Enterprise</h3>
-          <div class="price">Custom</div>
-          <ul>
-            <li>SSO &amp; audit logs</li>
-            <li>Dedicated support</li>
-            <li>Custom SLAs</li>
-          </ul>
-          <a href="/contact" class="plan-cta">Contact sales</a>
+        <div class="panel">
+          <div class="panel-icon"></div>
+          <h3>Feature C</h3>
+          <p>A short description of the third panel's purpose.</p>
+          <a href="/features/c" class="panel-cta">Learn more</a>
         </div>
       </div>
     </section>
 
-    <section class="faq">
-      <h2>Frequently asked questions</h2>
-      <details class="faq-item">
-        <summary>Can I cancel anytime?</summary>
-        <p>Yes, plans are month-to-month with no lock-in.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Do you offer a free trial?</summary>
-        <p>Every plan includes a 14-day free trial, no card required.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Is my data encrypted?</summary>
-        <p>All data is encrypted in transit and at rest.</p>
-      </details>
-    </section>
-
-    <section class="newsletter">
-      <h2>Stay in the loop</h2>
+    <section class="subscribe">
+      <h2>Stay updated</h2>
       <form>
         <label for="email" class="sr-only">Email address</label>
         <input id="email" type="email" placeholder="you@example.com" />

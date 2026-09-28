@@ -1,12 +1,85 @@
 <script setup lang="ts">
-import { withBase } from "vitepress";
+import { useData, withBase } from "vitepress";
 import DefaultTheme from "vitepress/theme";
 
 const { Layout } = DefaultTheme;
+const { page } = useData();
 </script>
 
 <template>
   <Layout>
+    <!--
+      Rendered between the hero and the feature grid (VitePress's
+      `home-hero-after` slot) only on the homepage — a hand-styled preview
+      of a real `keylens audit` run against a small, deliberately generic
+      demo page, not a static screenshot of any real product.
+    -->
+    <template #home-hero-after>
+      <section v-if="page.relativePath === 'index.md'" class="keylens-demo">
+        <div class="keylens-demo-inner">
+          <p class="keylens-demo-eyebrow">See it in action</p>
+          <h2 class="keylens-demo-heading">
+            Tab through it. See exactly what breaks.
+          </h2>
+          <p class="keylens-demo-sub">
+            Keylens drives a real browser, presses Tab, and renders the actual
+            focus path — not a static markup check.
+          </p>
+
+          <div class="keylens-demo-grid">
+            <div class="keylens-window keylens-terminal">
+              <div class="keylens-window-bar">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+                <span class="keylens-window-title">keylens audit</span>
+              </div>
+              <pre
+                class="keylens-terminal-body"
+              ><code><span class="t-prompt">$ </span><span class="t-cmd">keylens audit</span> ./sample-interface
+<span class="t-dim">Crawling tab order in a real browser…</span>
+
+<span class="t-ok">✓</span> keyboard-trap
+<span class="t-fail">✗</span> unreachable-elements        <span class="t-badge">1 issue</span>
+<span class="t-ok">✓</span> focus-order-mismatch
+<span class="t-ok">✓</span> tabindex-abuse
+<span class="t-fail">✗</span> missing-focus-indicator     <span class="t-badge">3 issues</span>
+<span class="t-fail">✗</span> skip-link                   <span class="t-badge">1 issue</span>
+<span class="t-ok">✓</span> focus-not-obscured
+<span class="t-ok">✓</span> focus-after-interaction
+<span class="t-ok">✓</span> roving-tabindex-broken
+
+<span class="t-dim">────────────────────────────────</span>
+<span class="t-result">2 errors, 1 warning</span> <span class="t-dim">·</span> <span class="t-score">score 89/100</span></code></pre>
+            </div>
+
+            <div class="keylens-window keylens-browser">
+              <div class="keylens-window-bar">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+                <span class="keylens-address-pill">focus order · 23 stops</span>
+              </div>
+              <img
+                class="keylens-browser-img"
+                :src="withBase('/demo-focus-map.png')"
+                alt="Numbered markers tracing the Tab order across a small generic sample page, with three markers highlighted in red where the focus indicator is invisible and one interactive control skipped entirely because it's unreachable by keyboard."
+                width="1036"
+                height="856"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          <p class="keylens-demo-footnote">
+            <a :href="withBase('/demo-cli-output.txt')"
+              >View the full CLI output</a
+            >
+          </p>
+        </div>
+      </section>
+    </template>
+
     <!--
       VitePress's client router falls back to a generic "PAGE NOT FOUND"
       component for any unmatched path (a known limitation: a plain
@@ -36,6 +109,202 @@ const { Layout } = DefaultTheme;
 </template>
 
 <style scoped>
+/* Homepage "See it in action" demo — a self-contained dark band that
+   breaks out of VitePress's centered home-page container on both sides,
+   independent of the site's light/dark toggle (like a dark code-editor
+   card sitting on any background). */
+.keylens-demo {
+  width: 100vw;
+  margin: 48px calc(50% - 50vw) 0;
+  padding: 64px 24px;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.025) 0px,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 14px
+    ),
+    linear-gradient(180deg, #0a0d24 0%, #0d1130 100%);
+}
+
+.keylens-demo-inner {
+  max-width: 1152px;
+  margin: 0 auto;
+}
+
+.keylens-demo-eyebrow {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #98b9fe;
+  text-align: center;
+}
+
+.keylens-demo-heading {
+  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #ffffff;
+  text-align: center;
+  border-top: none;
+}
+
+.keylens-demo-sub {
+  max-width: 560px;
+  margin: 0 auto 40px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #b6bfe6;
+  text-align: center;
+}
+
+.keylens-demo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.keylens-window {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #12163a;
+  border: 1px solid rgba(152, 185, 254, 0.16);
+  box-shadow:
+    0 20px 40px -20px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.keylens-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(152, 185, 254, 0.12);
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-red {
+  background: #ff5f56;
+}
+
+.dot-yellow {
+  background: #ffbd2e;
+}
+
+.dot-green {
+  background: #27c93f;
+}
+
+.keylens-window-title {
+  margin-left: 8px;
+  font-size: 12px;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color: #8b93b8;
+}
+
+.keylens-address-pill {
+  margin-left: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  color: #8b93b8;
+}
+
+.keylens-terminal-body {
+  flex: 1;
+  margin: 0;
+  padding: 20px 22px;
+  font-size: 13px;
+  line-height: 1.85;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color: #dedeeb;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.t-prompt {
+  color: #6b7394;
+}
+
+.t-cmd {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.t-dim {
+  color: #6b7394;
+}
+
+.t-ok {
+  color: #4ade80;
+}
+
+.t-fail {
+  color: #f87171;
+}
+
+.t-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+  font-size: 11px;
+}
+
+.t-result {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.t-score {
+  color: #98b9fe;
+  font-weight: 600;
+}
+
+.keylens-browser {
+  justify-content: flex-start;
+}
+
+.keylens-browser-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.keylens-demo-footnote {
+  margin: 24px 0 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.keylens-demo-footnote a {
+  color: #98b9fe;
+}
+
+@media (max-width: 900px) {
+  .keylens-demo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .keylens-not-found {
   max-width: 480px;
   margin: 0 auto;

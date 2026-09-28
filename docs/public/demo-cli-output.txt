@@ -2,16 +2,16 @@
 Keylens v0.1.0
 See your site through the lens of keyboard users.
 
-ℹ Starting deterministic Keylens audit for http://127.0.0.1:56995/
+ℹ Starting deterministic Keylens audit for http://127.0.0.1:57334/
 ℹ Launching chromium browser...
-ℹ Navigating to http://127.0.0.1:56995/
+ℹ Navigating to http://127.0.0.1:57334/
 ℹ Preparing page...
 ℹ Testing skip link...
 ℹ Discovering interactive elements...
 ℹ Crawling tab order...
 ℹ Verifying roving-tabindex composite widgets...
 ℹ Confirming possible missing focus indicators via pixel diff...
-✓ Crawl completed in 12665ms
+✓ Crawl completed in 11758ms
 ℹ Running 9 rules...
   ✓ Keyboard Trap
   ✗ Unreachable Interactive Elements — 1 violation(s)
@@ -25,12 +25,12 @@ See your site through the lens of keyboard users.
 
 🔍 Keylens v0.1.0 — Keyboard Navigation Audit
 ────────────────────────────────────────────────────────────
-URL: http://127.0.0.1:56995/
-Focusable elements: 26
-Interactive elements: 27
+URL: http://127.0.0.1:57334/
+Focusable elements: 23
+Interactive elements: 24
 Unreached: 1
 Tab cycle completed: Yes
-Duration: 12665ms
+Duration: 11758ms
 
 ────────────────────────────────────────────────────────────
 Rules:
@@ -38,7 +38,7 @@ Rules:
   ✓ keyboard-trap
   ✗ unreachable-elements — 1 issue(s)
   ● 1 interactive element(s) are not reachable via keyboard.
-    └─ section:nth-of-type(4) > form > div
+    └─ section:nth-of-type(3) > form > div
   ✓ focus-order-mismatch
   ✓ tabindex-abuse
   ✗ missing-focus-indicator — 1 issue(s)

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Runs a real `keylens audit` against a purpose-built demo fixture
- * (scripts/demo/homepage-demo-page.html — a small marketing-site-style page
- * with a nav, hero, pricing cards, FAQ, newsletter form, and footer, plus
- * three intentional issues: an unreachable `role="button"` icon, a pricing
- * CTA link with no visible focus indicator, and no skip link) and captures
+ * (scripts/demo/homepage-demo-page.html — a small, deliberately generic page
+ * with a nav, hero, three feature panels, a subscribe form, and footer, plus
+ * three intentional issues: an unreachable `role="button"` icon, feature
+ * CTA links with no visible focus indicator, and no skip link) and captures
  * two artifacts for the docs homepage:
  *
  *  - docs/public/demo-cli-output.txt: the plain-text CLI report
