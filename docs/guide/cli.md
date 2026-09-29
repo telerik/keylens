@@ -137,10 +137,6 @@ projection APIs when inline bytes or external references are required.
 
 Creates or overwrites `keylens.config.json` with a concise starter configuration.
 
-### `keylens mcp`
-
-Starts the **experimental** MCP server over stdio. See [MCP server](./mcp).
-
 ## Exit codes
 
 | Code | Meaning                                                                                                       |
