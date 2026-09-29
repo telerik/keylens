@@ -333,13 +333,6 @@ program
     console.log(chalk.gray("  Edit the file, then run: keylens audit <url>"));
   });
 
-program
-  .command("mcp")
-  .description("Start the experimental Keylens MCP server (stdio transport)")
-  .action(async () => {
-    await import("../mcp/server.js");
-  });
-
 // Allow `keylens <url>` as shorthand for `keylens audit <url>`
 const args = process.argv.slice(2);
 const firstArg = args[0];
