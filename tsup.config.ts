@@ -26,6 +26,7 @@ export default defineConfig([
     target: "node26",
     outDir: "dist",
     external: ["playwright"],
+    noExternal: ["@telerik/machine-id"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
       __TELEMETRY_API_KEY__: JSON.stringify(TELEMETRY_API_KEY),
@@ -55,6 +56,7 @@ export default defineConfig([
     outDir: "dist",
     banner: { js: "#!/usr/bin/env node\n" },
     external: ["playwright"],
+    noExternal: ["@telerik/machine-id"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
       __TELEMETRY_API_KEY__: JSON.stringify(TELEMETRY_API_KEY),
@@ -73,6 +75,7 @@ export default defineConfig([
     outDir: "dist",
     banner: { js: "#!/usr/bin/env node\n" },
     external: ["playwright", "@modelcontextprotocol/sdk", "zod"],
+    noExternal: ["@telerik/machine-id"],
     define: {
       __VERSION__: JSON.stringify(pkg.version),
       __TELEMETRY_API_KEY__: JSON.stringify(TELEMETRY_API_KEY),
