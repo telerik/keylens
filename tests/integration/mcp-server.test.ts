@@ -1,13 +1,13 @@
 /**
  * Spawns the real MCP server entry point (src/mcp/server.ts) over stdio using the
- * actual @modelcontextprotocol/sdk client, exactly how an agent host would connect.
+ * actual @modelcontextprotocol/client, exactly how an agent host would connect.
  * Nothing else exercises the server end-to-end — tests/unit/mcp/handlers.test.ts only
  * calls handleAudit/handleGetRuleGuidance as plain functions, never through the
  * registered tool schemas or the stdio transport itself.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { Client } from "@modelcontextprotocol/client";
+import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { createServer, type Server } from "node:http";
 import { readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
