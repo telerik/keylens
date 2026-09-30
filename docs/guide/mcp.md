@@ -31,7 +31,7 @@ If the client requires `npx` and you prefer not to install the package locally:
   "mcpServers": {
     "keylens": {
       "command": "npx",
-      "args": ["-y", "@telerik/keylens", "mcp"]
+      "args": ["-y", "-p", "@telerik/keylens", "keylens-mcp"]
     }
   }
 }

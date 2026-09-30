@@ -179,5 +179,6 @@ import {
 ```
 
 The `@telerik/keylens/mcp` subpath starts the optional stdio MCP server as a side
-effect; use the `keylens mcp` command or MCP integration instructions instead of
-importing it as a general library module.
+effect; configure an MCP client to run the `keylens-mcp` executable using the
+[MCP integration instructions](../guide/mcp) instead of importing it as a general
+library module.
