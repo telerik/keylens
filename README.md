@@ -205,3 +205,5 @@ policy.
 [Apache License 2.0](LICENSE)
 
 Copyright 2026 Progress Software Corporation. See [NOTICE](NOTICE).
+
+Created by the [Progress Telerik](https://www.telerik.com/ "https://www.telerik.com/") team.
