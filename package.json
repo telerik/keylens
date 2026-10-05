@@ -23,7 +23,9 @@
     "url": "git+https://github.com/telerik/keylens.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "provenance": true
   },
   "license": "Apache-2.0",
   "author": "Progress Software Corporation",
@@ -126,7 +128,7 @@
     "vitest": "^5.0.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

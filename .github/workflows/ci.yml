@@ -11,7 +11,6 @@ concurrency:
 
 permissions:
   contents: read
-  packages: read
 
 jobs:
   lint:
@@ -26,8 +25,6 @@ jobs:
           node-version: 26
           cache: npm
       - name: Install dependencies
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - run: npm run lint
       - run: npm run typecheck
@@ -48,8 +45,6 @@ jobs:
           node-version: 26
           cache: npm
       - name: Install dependencies
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - run: npm run test:coverage
 
@@ -64,8 +59,6 @@ jobs:
           node-version: 26
           cache: npm
       - name: Install dependencies
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - run: npm run build
       - name: Verify dist
@@ -94,8 +87,6 @@ jobs:
           node-version: 26
           cache: npm
       - name: Install dependencies
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -126,8 +117,6 @@ jobs:
           node-version: 26
           cache: npm
       - name: Install dependencies
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - name: Cache Playwright browser
         id: playwright-cache
@@ -156,8 +145,6 @@ jobs:
           node-version: 26
           cache: npm
       - name: Install dependencies
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - name: Cache Chromium
         id: playwright-cache
