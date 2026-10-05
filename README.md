@@ -198,7 +198,7 @@ policy.
 
 - [Support policy and Node/browser matrix](SUPPORT.md)
 - [Security policy and private reporting](SECURITY.md)
-- [Changelog](CHANGELOG.md)
+- [Releases](https://github.com/telerik/keylens/releases)
 
 ## License
 

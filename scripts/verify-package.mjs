@@ -36,7 +36,6 @@ try {
 
   const packagedFiles = new Set(manifest.files.map((file) => file.path));
   const requiredFiles = [
-    "CHANGELOG.md",
     "CONTRIBUTING.md",
     "LICENSE",
     "NOTICE",
