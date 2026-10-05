@@ -27,9 +27,48 @@ export default defineConfig({
           "Keyboard navigation testing with real browsers. Press Tab and record what actually happens.",
       },
     ],
-    ["meta", { name: "twitter:card", content: "summary" }],
+    // Matches the sitemap hostname below: the public URL this site will be
+    // served at once the repo goes public, not wherever it's previewed from.
+    [
+      "meta",
+      {
+        property: "og:image",
+        content: "https://telerik.github.io/keylens/og-image.png",
+      },
+    ],
+    ["meta", { property: "og:image:width", content: "1200" }],
+    ["meta", { property: "og:image:height", content: "630" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
+    [
+      "meta",
+      {
+        name: "twitter:image",
+        content: "https://telerik.github.io/keylens/og-image.png",
+      },
+    ],
+    [
+      "meta",
+      {
+        name: "theme-color",
+        content: "#ffffff",
+        media: "(prefers-color-scheme: light)",
+      },
+    ],
+    [
+      "meta",
+      {
+        name: "theme-color",
+        content: "#07183f",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
   ],
   cleanUrls: true,
+  // VISION.md is an internal roadmap/go-to-market doc, not linked from any
+  // nav or sidebar; kept in docs/ only so tests/unit/docs-drift.test.ts can
+  // cross-check it against source. Exclude it from the built site so it
+  // never ships as an orphaned, sitemapped public page.
+  srcExclude: ["VISION.md"],
   sitemap: {
     hostname: "https://telerik.github.io/keylens/",
   },
@@ -37,6 +76,15 @@ export default defineConfig({
   themeConfig: {
     search: {
       provider: "local",
+    },
+    outline: "deep",
+    editLink: {
+      pattern: "https://github.com/telerik/keylens/edit/develop/docs/:path",
+      text: "Edit this page on GitHub",
+    },
+    docFooter: {
+      prev: "Previous page",
+      next: "Next page",
     },
     nav: [
       { text: "Guide", link: "/guide/getting-started" },
@@ -55,13 +103,15 @@ export default defineConfig({
           { text: "CLI Reference", link: "/guide/cli" },
           { text: "Configuration", link: "/guide/configuration" },
           { text: "Programmatic API", link: "/api/" },
+          { text: "Reporters & Output", link: "/guide/reporters" },
           { text: "CI/CD", link: "/guide/ci-cd" },
           { text: "Performance", link: "/guide/performance" },
+          { text: "Telemetry & Privacy", link: "/guide/telemetry" },
           { text: "Known Limitations", link: "/guide/limitations" },
         ],
       },
       {
-        text: "Experimental",
+        text: "Integrations",
         items: [
           { text: "MCP Server", link: "/guide/mcp" },
           { text: "Agent Skill", link: "/guide/agent-skill" },
@@ -85,6 +135,10 @@ export default defineConfig({
             text: "Focus After Interaction",
             link: "/rules/focus-after-interaction",
           },
+          {
+            text: "Broken Roving Tabindex Navigation",
+            link: "/rules/roving-tabindex-broken",
+          },
         ],
       },
       {
@@ -92,19 +146,19 @@ export default defineConfig({
         items: [
           {
             text: "Support Policy",
-            link: "https://github.com/telerik/keylens/blob/master/SUPPORT.md",
+            link: "https://github.com/telerik/keylens/blob/develop/SUPPORT.md",
           },
           {
             text: "Security",
-            link: "https://github.com/telerik/keylens/blob/master/SECURITY.md",
+            link: "https://github.com/telerik/keylens/blob/develop/SECURITY.md",
           },
           {
             text: "Telemetry",
-            link: "https://github.com/telerik/keylens/blob/master/src/telemetry/README.md",
+            link: "https://github.com/telerik/keylens/blob/develop/src/telemetry/README.md",
           },
           {
-            text: "Changelog",
-            link: "https://github.com/telerik/keylens/blob/master/CHANGELOG.md",
+            text: "Releases",
+            link: "https://github.com/telerik/keylens/releases",
           },
         ],
       },
@@ -113,8 +167,8 @@ export default defineConfig({
       { icon: "github", link: "https://github.com/telerik/keylens" },
     ],
     footer: {
-      message: "Released under the MIT License.",
-      copyright: "Copyright © 2026 Keylens Contributors",
+      message: "Released under the Apache License 2.0.",
+      copyright: "Copyright © 2026 Progress Software Corporation",
     },
   },
 });

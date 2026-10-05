@@ -24,14 +24,15 @@ does not systematically open every modal, menu, accordion, tab panel, or disclos
 Hidden controls can therefore be absent, while controls behind an open overlay can
 appear unreachable.
 
-Experimental interactions test post-activation focus for eligible controls; they do
-not recrawl every resulting state or verify full widget keyboard patterns. Use
+Interaction testing checks post-activation focus for eligible controls; it does not
+recrawl every resulting state or verify full widget keyboard patterns. Use
 state-specific URLs or fixtures and manual tests for overlays and composite widgets.
 
 The skip-link probe recognizes text patterns among the first five focus stops. Its
-functional pass currently establishes only that focus is not lost to the document
-after Enter; it does not prove that the destination is main content or matches the
-fragment target.
+functional pass establishes that focus moves away from the document or body after
+Enter. It records a main-content selector when the target is main content or a
+descendant, but it also accepts other focused targets and does not prove that the
+destination matches the link's fragment target.
 
 ## Iframes and shadow DOM
 
@@ -74,9 +75,10 @@ was handled. Use `--dismiss <selector>` for a known banner the built-ins miss, o
 ## Focus indicator detection
 
 `missing-focus-indicator` diffs a computed-style snapshot (outline, box-shadow, border,
-background, color, `::before`/`::after`, and the immediate parent for `:focus-within`
-patterns) taken while an element was focused against one taken once focus moved away —
-always, with no flag required. Any difference counts as a visible indicator.
+background, color, `::before`/`::after`, up to four ancestors for `:focus-within`
+patterns, and up to twenty descendants) taken while an element was focused against
+one taken once focus moved away — always, with no flag required. Any difference
+counts as a visible indicator.
 
 This is more reliable than a text-based CSS scan (it reflects the real cascade,
 including JS/attribute-toggled classes). A targeted pixel comparison is also used for
@@ -100,7 +102,7 @@ heuristic can misfire on unusual layouts — disable it with
 unexpectedly, and check `crawl.prepare.scrollContainerExpanded` in the JSON report to
 see what was detected.
 
-## Experimental interaction safety
+## Interaction safety
 
 Interactions are opt-in because activation can mutate data or application state.
 Default safeguards reload before each case, block top-level navigation, exclude labels

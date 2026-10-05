@@ -81,12 +81,9 @@ async function send(
   }
 
   try {
-    // @telerik/machine-id is an optionalDependency (see package.json) so
-    // that npm install never fails for consumers who can't reach its
-    // registry — imported dynamically so a missing/failed install only
-    // disables telemetry (caught below), instead of crashing this module
-    // for every caller. loadMachineId() caches internally, so this only
-    // resolves once per process regardless of how many events are sent.
+    // @telerik/machine-id is bundled into keylens (see tsup.config.ts).
+    // loadMachineId() caches internally, so this only resolves once per
+    // process regardless of how many events are sent.
     const { default: loadMachineId } = await import("@telerik/machine-id");
     const { id: machineId } = await loadMachineId();
     const event = buildEvent({

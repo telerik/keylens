@@ -1,172 +1,44 @@
 # Contributing to Keylens
 
-First off, thank you for considering contributing to Keylens! Accessibility tooling benefits everyone, and your help makes the web a more inclusive place.
+## Introduction
 
-## Getting Started
+These guidelines exist to make your contribution experience smooth and to streamline the process of getting changes triaged, merged and released. Any contribution helps, even an issue report or a documentation fix.
 
-### Prerequisites
-
-- Node.js >= 26
-- npm >= 10
-
-### Setup
-
-```bash
-# Clone the repo
-git clone https://github.com/telerik/keylens.git
-cd keylens
-
-# Install dependencies exactly as locked
-npm ci
-
-# One-time: install git hooks (skipped automatically above, see note below)
-npm run prepare
-
-# Install every engine used by CI
-npx playwright install chromium firefox webkit
-
-# Run from source
-npm run keylens -- audit https://example.com
-```
-
-> **Note:** `.npmrc` sets `ignore-scripts=true` (an org-wide security default), so
-> `npm ci`/`npm install` no longer auto-run the `prepare` script that wires up git
-> hooks — run `npm run prepare` once after installing. It also declares
-> `@telerik/*` packages (e.g. `@telerik/machine-id`) as coming from GitHub
-> Packages; make sure a `GH_TOKEN` environment variable (a classic PAT with
-> `packages: read` permission) is set in your shell before running `npm ci`, or
-> that install step will fail.
-
-### Project Structure
-
-```
-src/
-├── cli/          # CLI entry point (Commander.js)
-├── crawler/      # Playwright-based tab crawler (+ prepare.ts cookie/consent + faux-scroll handling)
-├── rules/        # Individual audit rules
-├── reporters/    # Output formatters (CLI, JSON, HTML, Markdown)
-├── mcp/          # Experimental MCP adapter
-├── guidance.ts   # Static rule remediation catalog (browser-safe)
-├── utils/        # Shared utilities
-├── types/        # TypeScript type definitions
-└── index.ts      # Main audit engine & public API
-```
-
-## Development Workflow
-
-### Commands
-
-```bash
-npm run dev          # Build in watch mode
-npm run build        # Production build
-npm run test         # Run unit tests
-npm run test:coverage # Run unit coverage with GA thresholds
-npm run test:integration # Run browser integration tests
-npm run benchmark:ci # Enforce performance/resource/payload budgets
-npm run package:verify # Install and verify the packed consumer artifact
-npm run test:watch   # Run tests in watch mode
-npm run lint         # Check for lint errors
-npm run lint:fix     # Auto-fix lint errors
-npm run typecheck    # Run TypeScript type checking
-npm run format       # Format code with Prettier
-```
-
-### Running Keylens Locally
-
-```bash
-# Run from source with tsx
-npm run keylens -- audit https://example.com --verbose
-
-# Or build and run the compiled output
-npm run build
-node dist/cli/index.js audit https://example.com
-```
-
-## Contributing a New Rule
-
-Rules are the core of Keylens. Adding a new rule is one of the best ways to contribute.
-
-### 1. Create the rule file
-
-Create `src/rules/my-new-rule.ts`:
-
-```typescript
-import type { Rule, CrawlResult, RuleResult } from "../types/index.js";
-
-export class MyNewRule implements Rule {
-  id = "my-new-rule";
-  name = "My New Rule";
-  description = "Detects ...";
-  severity = "warning" as const;
-  wcag = ["2.x.x"]; // Relevant WCAG success criteria
-
-  async evaluate(crawlResult: CrawlResult): Promise<RuleResult> {
-    const violations: RuleResult["violations"] = [];
-
-    // Your detection logic here
-
-    return {
-      ruleId: this.id,
-      passed: violations.length === 0,
-      violations,
-      duration: 0,
-    };
-  }
-}
-```
-
-### 2. Register the rule
-
-Add it to `src/rules/index.ts`:
-
-```typescript
-import { MyNewRule } from "./my-new-rule.js";
-
-const ALL_RULES: Rule[] = [
-  // ... existing rules
-  new MyNewRule(),
-];
-```
-
-### 3. Add a config toggle
-
-Add the config key to `KeylensConfig["rules"]` in `src/types/index.ts` and update the defaults in `src/utils/config.ts`.
-
-### 4. Write tests
-
-Create `tests/unit/rules/my-new-rule.test.ts` with test cases covering pass and fail scenarios.
-
-## Pull Request Guidelines
-
-1. **Branch from `develop`** — use descriptive branch names like `feat/roving-tabindex-rule` or `fix/crawl-timeout`.
-2. **Write tests** — every new rule and feature should have tests.
-3. **Run the full checks** before opening a PR:
-   ```bash
-   npm run validate
-   npm run docs:build
-   npm run package:verify
-   ```
-   Crawler changes should also run `npm run test:integration` with
-   `KEYLENS_TEST_BROWSER` set to `chromium`, `firefox`, and `webkit`.
-4. **Keep PRs focused** — one feature or fix per PR.
-5. **Update docs** if your change affects the public API or CLI.
-
-## Code Style
-
-- We use **Prettier** for formatting and **ESLint** for linting.
-- Husky + lint-staged run these on commit automatically.
-- Use clear, descriptive names. Accessibility tooling should be approachable.
-- Add JSDoc comments to public functions.
+By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Reporting Bugs
 
-Use the [Bug Report template](https://github.com/telerik/keylens/issues/new?template=bug_report.yml). Include:
+1. Always test against the most recent version of Keylens; the bug may already be fixed.
+2. Search the [existing issues](https://github.com/telerik/keylens/issues) before filing a new one. It may already be reported.
+3. Verify the bug is reproducible with a minimal page or a public URL, and run the audit with the `--verbose` flag.
+4. If the issue is clear and unlikely to require discussion, open a GitHub issue using the [Bug Report template](https://github.com/telerik/keylens/issues/new?template=bug_report.yml) and include:
+   - Keylens version
+   - Node.js version and operating system
+   - Playwright and browser-engine versions
+   - The command or config used (with credentials removed)
+   - The URL you were auditing, or a short reproduction page
+   - Expected vs. actual behavior, plus the terminal output
 
-- Keylens version
-- Node.js version
-- The URL you were auditing (if possible)
-- Terminal output with `--verbose` flag
+## Code Fixes and Enhancements
+
+### Log an Issue First
+
+Before suggesting any change, open an issue describing the bug or enhancement. Check whether one already exists. Please include:
+
+- The problem you want solved
+- The keyboard behavior or WCAG success criterion involved
+- An example page where it occurs
+
+The Keylens team will review it, give early feedback, and decide how and when it is addressed. This keeps the rule set, scoring, report schema and telemetry consistent across releases.
+
+## Reporting Security Issues
+
+Do not use public issues for vulnerabilities. Follow the private process in [SECURITY.md](SECURITY.md).
+
+## Getting Help
+
+See [SUPPORT.md](SUPPORT.md). Response times are not guaranteed.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing to Keylens you agree that your contributions will be licensed under the [Apache License 2.0](LICENSE).

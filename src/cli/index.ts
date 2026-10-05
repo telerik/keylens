@@ -57,7 +57,7 @@ function updateProgress(
     spinner.text =
       event.phase === "interactions"
         ? `Testing interactions${page}: 0 completed`
-        : `${event.phase[0]!.toUpperCase()}${event.phase.slice(1)}${page}`;
+        : `${event.phase[0].toUpperCase()}${event.phase.slice(1)}${page}`;
   }
 }
 
@@ -251,13 +251,14 @@ program
         text: "Starting audit...",
         isSilent: options.quiet,
       }).start();
+      const activeSpinner = spinner;
       totalScope = createExecutionScope({
         timeout: config.timeouts.total,
         phase: "setup",
         timeoutKind: "total",
       });
       const onEvent = (event: AuditEvent) => {
-        updateProgress(spinner!, event);
+        updateProgress(activeSpinner, event);
       };
 
       const report = await audit(targetUrl, {
@@ -311,7 +312,7 @@ program
 
     const config = {
       $schema:
-        "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
+        "https://raw.githubusercontent.com/telerik/keylens/develop/keylens.config.schema.json",
       profile: "balanced",
       url: "https://example.com",
       viewport: { width: 1280, height: 720 },
@@ -332,22 +333,16 @@ program
     console.log(chalk.gray("  Edit the file, then run: keylens audit <url>"));
   });
 
-program
-  .command("mcp")
-  .description("Start the experimental Keylens MCP server (stdio transport)")
-  .action(async () => {
-    await import("../mcp/server.js");
-  });
-
 // Allow `keylens <url>` as shorthand for `keylens audit <url>`
 const args = process.argv.slice(2);
+const firstArg = args[0];
 if (
-  args.length > 0 &&
+  firstArg !== undefined &&
   !program.commands.some(
-    (cmd) => cmd.name() === args[0] || cmd.aliases().includes(args[0]!),
+    (cmd) => cmd.name() === firstArg || cmd.aliases().includes(firstArg),
   ) &&
-  !args[0]!.startsWith("-") &&
-  /^https?:\/\//.test(args[0]!)
+  !firstArg.startsWith("-") &&
+  /^https?:\/\//.test(firstArg)
 ) {
   process.argv.splice(2, 0, "audit");
 }

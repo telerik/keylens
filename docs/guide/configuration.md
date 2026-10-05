@@ -11,7 +11,7 @@ the audit. Partial nested objects are accepted and merged with defaults.
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/telerik/keylens/master/keylens.config.schema.json",
+  "$schema": "https://raw.githubusercontent.com/telerik/keylens/develop/keylens.config.schema.json",
   "url": "https://example.com",
   "profile": "balanced",
   "capture": { "page": "none" },
@@ -119,6 +119,102 @@ Omit optional `include`, `exclude`, and timeout budgets when they are not needed
 `-YYYY-MM-DDTHH-mm-ss` suffix so repeated runs against the same `outputDir` never
 overwrite a prior report. Set `appendTimestamp: false` for a stable file name, e.g. in
 a CI job that always reads the same known path.
+
+## Audit settings
+
+These settings control what page is loaded and how the Tab crawl runs:
+
+| Option                               | Description                                                                                                                |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `url`                                | URL to audit. It can be omitted when the CLI URL argument supplies it.                                                     |
+| `viewport.width` / `viewport.height` | Browser viewport in CSS pixels. Responsive layout, visibility, overlays, and focus-obscured checks use this viewport.      |
+| `browser`                            | Playwright engine: `chromium`, `firefox`, or `webkit`. Install the corresponding browser before selecting it.              |
+| `headed`                             | Opens a visible browser window instead of running headlessly. Useful for local debugging; normally leave it `false` in CI. |
+| `navigationTimeout`                  | Maximum time in milliseconds for navigation. This is separate from the total audit and phase budgets.                      |
+| `waitForSelector`                    | CSS selector that must appear before the fixed post-load wait. Use an application-ready marker for an SPA.                 |
+| `waitAfterLoad`                      | Fixed settling delay after page load and after `waitForSelector` resolves.                                                 |
+| `maxTabs`                            | Maximum Tab attempts. Increase it for long or dynamically revealed focus sequences; it bounds crawl time and coverage.     |
+| `tabTimeout`                         | Maximum time in milliseconds allowed for an individual focus/Tab operation.                                                |
+| `tabDelay`                           | Delay after each Tab so focus and layout changes can settle. The minimum is 10 ms.                                         |
+
+`waitForSelector` does not prove that all lazy content or application states have
+loaded. Audit important routes and states separately.
+
+## Rules
+
+The configuration supports nine deterministic rules, all enabled by default. Set an individual rule to
+`false` when it is not applicable to a target or when a specialized test owns that
+check:
+
+| Option                  | Checks                                                                    |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `keyboardTrap`          | Focus cannot escape a component or page region.                           |
+| `unreachableElements`   | Interactive elements are never reached by the Tab crawl.                  |
+| `focusOrderMismatch`    | Recorded focus order differs materially from DOM order.                   |
+| `tabindexAbuse`         | Elements use positive `tabindex` values.                                  |
+| `missingFocusIndicator` | Focused elements have no detectable visual change.                        |
+| `skipLink`              | A skip link is present and moves focus to main content.                   |
+| `focusNotObscured`      | The focused element is hidden by an overlay or other content.             |
+| `focusAfterInteraction` | Focus remains valid after an opted-in control activation.                 |
+| `rovingTabindexBroken`  | Composite widget members cannot be reached through their arrow-key model. |
+
+Disabling a rule skips its evaluation and omits its result from the report. It does
+not disable the crawl evidence used by other enabled rules.
+
+## Interaction testing
+
+Interaction testing is disabled by default because it activates real controls. When
+enabled, these options bound which controls are tested and how each case is isolated:
+
+| Option               | Default     | Description                                                                                           |
+| -------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| `enabled`            | `false`     | Enable post-activation focus checks.                                                                  |
+| `maxCases`           | `20`        | Maximum number of controls to activate. Set to `0` to skip cases while keeping the policy configured. |
+| `timeout`            | `2000`      | Timeout in milliseconds for each focus or activation operation.                                       |
+| `include`            | —           | Optional CSS selectors limiting testing to known-safe controls.                                       |
+| `exclude`            | —           | CSS selectors for controls that must not be activated.                                                |
+| `actions`            | `["click"]` | Actions to test: `click`, `enter`, and/or `space`.                                                    |
+| `isolation`          | `"reload"`  | Reload before each case (`"reload"`) or keep page state between cases (`"none"`).                     |
+| `navigation`         | `"block"`   | Block or allow top-level navigation triggered by an activation.                                       |
+| `excludeDestructive` | `true`      | Skip controls that look destructive, such as delete, remove, checkout, or payment actions.            |
+
+Prefer `include` for production or stateful pages. Inspect `interactionResults` and
+`crawl.interactions` in JSON output for the detailed outcome of each case.
+
+## Phase timeouts
+
+The `timeouts` object provides wall-time budgets for the audit and its major phases.
+Values are milliseconds:
+
+| Option         | Description                                                          |
+| -------------- | -------------------------------------------------------------------- |
+| `total`        | Outer budget for the complete audit.                                 |
+| `crawl`        | Budget for navigation, preparation, screenshots, and focus crawling. |
+| `rules`        | Budget for rule evaluation.                                          |
+| `interactions` | Budget for post-activation testing.                                  |
+| `reporters`    | Budget for writing or rendering reports.                             |
+
+These budgets prevent a slow page or reporter from hanging a run. A timeout makes the
+audit incomplete and returns exit code `2`; it is distinct from a rule finding.
+
+## Page capture and limits
+
+`capture.page` controls the optional page image used by HTML focus maps and visual
+evidence:
+
+| Value        | Behavior                        |
+| ------------ | ------------------------------- |
+| `"none"`     | Do not capture a page image.    |
+| `"viewport"` | Capture the visible viewport.   |
+| `"full"`     | Capture the full expanded page. |
+
+The capture limits protect memory and report size. `maxDimension` limits the largest
+image dimension, `maxPixels` limits decoded pixel count, and `maxBytes` limits encoded
+image bytes. If a limit is exceeded, capture is skipped and the audit continues; the
+result is recorded in `crawl.capture`.
+
+See [Reporters and output](./reporters) for screenshot defaults by reporter and
+report-file behavior.
 
 ## Cookie/consent prepare phase {#prepare}
 

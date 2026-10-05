@@ -69,11 +69,13 @@ export class FocusOrderMismatchRule implements Rule {
       };
     }
 
-    const domOrder = [...comparable].sort(
-      (a, b) =>
-        domIndexBySelector.get(a.selector)! -
-        domIndexBySelector.get(b.selector)!,
-    );
+    const domOrder = comparable
+      .map((el) => ({
+        el,
+        domIndex: domIndexBySelector.get(el.selector) ?? 0,
+      }))
+      .sort((a, b) => a.domIndex - b.domIndex)
+      .map(({ el }) => el);
 
     const mismatches: Array<{
       element: FocusedElement;

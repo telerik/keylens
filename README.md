@@ -4,10 +4,16 @@
 
 **Press Tab. Record what actually happens.**
 
+[![npm version](https://img.shields.io/npm/v/@telerik/keylens.svg)](https://www.npmjs.com/package/@telerik/keylens)
+[![npm downloads](https://img.shields.io/npm/dm/@telerik/keylens.svg)](https://www.npmjs.com/package/@telerik/keylens)
+[![CI](https://github.com/telerik/keylens/actions/workflows/ci.yml/badge.svg)](https://github.com/telerik/keylens/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 Static accessibility tools tell you whether markup _could_ work. Keylens launches a
 real Playwright browser, presses Tab, and records the keyboard path users actually get.
 
-[Documentation](docs/index.md) · [Getting started](docs/guide/getting-started.md) ·
+[Documentation](https://telerik.github.io/keylens/) ·
+[Getting started](docs/guide/getting-started.md) ·
 [Rules](docs/rules/index.md) · [API](docs/api/index.md) ·
 [Contributing](CONTRIBUTING.md)
 
@@ -38,29 +44,41 @@ aren't dominated by banner noise. Disable with `--keep-overlays`; see
 [Configuration](./docs/guide/configuration.md#prepare).
 
 > [!IMPORTANT]
-> The deterministic CLI, reports, and programmatic core are the stable surface.
-> MCP distribution and interaction testing are experimental and may change independently.
+> Keylens is available as a stable package from the public npm registry.
+> MCP distribution and interaction testing may change independently.
 
-## Install from GitHub Packages
+## Install
 
-Keylens is currently distributed through GitHub Packages, not the public npm registry.
-Node.js 26 or later and a GitHub token with `read:packages` are required.
+Keylens is distributed through the public npm registry. Node.js 20 or later is
+required.
 
 ```bash
-gh auth login --scopes read:packages
-npm config set @telerik:registry https://npm.pkg.github.com
-npm config set //npm.pkg.github.com/:_authToken "$(gh auth token)"
-npm install --save-dev @telerik/keylens@dev
+npm install --save-dev @telerik/keylens
 npx playwright install chromium
 ```
-
-The `@dev` tag is the current prerelease distribution channel. Keylens `1.0.0` is not
-published.
 
 ## Run an audit
 
 ```bash
 npx keylens audit https://example.com
+```
+
+```text
+🔍 Keylens v1.0.0 — Keyboard Navigation Audit
+URL: https://example.com
+Focusable elements: 42
+Interactive elements: 40 (2 unreachable)
+Tab cycle completed: Yes
+Duration: 3120ms
+
+Rules:
+● unreachable-elements   FAIL  2 interactive elements never reached via Tab
+● keyboard-trap          PASS
+● focus-order-mismatch   PASS
+● missing-focus-indicator PASS
+...
+
+Score: 78/100
 ```
 
 The default `balanced` profile runs headless Chromium, captures no screenshots unless
@@ -180,8 +198,12 @@ policy.
 
 - [Support policy and Node/browser matrix](SUPPORT.md)
 - [Security policy and private reporting](SECURITY.md)
-- [Changelog](CHANGELOG.md)
+- [Releases](https://github.com/telerik/keylens/releases)
 
 ## License
 
-[MIT](LICENSE)
+[Apache License 2.0](LICENSE)
+
+Copyright 2026 Progress Software Corporation. See [NOTICE](NOTICE).
+
+Created by the [Progress Telerik](https://www.telerik.com/ "https://www.telerik.com/") team.

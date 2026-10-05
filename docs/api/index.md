@@ -1,9 +1,17 @@
 # Programmatic API
 
-The root `@telerik/keylens` export is ESM-only and requires Node.js 26 or later.
+The root `@telerik/keylens` export is ESM-only and requires Node.js 20 or later.
 Programmatic analysis is silent and in-memory by default: reporter settings may be
 retained in `report.config`, but no terminal output or files are produced until a
 renderer is called.
+
+Install the package and the browser required by your selected Playwright engine before
+calling `audit()`:
+
+```bash
+npm install @telerik/keylens
+npx playwright install chromium
+```
 
 ## Deterministic analysis
 
@@ -16,8 +24,12 @@ const report = await audit("https://example.com", {
   timeouts: { total: 60_000, crawl: 45_000, rules: 10_000 },
 });
 
-if (report.summary.errors > 0) {
-  throw new Error("Audit is incomplete");
+if (!report.summary.scoreComplete) {
+  throw new Error("Audit could not produce a complete score");
+}
+
+if (report.summary.totalErrors > 0) {
+  throw new Error("Keyboard accessibility violations found");
 }
 ```
 
@@ -27,8 +39,13 @@ explicitly for output.
 
 Nested options are partial; do not spread `DEFAULT_CONFIG`.
 
-`crawlOnly()` is a lightweight crawl path intended for specialized experimental
-adapters; prefer `audit()` for stable integrations.
+`crawlOnly()` is a lightweight path that returns crawl data without evaluating rules;
+prefer `audit()` when you need an `AuditReport`.
+
+`AuditOptions` also accepts `signal`, `onEvent`, `logLevel`, and `telemetry`.
+Telemetry is enabled by default for published builds; set `telemetry: false` for a
+single call or use the documented environment variables to opt out globally. See
+[Telemetry and privacy](../guide/telemetry).
 
 ## Explicit rendering
 
@@ -52,8 +69,11 @@ const markdown = renderMarkdown(report);
 - `renderAuditReport()` prints/writes selected reporters.
 - `serializeJSON()` returns semantic JSON with assets omitted.
 - `renderHTML()` and `renderMarkdown()` return strings without writing.
-- Render functions accept an `AbortSignal`; file renderers also honor the reporter
-  timeout from `RenderOptions` or `config.timeouts.reporters`.
+- `renderAuditReport()` accepts an `AbortSignal`, timeout, and log level through
+  `RenderOptions`; file reporters also honor `config.timeouts.reporters` when no
+  explicit timeout is provided.
+- `renderHTML()`, `renderMarkdown()`, and `serializeJSON()` return synchronously
+  rendered values and do not accept render options.
 
 Report file names default to `keylens-report-<timestamp>.json`,
 `keylens-report-<timestamp>.html`, and `keylens-report-<timestamp>.md` (a
@@ -158,5 +178,7 @@ import {
 } from "@telerik/keylens/guidance";
 ```
 
-The `@telerik/keylens/mcp` subpath is experimental and starts the stdio server as a
-side effect; do not import it as a general library module.
+The `@telerik/keylens/mcp` subpath starts the optional stdio MCP server as a side
+effect; configure an MCP client to run the `keylens-mcp` executable using the
+[MCP integration instructions](../guide/mcp) instead of importing it as a general
+library module.

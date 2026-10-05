@@ -60,9 +60,15 @@ const GATE_RULES: GateRule[] = [
   },
 ];
 
-/** Returns the gate rule matching a property name, if any. */
-function findGateRule(key: string): GateRule | undefined {
-  return GATE_RULES.find((rule) => rule.pattern.test(key));
+/** Returns the gate rule matching a property name and its regex match, if any. */
+function findGateRule(
+  key: string,
+): { rule: GateRule; match: RegExpMatchArray } | undefined {
+  for (const rule of GATE_RULES) {
+    const match = key.match(rule.pattern);
+    if (match) return { rule, match };
+  }
+  return undefined;
 }
 
 /** Returns true when a gated property's change can't have painted anything in either state. */
@@ -71,14 +77,14 @@ function isGatedPropertyInert(
   a: ComputedStyleMap,
   b: ComputedStyleMap,
 ): boolean {
-  const rule = findGateRule(key);
-  if (!rule) return false;
-  const gateKey = rule.gate(key.match(rule.pattern)!);
+  const found = findGateRule(key);
+  if (!found) return false;
+  const gateKey = found.rule.gate(found.match);
   const gateA = a[gateKey];
   const gateB = b[gateKey];
   return (
-    (gateA === undefined || rule.inertWhen(gateA)) &&
-    (gateB === undefined || rule.inertWhen(gateB))
+    (gateA === undefined || found.rule.inertWhen(gateA)) &&
+    (gateB === undefined || found.rule.inertWhen(gateB))
   );
 }
 

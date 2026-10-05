@@ -5,6 +5,7 @@
 | ID       | `unreachable-elements`                                                      |
 | Severity | Error                                                                       |
 | WCAG     | [2.1.1 Keyboard](https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html) |
+| Config   | `unreachableElements`                                                       |
 
 ## What it checks
 

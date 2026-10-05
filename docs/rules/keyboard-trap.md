@@ -5,6 +5,7 @@
 | ID       | `keyboard-trap`                                                                             |
 | Severity | Error                                                                                       |
 | WCAG     | [2.1.2 No Keyboard Trap](https://www.w3.org/WAI/WCAG22/Understanding/no-keyboard-trap.html) |
+| Config   | `keyboardTrap`                                                                              |
 
 ## What it checks
 

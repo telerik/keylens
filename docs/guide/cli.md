@@ -8,46 +8,49 @@ Alias: `keylens scan [url]`. An HTTP(S) URL can also be passed directly as short
 The URL argument overrides `url` from the config file. Without an argument, the
 configured `url` is audited.
 
-| Option                          | Default                | Description                                               |
-| ------------------------------- | ---------------------- | --------------------------------------------------------- |
-| `-c, --config <path>`           | —                      | JSON config path                                          |
-| `--profile <profile>`           | `balanced`             | `fast`, `balanced`, or `thorough`                         |
-| `-o, --output <reporters>`      | `cli`                  | Comma-separated `cli,json,html,markdown`                  |
-| `-d, --output-dir <dir>`        | `./keylens-report`     | File reporter destination                                 |
-| `--output-name <name>`          | `keylens-report`       | Base file name for report files                           |
-| `--no-timestamp`                | `false` (timestamp on) | Don't append a timestamp to report file names             |
-| `-b, --browser <browser>`       | `chromium`             | `chromium`, `firefox`, or `webkit`                        |
-| `--headed`                      | `false`                | Show the browser                                          |
-| `--wait-for <selector>`         | —                      | Wait for a CSS selector before the fixed delay            |
-| `--wait <ms>`                   | profile value          | Fixed delay after load                                    |
-| `--keep-overlays`               | `false`                | Skip auto-dismissing cookie/consent banners               |
-| `--no-expand-scroll-containers` | `false` (expansion on) | Skip neutralizing full-page "faux scroll" containers      |
-| `--dismiss <selector>`          | —                      | Extra selector to click before the crawl (repeatable)     |
-| `--consent <preference>`        | `reject`               | `reject`, `accept`, or `close` — preferred consent action |
-| `--max-tabs <n>`                | profile value          | Maximum Tab attempts                                      |
-| `--tab-delay <ms>`              | profile value          | Delay after each Tab; minimum 10 ms                       |
-| `--viewport <WxH>`              | `1280x720`             | Browser viewport                                          |
-| `--timeout <ms>`                | `30000`                | Navigation timeout                                        |
-| `--page-screenshot <mode>`      | capability-based       | `none`, `viewport`, or `full`                             |
-| `--interactions`                | `false`                | Enable experimental bounded activations                   |
-| `-q, --quiet`                   | `false`                | Suppress nonessential output                              |
-| `-v, --verbose`                 | `false`                | Enable debug diagnostics                                  |
+| Option                          | Default                | Description                                                                                                                                                |
+| ------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-c, --config <path>`           | —                      | Load a JSON configuration file. CLI values override values from this file; without this flag, Keylens looks only for a URL argument.                       |
+| `--profile <profile>`           | `balanced`             | Select `fast`, `balanced`, or `thorough` defaults for tab count, tab settling, and post-load wait. Explicit flags and config values override the profile.  |
+| `-o, --output <reporters>`      | `cli`                  | Select one or more comma-separated reporters: `cli`, `json`, `html`, or `markdown`. File reporters write artifacts; `cli` writes to stdout.                |
+| `-d, --output-dir <dir>`        | `./keylens-report`     | Choose the directory for JSON, HTML, and Markdown files. It has no effect on terminal-only output.                                                         |
+| `--output-name <name>`          | `keylens-report`       | Set the base filename for file reports. Extensions and the timestamp suffix are added automatically.                                                       |
+| `--no-timestamp`                | `false` (timestamp on) | Remove the timestamp suffix from file reports. Repeated runs then overwrite files with the same name.                                                      |
+| `-b, --browser <browser>`       | `chromium`             | Choose the Playwright engine: `chromium`, `firefox`, or `webkit`. Use the same engine as your supported user environment when behavior differs by browser. |
+| `--headed`                      | `false`                | Run with a visible browser window instead of headless mode. Useful for local debugging; CI environments usually require headless mode.                     |
+| `--wait-for <selector>`         | —                      | Wait for a CSS selector to appear before the profile's fixed post-load delay. Use this for an app-ready marker or asynchronously rendered shell.           |
+| `--wait <ms>`                   | profile value          | Set the fixed delay after page load and after `--wait-for` resolves. Use it for animations or late content that has no reliable ready selector.            |
+| `--keep-overlays`               | `false`                | Keep cookie/consent banners and other automatically detected overlays so the audit can test them. Custom `--dismiss` selectors still run.                  |
+| `--no-expand-scroll-containers` | `false` (expansion on) | Disable the heuristic that expands full-page faux-scroll containers. Use this when an inner scroll region must remain a legitimate scrollable region.      |
+| `--dismiss <selector>`          | —                      | Click an additional CSS selector before the crawl. Repeat the option for multiple selectors, such as a custom tour or newsletter modal close button.       |
+| `--consent <preference>`        | `reject`               | Choose the preferred banner action: `reject`, `accept`, or `close`. `reject` avoids silently opting into tracking during an audit.                         |
+| `--max-tabs <n>`                | profile value          | Set the maximum number of Tab attempts. Increase it for pages with long or dynamically revealed focus sequences; it bounds audit time and coverage.        |
+| `--tab-delay <ms>`              | profile value          | Set the delay after each Tab so focus and layout changes can settle. The minimum is 10 ms; increase it for animated or highly dynamic interfaces.          |
+| `--viewport <WxH>`              | `1280x720`             | Set the browser viewport, for example `1440x900`. This affects responsive layout, visibility, overlays, and focus-obscured checks.                         |
+| `--timeout <ms>`                | `30000`                | Set the navigation timeout in milliseconds. This covers page navigation, not the total audit budget or every crawl phase.                                  |
+| `--page-screenshot <mode>`      | capability-based       | Capture no image, the viewport, or the full page with `none`, `viewport`, or `full`. HTML defaults to `full`; other reporter selections default to `none`. |
+| `--interactions`                | `false`                | Enable opt-in, bounded post-activation focus checks. Review the interaction policy before enabling it against stateful or destructive pages.               |
+| `-q, --quiet`                   | `false`                | Suppress nonessential terminal output while preserving errors and the selected report output.                                                              |
+| `-v, --verbose`                 | `false`                | Enable debug-level diagnostics, including detailed phase and browser progress information.                                                                 |
 
 CLI values override config values. `--headed` and `--interactions` enable their
 features; they do not provide `--no-*` forms.
 
 ### Page screenshots
 
-These are separate capture modes:
+Page screenshots are separate from the focus-indicator checks. Keylens always compares
+focused and unfocused styles, and may run a targeted pixel comparison; those checks do
+not require a page screenshot.
 
 - `--page-screenshot viewport|full` captures one page image. `none` disables it.
   When `--page-screenshot` is omitted, HTML output defaults to `full`; all other output
   sets page capture to `none`. Explicit config or CLI values take precedence.
 
-`missing-focus-indicator` always runs via a computed-style diff (outline, box-shadow,
+The `missing-focus-indicator` rule uses a computed-style diff (outline, box-shadow,
 border, background, color, pseudo-elements, and parent styles) taken while each
-element was focused vs. once focus moved away — no flag required. A targeted pixel
-comparison also confirms candidates whose visual change is not visible in style data.
+element is focused and after focus moves away. A targeted pixel comparison also
+confirms candidates whose visual change is not visible in style data. No screenshot
+flag is required for either check.
 
 ```bash
 npx keylens audit https://example.com \
@@ -74,7 +77,7 @@ in the JSON report, and as "Scroll container expanded" in the CLI/Markdown/HTML 
 
 Before the tab crawl starts, Keylens runs a bounded **prepare phase** that dismisses
 cookie/consent banners so they don't dominate the recorded focus sequence. Built-in
-presets cover the major CMPs (OneTrust, Cookiebot, Usercentrics, Didomi, TrustArc,
+presets cover common CMPs (OneTrust, Cookiebot, Usercentrics, Didomi, TrustArc,
 Quantcast, Osano, CookieYes, Termly, Klaro, Complianz, Iubenda, HubSpot, Sourcepoint,
 Axeptio); a generic heuristic handles the rest. This is **on by default** — no flags
 required for `npx keylens audit https://example.com` to work cleanly against a
@@ -93,11 +96,13 @@ Every dismissal (or failure to dismiss) is reported, never silent: check `crawl.
 in the JSON report, or the "Overlays dismissed" / "Prepare warnings" lines in the CLI,
 HTML, and Markdown reports.
 
-### Experimental interactions
+### Interaction testing
 
-`--interactions` enables the config-defined policy. Defaults are a maximum of 20 cases,
-2 seconds per focus/activation operation, `click` only, page reload before each case,
-blocked top-level navigation, and destructive-control exclusion.
+`--interactions` enables the policy in `interactions` from the config file. It is
+opt-in because it activates real controls and can change application state. Defaults
+are a maximum of 20 cases, 2 seconds per focus/activation operation, `click` only,
+page reload before each case, blocked top-level navigation, and destructive-control
+exclusion. See [Configuration](./configuration) for the full policy.
 
 Detailed outcomes are stored in `interactionResults`:
 
@@ -107,10 +112,14 @@ Detailed outcomes are stored in `interactionResults`:
 - `error`: the element disappeared or the action failed.
 
 The CLI summarizes errors but intentionally truncates detail. Generate JSON and inspect
-`interactionResults[]` and `crawl.interactions` for status, stable reason, message,
-action, resulting focus, and duration.
+`interactionResults[]` and `crawl.interactions` for status, reason, message, action,
+resulting focus, and duration. Interaction failures contribute to the relevant rule
+result; they do not by themselves mean that the entire audit is incomplete.
 
 ### Reports
+
+See [Reporters and output](./reporters) for format details, workflow recommendations,
+and HTML report customization.
 
 Each reporter writes a base name of `keylens-report` (or `--output-name <name>` /
 `outputFileName` in a config file) with a `-YYYY-MM-DDTHH-mm-ss` timestamp appended by
@@ -136,10 +145,6 @@ projection APIs when inline bytes or external references are required.
 ### `keylens init`
 
 Creates or overwrites `keylens.config.json` with a concise starter configuration.
-
-### `keylens mcp`
-
-Starts the **experimental** MCP server over stdio. See [MCP server](./mcp).
 
 ## Exit codes
 

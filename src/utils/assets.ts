@@ -15,8 +15,8 @@ export function getInlineAssetData(
 }
 
 function cloneReportShell(report: AuditReport): AuditReport {
-  const { assets: _assets, ...semantic } = report;
-  void _assets;
+  const semantic: Omit<AuditReport, "assets"> = { ...report };
+  delete (semantic as Partial<AuditReport>).assets;
   return {
     ...structuredClone(semantic),
     assets: [],
@@ -45,7 +45,6 @@ export function projectAuditReport(
 function projectAuditReportWithoutInlineData(
   report: AuditReport,
   options: AssetProjectionOptions,
-  pageIndex?: number,
 ): AuditReport {
   const projected = cloneReportShell(report);
 
@@ -53,7 +52,8 @@ function projectAuditReportWithoutInlineData(
     delete projected.pageScreenshotAssetId;
     projected.assets = [];
   } else if (options.assets === "references") {
-    if (!options.reference) {
+    const reference = options.reference;
+    if (!reference) {
       throw new ConfigError(
         "Asset references projection requires a reference callback",
       );
@@ -64,7 +64,7 @@ function projectAuditReportWithoutInlineData(
         ...metadata,
         storage:
           storage.kind === "inline"
-            ? options.reference!(asset, { url: report.url, pageIndex })
+            ? reference(asset, { url: report.url })
             : { ...storage },
       };
     });

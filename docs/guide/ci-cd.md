@@ -11,24 +11,17 @@ Keylens has three stable exit classes:
 Warnings alone do not fail the job. Do not collapse codes `1` and `2`: code `1` is a
 valid test result, while code `2` means the result is not complete enough to trust.
 
-## GitHub Packages authentication
+## Install in CI
 
-Keylens is currently hosted on GitHub Packages. Store a token with `read:packages` as a
-secret and configure the scoped registry. Never commit the token.
+Keylens is distributed through the public npm registry; no authentication is
+required to install it.
 
 ```yaml
 - uses: actions/setup-node@v4
   with:
-    node-version: 26
-    registry-url: https://npm.pkg.github.com
-    scope: "@telerik"
+    node-version: 20
 - run: npm ci
-  env:
-    NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
-
-Depending on package visibility and repository permissions, use a dedicated
-fine-grained or classic token with package read access instead of `GITHUB_TOKEN`.
 
 ## GitHub Actions example
 
@@ -44,12 +37,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 26
-          registry-url: https://npm.pkg.github.com
-          scope: "@telerik"
+          node-version: 20
       - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npx playwright install --with-deps chromium
       - run: npm run start &
       - run: npx wait-on http://127.0.0.1:3000
@@ -66,9 +55,9 @@ jobs:
           path: ./keylens-report/
 ```
 
-`wait-on` must already be a project dependency or be replaced with the project's
-existing server-readiness command. Pin package versions in the project lockfile rather
-than downloading an unpinned CLI during the job.
+`wait-on` must already be a project dependency; add it to `devDependencies` or replace
+that step with the project's existing server-readiness command. Pin package versions in
+the project lockfile rather than downloading an unpinned CLI during the job.
 
 Report file names include a `-YYYY-MM-DDTHH-mm-ss` timestamp by default, so a script
 that reads a fixed path (rather than uploading the whole directory, as above) should
@@ -83,8 +72,8 @@ The JSON report omits binary assets but retains semantic coverage:
 - `summary.scoreComplete`: whether all enabled rules were evaluated;
 - `crawl.cycleCompleted`: whether focus returned to the first stop;
 - `crawl.capture`: captured, skipped, and failed asset totals;
-- `crawl.interactions`: aggregate experimental interaction outcomes;
-- `interactionResults`: each passed, failed, skipped, or errored interaction case.
+- `crawl.interactions`: aggregate interaction outcomes;
+- `interactionResults`: each passed, failed, skipped, or error interaction case.
 
 Archive JSON even when the command exits nonzero. Treat `scoreComplete: false`, capture
 omissions, an incomplete Tab cycle, and interaction errors as coverage signals, not as

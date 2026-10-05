@@ -1,15 +1,18 @@
 # MCP server
 
-The Model Context Protocol server uses
-stdio, starts through `keylens mcp`, `keylens-mcp`, or the
-`@telerik/keylens/mcp` package subpath, and writes protocol data only to stdout.
+The Model Context Protocol server uses stdio and is exposed as a separate executable
+`keylens-mcp` from the main `@telerik/keylens` package. It writes protocol data only to stdout.
 
 ## Installation
 
-Install Keylens and Chromium first. Because distribution is through GitHub Packages,
-the MCP client's process must be able to read your authenticated npm configuration.
-Prefer a project or global installation over asking an agent to download an unpinned
-package on every run.
+Install Keylens and Chromium first. Prefer a project or global installation over
+asking an agent to download an unpinned package on every run.
+
+```bash
+npm install @telerik/keylens
+```
+
+Then configure your MCP client to start the server:
 
 ```json
 {
@@ -21,21 +24,18 @@ package on every run.
 }
 ```
 
-If the client requires `npx`, configure the `@telerik` registry and authentication
-before starting the client:
+If the client requires `npx` and you prefer not to install the package locally:
 
 ```json
 {
   "mcpServers": {
     "keylens": {
       "command": "npx",
-      "args": ["-y", "@telerik/keylens@dev", "mcp"]
+      "args": ["-y", "-p", "@telerik/keylens", "keylens-mcp"]
     }
   }
 }
 ```
-
-Do not place API keys directly in a checked-in MCP configuration.
 
 ## Tools
 
@@ -66,6 +66,7 @@ The audit tool accepts:
 | `dismissSelectors` | array of strings — extra selectors to click before the crawl |
 | `reporters`        | array of `cli`, `json`, `html`, `markdown`                   |
 | `outputDir`        | string                                                       |
+| `outputFileName`   | string                                                       |
 
 By default, the prepare phase auto-dismisses known cookie/consent banners (built-in
 CMP presets + a generic heuristic fallback) before the crawl, preferring the reject
@@ -98,8 +99,9 @@ large fields. File reporters contain their normal output.
 
 ## Environment variables
 
-| Variable                                                                 | Purpose               |
-| ------------------------------------------------------------------------ | --------------------- |
-| `KEYLENS_BROWSER`                                                        | MCP default browser   |
-| `KEYLENS_MAX_TABS`                                                       | MCP default Tab limit |
-| Use the normal config or CLI for options not exposed by the MCP adapter. |
+| Variable           | Purpose               |
+| ------------------ | --------------------- |
+| `KEYLENS_BROWSER`  | MCP default browser   |
+| `KEYLENS_MAX_TABS` | MCP default Tab limit |
+
+Use the normal config or CLI for options not exposed by the MCP adapter.
