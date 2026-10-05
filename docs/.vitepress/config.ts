@@ -157,8 +157,8 @@ export default defineConfig({
             link: "https://github.com/telerik/keylens/blob/develop/src/telemetry/README.md",
           },
           {
-            text: "Changelog",
-            link: "https://github.com/telerik/keylens/blob/develop/CHANGELOG.md",
+            text: "Releases",
+            link: "https://github.com/telerik/keylens/releases",
           },
         ],
       },
