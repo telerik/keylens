@@ -10,6 +10,7 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   ci:
@@ -26,6 +27,7 @@ jobs:
       issues: write
       pull-requests: write
       id-token: write
+      packages: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -39,6 +41,8 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - run: npm run build
         env:
