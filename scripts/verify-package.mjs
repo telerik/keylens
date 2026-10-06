@@ -83,7 +83,7 @@ try {
   const tarball = join(temporaryRoot, manifest.filename);
   const consumer = join(temporaryRoot, "consumer");
   const consumerNodeModules = join(consumer, "node_modules");
-  const installedPackage = join(consumerNodeModules, "@telerik", "keylens");
+  const installedPackage = join(consumerNodeModules, "@progress", "keylens");
   await mkdir(consumer, { recursive: true });
   await writeFile(
     join(consumer, "package.json"),
