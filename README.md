@@ -4,8 +4,8 @@
 
 **Press Tab. Record what actually happens.**
 
-[![npm version](https://img.shields.io/npm/v/@telerik/keylens.svg)](https://www.npmjs.com/package/@telerik/keylens)
-[![npm downloads](https://img.shields.io/npm/dm/@telerik/keylens.svg)](https://www.npmjs.com/package/@telerik/keylens)
+[![npm version](https://img.shields.io/npm/v/@progress/keylens.svg)](https://www.npmjs.com/package/@progress/keylens)
+[![npm downloads](https://img.shields.io/npm/dm/@progress/keylens.svg)](https://www.npmjs.com/package/@progress/keylens)
 [![CI](https://github.com/telerik/keylens/actions/workflows/ci.yml/badge.svg)](https://github.com/telerik/keylens/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
@@ -53,7 +53,7 @@ Keylens is distributed through the public npm registry. Node.js 20 or later is
 required.
 
 ```bash
-npm install --save-dev @telerik/keylens
+npm install --save-dev @progress/keylens
 npx playwright install chromium
 ```
 
@@ -118,7 +118,7 @@ Programmatic analysis is silent and in-memory by default. It does not print repo
 write files unless a renderer is called explicitly.
 
 ```ts
-import { audit, renderAuditReport } from "@telerik/keylens";
+import { audit, renderAuditReport } from "@progress/keylens";
 
 const controller = new AbortController();
 const report = await audit("https://example.com", {
@@ -138,11 +138,11 @@ await renderAuditReport(report, ["json"], "./keylens-report");
 
 Use `audit()` for deterministic analysis and `renderAuditReport()` for output.
 
-The browser-safe `@telerik/keylens/guidance` subpath exposes rule remediation and WCAG
+The browser-safe `@progress/keylens/guidance` subpath exposes rule remediation and WCAG
 references without importing Playwright:
 
 ```ts
-import { getRuleRemediation } from "@telerik/keylens/guidance";
+import { getRuleRemediation } from "@progress/keylens/guidance";
 ```
 
 ## Page screenshots and interactions
@@ -178,7 +178,7 @@ could not be evaluated; do not compare that score as if it covered all enabled r
 
 ## MCP distribution
 
-The `@telerik/keylens/mcp` subpath and `keylens-mcp` binary expose the deterministic
+The `@progress/keylens/mcp` subpath and `keylens-mcp` binary expose the deterministic
 single-page audit and rule guidance tools over stdio. Review [MCP](docs/guide/mcp.md)
 before use.
 

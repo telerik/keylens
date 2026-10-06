@@ -149,7 +149,7 @@ import {
   renderHTML,
   renderMarkdown,
   serializeJSON,
-} from "@telerik/keylens";
+} from "@progress/keylens";
 
 const report = await audit("https://example.com");
 

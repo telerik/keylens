@@ -24,7 +24,7 @@ Browser behavior and screenshots can differ by engine, operating system, fonts, 
 scale, and headless/headed mode. Pin Node, dependencies, browser binaries, and runner
 images for reproducible CI.
 
-The `@telerik/keylens/guidance` subpath is browser-safe. The root package, CLI, and MCP
+The `@progress/keylens/guidance` subpath is browser-safe. The root package, CLI, and MCP
 server require Node.js and must not be bundled for browser execution.
 
 ## Compatibility

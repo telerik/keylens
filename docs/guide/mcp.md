@@ -1,7 +1,7 @@
 # MCP server
 
 The Model Context Protocol server uses stdio and is exposed as a separate executable
-`keylens-mcp` from the main `@telerik/keylens` package. It writes protocol data only to stdout.
+`keylens-mcp` from the main `@progress/keylens` package. It writes protocol data only to stdout.
 
 ## Installation
 
@@ -9,7 +9,7 @@ Install Keylens and Chromium first. Prefer a project or global installation over
 asking an agent to download an unpinned package on every run.
 
 ```bash
-npm install @telerik/keylens
+npm install @progress/keylens
 ```
 
 Then configure your MCP client to start the server:
@@ -31,7 +31,7 @@ If the client requires `npx` and you prefer not to install the package locally:
   "mcpServers": {
     "keylens": {
       "command": "npx",
-      "args": ["-y", "-p", "@telerik/keylens", "keylens-mcp"]
+      "args": ["-y", "-p", "@progress/keylens", "keylens-mcp"]
     }
   }
 }
