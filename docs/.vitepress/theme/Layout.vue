@@ -4,7 +4,7 @@ import DefaultTheme from "vitepress/theme";
 
 const { Layout } = DefaultTheme;
 const { page } = useData();
-const installCommand = "npm install -D @telerik/keylens";
+const installCommand = "npm install -D @progress/keylens";
 
 function updateHeroKeyShadow(event: PointerEvent) {
   const key = event.currentTarget as HTMLElement;

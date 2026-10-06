@@ -109,15 +109,15 @@ try {
   await writeFile(
     join(consumer, "consumer.mjs"),
     `
-      import { AUDIT_REPORT_SCHEMA_VERSION, audit } from "@telerik/keylens";
-      import { getRuleRemediation } from "@telerik/keylens/guidance";
+      import { AUDIT_REPORT_SCHEMA_VERSION, audit } from "@progress/keylens";
+      import { getRuleRemediation } from "@progress/keylens/guidance";
       if (typeof audit !== "function" || !AUDIT_REPORT_SCHEMA_VERSION) {
         throw new Error("Root package exports are unavailable");
       }
       if (!getRuleRemediation("keyboard-trap")) {
         throw new Error("Guidance subpath is unavailable");
       }
-      import.meta.resolve("@telerik/keylens/mcp");
+      import.meta.resolve("@progress/keylens/mcp");
     `,
   );
   run(process.execPath, ["consumer.mjs"], { cwd: consumer });
@@ -130,8 +130,8 @@ try {
         type AuditEvent,
         type AuditReport,
         type KeylensConfigInput,
-      } from "@telerik/keylens";
-      import { getWcagReference } from "@telerik/keylens/guidance";
+      } from "@progress/keylens";
+      import { getWcagReference } from "@progress/keylens/guidance";
       const config: KeylensConfigInput = { profile: "fast" };
       const callback = (event: AuditEvent): void => void event.type;
       const operation: Promise<AuditReport> = audit("https://example.com", {
@@ -242,7 +242,7 @@ try {
     }
     const shimTarget = await realpath(binShim);
     const expectedTarget = await realpath(
-      join(binConsumer, "node_modules/@telerik/keylens", binary.target),
+      join(binConsumer, "node_modules/@progress/keylens", binary.target),
     );
     if (shimTarget !== expectedTarget) {
       throw new Error(`${binary.name} npm shim resolves to the wrong target`);

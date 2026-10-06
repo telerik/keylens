@@ -14,7 +14,7 @@ Keylens is distributed from the public npm registry.
 ## Install
 
 ```bash
-npm install --save-dev @telerik/keylens
+npm install --save-dev @progress/keylens
 npx playwright install chromium
 ```
 

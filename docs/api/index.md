@@ -1,6 +1,6 @@
 # Programmatic API
 
-The root `@telerik/keylens` export is ESM-only and requires Node.js 20 or later.
+The root `@progress/keylens` export is ESM-only and requires Node.js 20 or later.
 Programmatic analysis is silent and in-memory by default: reporter settings may be
 retained in `report.config`, but no terminal output or files are produced until a
 renderer is called.
@@ -9,14 +9,14 @@ Install the package and the browser required by your selected Playwright engine 
 calling `audit()`:
 
 ```bash
-npm install @telerik/keylens
+npm install @progress/keylens
 npx playwright install chromium
 ```
 
 ## Deterministic analysis
 
 ```ts
-import { audit } from "@telerik/keylens";
+import { audit } from "@progress/keylens";
 
 const report = await audit("https://example.com", {
   profile: "balanced",
@@ -55,7 +55,7 @@ import {
   renderHTML,
   renderMarkdown,
   serializeJSON,
-} from "@telerik/keylens";
+} from "@progress/keylens";
 
 await renderAuditReport(report, ["json", "html"], "./keylens-report", {
   timeout: 15_000,
@@ -87,7 +87,7 @@ Captured images are `AuditAsset` entries referenced by IDs from the report. Choo
 asset projection deliberately:
 
 ```ts
-import { projectAuditReport } from "@telerik/keylens";
+import { projectAuditReport } from "@progress/keylens";
 
 const semantic = projectAuditReport(report, { assets: "omit" });
 const selfContained = projectAuditReport(report, { assets: "inline" });
@@ -110,7 +110,7 @@ the projection.
 ## Cancellation, deadlines, and progress
 
 ```ts
-import { audit, KeylensError } from "@telerik/keylens";
+import { audit, KeylensError } from "@progress/keylens";
 
 const controller = new AbortController();
 
@@ -167,7 +167,7 @@ Every `AuditReport` includes:
 
 ## Browser-safe guidance
 
-The `@telerik/keylens/guidance` subpath does not import Playwright and is suitable for
+The `@progress/keylens/guidance` subpath does not import Playwright and is suitable for
 browser bundles:
 
 ```ts
@@ -175,10 +175,10 @@ import {
   getRuleCatalog,
   getRuleRemediation,
   getWcagReference,
-} from "@telerik/keylens/guidance";
+} from "@progress/keylens/guidance";
 ```
 
-The `@telerik/keylens/mcp` subpath starts the optional stdio MCP server as a side
+The `@progress/keylens/mcp` subpath starts the optional stdio MCP server as a side
 effect; configure an MCP client to run the `keylens-mcp` executable using the
 [MCP integration instructions](../guide/mcp) instead of importing it as a general
 library module.
