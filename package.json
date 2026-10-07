@@ -1,6 +1,6 @@
 {
   "name": "@progress/keylens",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Real-browser keyboard navigation testing for the CLI, CI, and programmatic audits.",
   "keywords": [
     "accessibility",
