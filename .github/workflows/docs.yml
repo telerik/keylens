@@ -30,15 +30,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: npm ci --no-audit --no-fund
       - run: npm run docs:build
-        env:
-          # Internal/private repos serve Pages from a randomized
-          # <slug>.pages.github.io domain root, not <org>.github.io/<repo>/,
-          # so the site must be built with a root base path for those. Once
-          # this repo turns public, Pages serves from
-          # <org>.github.io/<repo>/, so the base path must include the repo
-          # name — this expression switches automatically, no manual edit
-          # needed at the visibility flip.
-          DOCS_BASE: ${{ github.event.repository.visibility == 'public' && '/keylens/' || '/' }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
