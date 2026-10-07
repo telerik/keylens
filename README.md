@@ -5,8 +5,9 @@
 **Press Tab. Record what actually happens.**
 
 [![npm version](https://img.shields.io/npm/v/@progress/keylens.svg)](https://www.npmjs.com/package/@progress/keylens)
-[![npm downloads](https://img.shields.io/npm/dm/@progress/keylens.svg)](https://www.npmjs.com/package/@progress/keylens)
-[![CI](https://github.com/telerik/keylens/actions/workflows/ci.yml/badge.svg)](https://github.com/telerik/keylens/actions/workflows/ci.yml)
+[![CI](https://github.com/telerik/keylens/actions/workflows/publish.yml/badge.svg?branch=master)](https://github.com/telerik/keylens/actions/workflows/publish.yml?query=branch%3Amaster)
+[![node](https://img.shields.io/node/v/@progress/keylens.svg)](https://www.npmjs.com/package/@progress/keylens)
+[![WCAG 2.2](https://img.shields.io/badge/WCAG-2.2-green.svg)](https://www.w3.org/TR/WCAG22/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 Static accessibility tools tell you whether markup _could_ work. Keylens launches a
