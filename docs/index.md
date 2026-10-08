@@ -19,7 +19,7 @@ features:
     details: Launch Chromium, Firefox, or WebKit; press Tab; and record focus order, unreachable controls, traps, overlays, and skip-link behavior.
   - icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vp-c-brand-1)"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg>'
     title: Bounded visual capture
-    details: Capture a page for HTML focus maps or opt into bounded focused/unfocused pairs for focus-indicator comparison.
+    details: Capture a page for HTML focus maps. Focus-indicator checks automatically confirm ambiguous elements with a bounded focused/unfocused pixel comparison.
   - icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vp-c-brand-1)"><path d="M20 11a8 8 0 0 0-14.93-3.5"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.93 3.5"/><path d="M20 20v-4h-4"/></svg>'
     title: Deterministic CI contracts
     details: Stable exit codes distinguish accessibility failures from incomplete audits. JSON includes rule, coverage, capture, interaction, and score-completeness details.
@@ -63,7 +63,10 @@ report while fixing a page, then switch to JSON for a repeatable CI contract.
   </div>
   <div>
     <h3>Automate the result</h3>
-    <CopyCommand command="keylens audit --reporter json" label="CI command" />
+    <CopyCommand
+      command="npx keylens audit https://example.com --output json"
+      label="CI command"
+    />
     <a href="./guide/ci-cd">Set up CI/CD →</a>
   </div>
 </div>
