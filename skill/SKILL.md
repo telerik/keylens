@@ -17,7 +17,7 @@ metadata:
 1. Check if keylens is installed:
 
    ```bash
-   npx keylens --version
+   npx @progress/keylens --version
    ```
 
    If it is not installed, explain that Keylens is installed from the public npm
@@ -26,7 +26,7 @@ metadata:
 2. Run a basic audit:
 
    ```bash
-   npx keylens audit <URL> --output cli,json --output-dir ./keylens-report --no-timestamp
+   npx @progress/keylens audit <URL> --output cli,json --output-dir ./keylens-report --no-timestamp
    ```
 
    `--no-timestamp` keeps the file name stable (`keylens-report.json`) for scripting;
@@ -42,7 +42,7 @@ metadata:
 ### Thorough deterministic audit
 
 ```bash
-npx keylens audit <URL> --profile thorough --output cli,json,html
+npx @progress/keylens audit <URL> --profile thorough --output cli,json,html
 ```
 
 Execution profiles do not remove capture, interaction, or timeout budgets.
@@ -50,25 +50,25 @@ Execution profiles do not remove capture, interaction, or timeout budgets.
 ### Audit with interaction testing
 
 ```bash
-npx keylens audit <URL> --interactions --output cli,json
+npx @progress/keylens audit <URL> --interactions --output cli,json
 ```
 
 ### Audit from config file
 
 ```bash
-npx keylens audit --config keylens.config.json --output cli,json,html
+npx @progress/keylens audit --config keylens.config.json --output cli,json,html
 ```
 
 ### Mobile viewport
 
 ```bash
-npx keylens audit <URL> --viewport 375x667
+npx @progress/keylens audit <URL> --viewport 375x667
 ```
 
 ### Markdown report for LLM piping
 
 ```bash
-npx keylens audit <URL> --output markdown --output-dir ./keylens-report --no-timestamp
+npx @progress/keylens audit <URL> --output markdown --output-dir ./keylens-report --no-timestamp
 cat ./keylens-report/keylens-report.md
 ```
 

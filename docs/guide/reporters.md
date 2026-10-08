@@ -5,7 +5,7 @@ reporters turn that report into a format for a person, a CI system, or another t
 Select one or more reporters with `--output`:
 
 ```bash
-npx keylens audit https://example.com --output cli,json
+npx @progress/keylens audit https://example.com --output cli,json
 ```
 
 ## Choose a reporter
@@ -60,7 +60,7 @@ by default so the focus map has a page image to annotate. Use `--page-screenshot
 when a visual page capture is not needed.
 
 ```bash
-npx keylens audit https://example.com \
+npx @progress/keylens audit https://example.com \
   --output html \
   --page-screenshot full
 ```
@@ -122,7 +122,7 @@ keylens-report-2026-01-15T09-30-00.md
 Use these options to control the files:
 
 ```bash
-npx keylens audit https://example.com \
+npx @progress/keylens audit https://example.com \
   --output json,html \
   --output-dir ./artifacts/keylens \
   --output-name homepage-audit \

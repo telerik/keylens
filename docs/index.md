@@ -56,7 +56,7 @@ report while fixing a page, then switch to JSON for a repeatable CI contract.
   <div>
     <h3>Run an audit</h3>
     <CopyCommand
-      command="npx keylens audit https://example.com"
+      command="npx @progress/keylens audit https://example.com"
       label="audit command"
     />
     <a href="./guide/cli">Explore the CLI reference →</a>
@@ -64,7 +64,7 @@ report while fixing a page, then switch to JSON for a repeatable CI contract.
   <div>
     <h3>Automate the result</h3>
     <CopyCommand
-      command="npx keylens audit https://example.com --output json"
+      command="npx @progress/keylens audit https://example.com --output json"
       label="CI command"
     />
     <a href="./guide/ci-cd">Set up CI/CD →</a>

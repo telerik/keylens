@@ -50,7 +50,7 @@ body:
       description: |
         Minimal steps to reproduce the issue. Include the URL if possible.
       value: |
-        1. Run `npx keylens audit <url>`
+        1. Run `npx @progress/keylens audit <url>`
         2. ...
         3. See error
     validations:

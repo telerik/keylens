@@ -22,10 +22,14 @@ The second command downloads the Chromium browser used by the default audit. If 
 plan to use `--browser firefox` or `--browser webkit`, install that Playwright browser
 instead.
 
+Without installing, run Keylens with the full package name, `npx @progress/keylens`. After
+the local install, `npx keylens` also works because npx uses the project's binary. The
+bare `keylens` name on npm is a placeholder that only prints a warning.
+
 ## Run the first audit
 
 ```bash
-npx keylens audit https://example.com
+npx @progress/keylens audit https://example.com
 ```
 
 By default, Keylens:
@@ -49,7 +53,7 @@ for the full behavior.
 ## Save reports
 
 ```bash
-npx keylens audit https://example.com \
+npx @progress/keylens audit https://example.com \
   --output cli,json,html,markdown \
   --output-dir ./keylens-report
 ```
@@ -62,8 +66,8 @@ JSON omits binary assets. See [CLI reference](./cli) for filenames and exit code
 Use the initializer instead of creating the full configuration shape by hand:
 
 ```bash
-npx keylens init
-npx keylens audit --config keylens.config.json
+npx @progress/keylens init
+npx @progress/keylens audit --config keylens.config.json
 ```
 
 Review the generated file before committing it. Add the URL, choose reporters, and
@@ -74,7 +78,7 @@ precedence rules.
 ## Audit an SPA
 
 ```bash
-npx keylens audit https://example.com/app \
+npx @progress/keylens audit https://example.com/app \
   --wait-for "[data-app-ready]" \
   --wait 1500
 ```
@@ -93,7 +97,7 @@ have loaded. Audit significant routes and states separately.
 ```
 
 ```bash
-npx keylens audit --config keylens.config.json
+npx @progress/keylens audit --config keylens.config.json
 ```
 
 A CLI URL argument takes precedence over the config file's `url`.

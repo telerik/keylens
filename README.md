@@ -58,10 +58,14 @@ npm install --save-dev @progress/keylens
 npx playwright install chromium
 ```
 
+Without installing, run Keylens with the full package name, `npx @progress/keylens`. After
+the local install, `npx keylens` also works because npx uses the project's binary. The
+bare `keylens` name on npm is a placeholder that only prints a warning.
+
 ## Run an audit
 
 ```bash
-npx keylens audit https://example.com
+npx @progress/keylens audit https://example.com
 ```
 
 ```text
@@ -88,13 +92,13 @@ report.
 
 ```bash
 # CI-oriented JSON
-npx keylens audit https://example.com --output cli,json
+npx @progress/keylens audit https://example.com --output cli,json
 
 # HTML focus map (implicitly requests a full-page capture)
-npx keylens audit https://example.com --output html
+npx @progress/keylens audit https://example.com --output html
 
 # Exhaustive within explicit enforced budgets
-npx keylens audit https://example.com --profile thorough \
+npx @progress/keylens audit https://example.com --profile thorough \
   --interactions --output cli,json,html,markdown \
   --config keylens.config.json
 ```
