@@ -1,0 +1,35 @@
+{
+  "name": "keylens",
+  "version": "0.0.1",
+  "description": "Placeholder. The Keylens keyboard navigation testing CLI is published as @progress/keylens.",
+  "keywords": [
+    "accessibility",
+    "a11y",
+    "keyboard",
+    "keylens"
+  ],
+  "homepage": "https://github.com/telerik/keylens#readme",
+  "bugs": {
+    "url": "https://github.com/telerik/keylens/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telerik/keylens.git",
+    "directory": "shim"
+  },
+  "license": "Apache-2.0",
+  "author": "Progress Software Corporation",
+  "bin": {
+    "keylens": "./bin/keylens.js"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "provenance": true
+  }
+}
