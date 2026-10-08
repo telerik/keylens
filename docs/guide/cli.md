@@ -53,7 +53,7 @@ confirms candidates whose visual change is not visible in style data. No screens
 flag is required for either check.
 
 ```bash
-npx keylens audit https://example.com \
+npx @progress/keylens audit https://example.com \
   --page-screenshot viewport --output cli,json
 ```
 
@@ -80,7 +80,7 @@ cookie/consent banners so they don't dominate the recorded focus sequence. Built
 presets cover common CMPs (OneTrust, Cookiebot, Usercentrics, Didomi, TrustArc,
 Quantcast, Osano, CookieYes, Termly, Klaro, Complianz, Iubenda, HubSpot, Sourcepoint,
 Axeptio); a generic heuristic handles the rest. This is **on by default** — no flags
-required for `npx keylens audit https://example.com` to work cleanly against a
+required for `npx @progress/keylens audit https://example.com` to work cleanly against a
 banner-heavy site.
 
 - `--consent reject|accept|close` picks which action is preferred when a banner offers

@@ -64,16 +64,16 @@ A CLI tool that uses Playwright under the hood to:
 
 ```bash
 # Basic scan
-npx keylens audit https://example.com
+npx @progress/keylens audit https://example.com
 
 # With options
-npx keylens audit https://example.com \
+npx @progress/keylens audit https://example.com \
   --output html \
   --interactions \
   --wait-for "#app-loaded"
 
 # Config file
-npx keylens audit --config keylens.config.json
+npx @progress/keylens audit --config keylens.config.json
 ```
 
 See [Getting started](guide/getting-started.md) and [CLI reference](guide/cli.md) for

@@ -44,7 +44,7 @@ jobs:
       - run: npx wait-on http://127.0.0.1:3000
       - name: Audit keyboard navigation
         run: >-
-          npx keylens audit http://127.0.0.1:3000
+          npx @progress/keylens audit http://127.0.0.1:3000
           --profile balanced
           --output cli,json
           --output-dir ./keylens-report

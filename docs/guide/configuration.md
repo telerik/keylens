@@ -3,7 +3,7 @@
 Generate a starter file:
 
 ```bash
-npx keylens init
+npx @progress/keylens init
 ```
 
 Config is strict JSON. Unknown keys, invalid URLs, and out-of-range values fail before

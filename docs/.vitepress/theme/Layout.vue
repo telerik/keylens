@@ -86,11 +86,13 @@ function resetHeroKeyShadow(event: PointerEvent) {
                   <span class="dot dot-red"></span>
                   <span class="dot dot-yellow"></span>
                   <span class="dot dot-green"></span>
-                  <span class="keylens-window-title">keylens audit</span>
+                  <span class="keylens-window-title"
+                    >npx @progress/keylens audit</span
+                  >
                 </div>
                 <pre
                   class="keylens-terminal-body"
-                ><code><span class="t-prompt">$ </span><span class="t-cmd">keylens audit</span> ./sample-interface
+                ><code><span class="t-prompt">$ </span><span class="t-cmd">npx @progress/keylens audit sample-interface-url</span>
 <span class="t-dim">Crawling tab order in a real browser…</span>
 
 <span class="t-ok">✓</span> keyboard-trap
