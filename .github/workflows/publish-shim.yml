@@ -49,7 +49,8 @@ jobs:
 
       - name: Verify npm credentials
         working-directory: shim
-        run: npm whoami
+        # Output suppressed: logs are public and would reveal the token owner.
+        run: npm whoami > /dev/null && echo "npm credentials OK"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
