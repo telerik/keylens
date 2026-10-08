@@ -1,0 +1,72 @@
+name: Publish keylens shim (one-off)
+
+# One-off: publishes the placeholder `keylens` package (./shim) to public npm
+# so `npx keylens` doesn't resolve to something else.
+# Manual trigger only. Delete this workflow after the first successful publish.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Validate only; do not publish to npm. Untick to publish for real (irreversible)."
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish shim
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    # Holds NPM_TOKEN; restricted to protected branches.
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: 26
+          registry-url: https://registry.npmjs.org
+
+      - name: Smoke test shim
+        working-directory: shim
+        run: |
+          set +e
+          node bin/keylens.js
+          test $? -eq 1
+
+      - name: Verify package contents
+        working-directory: shim
+        run: npm pack --dry-run
+
+      - name: Verify npm credentials
+        working-directory: shim
+        # Output suppressed: logs are public and would reveal the token owner.
+        run: npm whoami > /dev/null && echo "npm credentials OK"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+
+      - name: Publish (dry run)
+        if: ${{ inputs.dry_run }}
+        working-directory: shim
+        run: npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+
+      - name: Publish
+        if: ${{ !inputs.dry_run }}
+        working-directory: shim
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
