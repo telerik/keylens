@@ -55,9 +55,16 @@ export class FocusOrderMismatchRule implements Rule {
     );
 
     // Only elements we have a DOM-order reference for can be compared.
-    const comparable = focusSequence.filter((el) =>
-      domIndexBySelector.has(el.selector),
-    );
+    // Repeated stops on the same element (e.g. a keyboard trap) are collapsed
+    // to the first occurrence so they don't skew the ranking.
+    const seen = new Set<string>();
+    const comparable = focusSequence.filter((el) => {
+      if (!domIndexBySelector.has(el.selector) || seen.has(el.selector)) {
+        return false;
+      }
+      seen.add(el.selector);
+      return true;
+    });
 
     if (comparable.length < 2) {
       return {

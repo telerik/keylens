@@ -738,6 +738,7 @@ async function crawlTabOrder(
   const focusSequence: FocusedElement[] = [];
   let cycleCompleted = false;
   let firstSelector: string | null = null;
+  let focusLeftSinceLastStop = false;
   const tabDelay = config.tabDelay;
 
   await resetSequentialFocus(page, tabDelay);
@@ -780,6 +781,7 @@ async function crawlTabOrder(
 
     if (!elementInfo) {
       // Focus is on body or document — may indicate end of cycle
+      focusLeftSinceLastStop = true;
       emitCrawlProgress(
         onEvent,
         eventStartedAt,
@@ -791,10 +793,17 @@ async function crawlTabOrder(
       continue;
     }
 
-    // Check if we've cycled back to the first element
+    // Check if we've cycled back to the first element. An immediate repeat of
+    // the element that already holds focus is a trap, not a completed cycle.
+    const previousElement = focusSequence[focusSequence.length - 1];
+    const repeatsPreviousStop =
+      previousElement !== undefined &&
+      previousElement.selector === elementInfo.selector &&
+      !focusLeftSinceLastStop;
+    focusLeftSinceLastStop = false;
     if (firstSelector === null) {
       firstSelector = elementInfo.selector;
-    } else if (elementInfo.selector === firstSelector) {
+    } else if (elementInfo.selector === firstSelector && !repeatsPreviousStop) {
       cycleCompleted = true;
       emitCrawlProgress(
         onEvent,
