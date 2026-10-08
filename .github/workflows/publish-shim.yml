@@ -6,6 +6,12 @@ name: Publish keylens shim (one-off)
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Validate only; do not publish to npm. Untick to publish for real (irreversible)."
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -41,7 +47,23 @@ jobs:
         working-directory: shim
         run: npm pack --dry-run
 
+      - name: Verify npm credentials
+        working-directory: shim
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+
+      - name: Publish (dry run)
+        if: ${{ inputs.dry_run }}
+        working-directory: shim
+        run: npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+
       - name: Publish
+        if: ${{ !inputs.dry_run }}
         working-directory: shim
         run: npm publish
         env:
