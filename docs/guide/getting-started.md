@@ -6,7 +6,7 @@ actually happens.
 
 ## Requirements
 
-- Node.js 20 or later
+- Node.js 22 or later
 - A Playwright-supported operating system
 
 Keylens is distributed from the public npm registry.

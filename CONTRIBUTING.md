@@ -4,7 +4,7 @@
 
 These guidelines exist to make your contribution experience smooth and to streamline the process of getting changes triaged, merged and released. Any contribution helps, even an issue report or a documentation fix.
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+By participating in this project, you agree to abide by our [Code of Conduct](https://github.com/telerik/keylens/blob/develop/CODE_OF_CONDUCT.md).
 
 ## Reporting Bugs
 

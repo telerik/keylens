@@ -1,6 +1,6 @@
 # Programmatic API
 
-The root `@progress/keylens` export is ESM-only and requires Node.js 20 or later.
+The root `@progress/keylens` export is ESM-only and requires Node.js 22 or later.
 Programmatic analysis is silent and in-memory by default: reporter settings may be
 retained in `report.config`, but no terminal output or files are produced until a
 renderer is called.

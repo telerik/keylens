@@ -14,9 +14,9 @@ Static accessibility tools tell you whether markup _could_ work. Keylens launche
 real Playwright browser, presses Tab, and records the keyboard path users actually get.
 
 [Documentation](https://telerik.github.io/keylens/) ·
-[Getting started](docs/guide/getting-started.md) ·
-[Rules](docs/rules/index.md) · [API](docs/api/index.md) ·
-[Contributing](CONTRIBUTING.md)
+[Getting started](https://telerik.github.io/keylens/guide/getting-started) ·
+[Rules](https://telerik.github.io/keylens/rules/) · [API](https://telerik.github.io/keylens/api/) ·
+[Contributing](https://github.com/telerik/keylens/blob/develop/CONTRIBUTING.md)
 
 </div>
 
@@ -42,7 +42,7 @@ and explicit rendering.
 Before the crawl starts, a bounded prepare phase auto-dismisses cookie/consent banners
 (built-in presets for major CMPs, plus a generic fallback), so audits of real sites
 aren't dominated by banner noise. Disable with `--keep-overlays`; see
-[Configuration](./docs/guide/configuration.md#prepare).
+[Configuration](https://telerik.github.io/keylens/guide/configuration#prepare).
 
 > [!IMPORTANT]
 > Keylens is available as a stable package from the public npm registry.
@@ -50,7 +50,7 @@ aren't dominated by banner noise. Disable with `--keep-overlays`; see
 
 ## Install
 
-Keylens is distributed through the public npm registry. Node.js 20 or later is
+Keylens is distributed through the public npm registry. Node.js 22 or later is
 required.
 
 ```bash
@@ -101,7 +101,7 @@ npx keylens audit https://example.com --profile thorough \
 
 For the last command, set capture, interaction, and timeout budgets in the config.
 “Thorough” increases crawl timing and `maxTabs`; it does not remove resource limits.
-See [Configuration](docs/guide/configuration.md).
+See [Configuration](https://telerik.github.io/keylens/guide/configuration).
 
 ## Exit codes
 
@@ -157,7 +157,7 @@ import { getRuleRemediation } from "@progress/keylens/guidance";
   Inspect `interactionResults` in the in-memory report or JSON projection for every
   passed, failed, skipped, and errored case.
 
-See [Known limitations](docs/guide/limitations.md) before treating results as complete
+See [Known limitations](https://telerik.github.io/keylens/guide/limitations) before treating results as complete
 accessibility conformance evidence.
 
 ## Reports
@@ -180,7 +180,7 @@ could not be evaluated; do not compare that score as if it covered all enabled r
 ## MCP distribution
 
 The `@progress/keylens/mcp` subpath and `keylens-mcp` binary expose the deterministic
-single-page audit and rule guidance tools over stdio. Review [MCP](docs/guide/mcp.md)
+single-page audit and rule guidance tools over stdio. Review [MCP](https://telerik.github.io/keylens/guide/mcp)
 before use.
 
 ## Telemetry
@@ -192,7 +192,7 @@ selectors, accessible names, screenshots, reports, or IP addresses are ever
 collected. Telemetry is enabled by default, and a one-time notice is always
 shown before anything is collected. Opt out anytime with `KEYLENS_TELEMETRY_OFF=1`
 or `TELERIK_TELEMETRY_OFF=1`. See
-[src/telemetry/README.md](src/telemetry/README.md) for the full data-collection
+[src/telemetry/README.md](https://github.com/telerik/keylens/blob/develop/src/telemetry/README.md) for the full data-collection
 policy.
 
 ## Support and security

@@ -13,7 +13,7 @@ do not carry compatibility guarantees.
 
 | Surface           | Supported                                                                             |
 | ----------------- | ------------------------------------------------------------------------------------- |
-| Node.js           | 20 and later                                                                          |
+| Node.js           | 22 and later                                                                          |
 | Module system     | ESM                                                                                   |
 | Browser engines   | Chromium, Firefox, and WebKit revisions installed by the package's Playwright version |
 | Browser mode      | Headless and headed                                                                   |

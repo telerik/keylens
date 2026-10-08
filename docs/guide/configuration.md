@@ -243,7 +243,7 @@ Every dismissal attempt is reported: `crawl.prepare.dismissals` (provider, actio
 selector, whether the container was verified hidden) and `crawl.prepare.warnings` for
 anything that didn't succeed. A detected faux-scroll container is reported via
 `crawl.prepare.scrollContainerExpanded` (selector, original and expanded height). See
-[CLI reference](./cli#cookieconsent-banners) for the matching `--keep-overlays` /
+[CLI reference](./cli#cookie-consent-banners) for the matching `--keep-overlays` /
 `--dismiss` / `--consent` / `--no-expand-scroll-containers` flags.
 
 ## Exhaustive audit within budgets

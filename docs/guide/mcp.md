@@ -10,21 +10,30 @@ asking an agent to download an unpinned package on every run.
 
 ```bash
 npm install @progress/keylens
+npx playwright install chromium
 ```
 
-Then configure your MCP client to start the server:
+A local install does not put `keylens-mcp` on your MCP client's `PATH`, so a bare
+`"command": "keylens-mcp"` fails with `ENOENT`. Run the project-local binary through
+`npx` (set `cwd` if your client does not start in the project root):
 
 ```json
 {
   "mcpServers": {
     "keylens": {
-      "command": "keylens-mcp"
+      "command": "npx",
+      "args": ["--no-install", "keylens-mcp"]
     }
   }
 }
 ```
 
-If the client requires `npx` and you prefer not to install the package locally:
+Alternatively, use the absolute path to the installed binary, e.g.
+`/path/to/project/node_modules/.bin/keylens-mcp`. After a global install
+(`npm install -g @progress/keylens`), `"command": "keylens-mcp"` works as-is.
+
+If you prefer not to install the package locally (Chromium must still be installed
+with `npx playwright install chromium`):
 
 ```json
 {

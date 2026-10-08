@@ -19,6 +19,28 @@ The skill gives compatible coding agents a compact workflow for:
 - applying rule-specific remediation patterns;
 - rerunning the deterministic audit after changes.
 
+## Install the skill
+
+The skill ships inside the npm package, so after `npm install @progress/keylens` it is
+available at `node_modules/@progress/keylens/skill/`. Agents do not look there; copy
+the whole folder (including `references/`) into a location the agent scans for skills,
+naming the target folder `keylens` to match the `name` in `SKILL.md`:
+
+```bash
+# Project-level (shared with the repo)
+mkdir -p .github/skills
+cp -R node_modules/@progress/keylens/skill .github/skills/keylens
+
+# Or user-level (all projects)
+mkdir -p ~/.copilot/skills
+cp -R node_modules/@progress/keylens/skill ~/.copilot/skills/keylens
+```
+
+Common discovery locations are `.github/skills/<name>/`, `.claude/skills/<name>/`, and
+`.agents/skills/<name>/` in a project, and `~/.copilot/skills/`, `~/.claude/skills/`, or
+`~/.agents/skills/` per user. Check your agent's documentation for the exact paths it
+supports, and re-copy after upgrading Keylens to pick up skill changes.
+
 ## Use safely
 
 Before asking an agent to audit:
