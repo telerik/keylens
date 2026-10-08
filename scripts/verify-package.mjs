@@ -186,6 +186,15 @@ try {
 
   const packedManifestPath = join(installedPackage, "package.json");
   const packedManifest = JSON.parse(await readFile(packedManifestPath, "utf8"));
+  const placeholderVersion = "0.0.0-semantically-released";
+  if (
+    packedManifest.version !== placeholderVersion &&
+    version !== packedManifest.version
+  ) {
+    throw new Error(
+      `Packed CLI reports version ${version} but package.json is ${packedManifest.version}; build after the release version is set`,
+    );
+  }
   if (packedManifest.license !== "Apache-2.0") {
     throw new Error("Packed package must declare the Apache-2.0 license");
   }

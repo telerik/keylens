@@ -12,6 +12,12 @@
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
     [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "npm run prepublishOnly && node scripts/verify-package.mjs"
+      }
+    ],
+    [
       "@semantic-release/github",
       {
         "successComment": false,
