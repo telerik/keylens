@@ -218,4 +218,21 @@ describe("FocusOrderMismatchRule", () => {
     expect(result.passed).toBe(true);
     expect(result.violations).toHaveLength(0);
   });
+
+  it("should ignore repeated stops on the same element (keyboard trap)", async () => {
+    const selectors = ["#a", "#b", "#c", "#d", "#e"];
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: selectors.map((selector) =>
+          makeInteractiveElement({ selector }),
+        ),
+        focusSequence: [
+          ...Array.from({ length: 8 }, (_, i) =>
+            makeFocusedElement({ tabIndex: i + 1, selector: "#a" }),
+          ),
+        ],
+      }),
+    );
+    expect(result.passed).toBe(true);
+  });
 });

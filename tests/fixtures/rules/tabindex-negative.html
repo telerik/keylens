@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      [role="tab"]:focus,
+      button:focus {
+        outline: 3px solid blue;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#m">Skip to main content</a>
+    <main id="m" tabindex="-1">
+      <button id="a">A</button
+      ><button tabindex="-1" id="skip">Programmatic only</button>
+      <div aria-hidden="true"><button id="b">B</button></div>
+      <button id="c">C</button>
+    </main>
+  </body>
+</html>

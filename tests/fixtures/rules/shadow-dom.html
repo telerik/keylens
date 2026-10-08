@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      a:focus,
+      button:focus,
+      input:focus {
+        outline: 3px solid blue;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <button id="a">A</button>
+      <div id="host"></div>
+      <button id="z">Z</button>
+    </main>
+    <script>
+      const r = document.getElementById("host").attachShadow({ mode: "open" });
+      r.innerHTML =
+        '<style>button:focus{outline:3px solid blue}</style><button id="s">Shadow</button>';
+    </script>
+  </body>
+</html>

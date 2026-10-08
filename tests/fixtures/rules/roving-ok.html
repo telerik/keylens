@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      [role="tab"]:focus,
+      button:focus {
+        outline: 3px solid blue;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#m">Skip to main content</a>
+    <main id="m" tabindex="-1">
+      <div role="tablist">
+        <button role="tab" tabindex="0" id="t1">One</button
+        ><button role="tab" tabindex="-1" id="t2">Two</button
+        ><button role="tab" tabindex="-1" id="t3">Three</button>
+      </div>
+      <script>
+        const tabs = [...document.querySelectorAll("[role=tab]")];
+        tabs.forEach((t, i) =>
+          t.addEventListener("keydown", (e) => {
+            let n =
+              e.key === "ArrowRight"
+                ? i + 1
+                : e.key === "ArrowLeft"
+                  ? i - 1
+                  : null;
+            if (n === null) return;
+            n = (n + tabs.length) % tabs.length;
+            tabs.forEach((x) => (x.tabIndex = -1));
+            tabs[n].tabIndex = 0;
+            tabs[n].focus();
+            e.preventDefault();
+          }),
+        );
+      </script>
+    </main>
+  </body>
+</html>
