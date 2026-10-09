@@ -13,29 +13,193 @@ interface Stop {
 }
 
 const stops: Stop[] = [
-  { n: 1, x: 69, y: 3.3, selector: "nav a:nth-child(1)", role: "link", name: "Overview" },
-  { n: 2, x: 75.9, y: 3.3, selector: "nav a:nth-child(2)", role: "link", name: "Features" },
-  { n: 3, x: 82.1, y: 3.3, selector: "nav a:nth-child(3)", role: "link", name: "Pricing" },
-  { n: 4, x: 87.4, y: 3.3, selector: "nav a:nth-child(4)", role: "link", name: "Docs" },
-  { n: 5, x: 93.9, y: 3.3, selector: "nav a.cta", role: "link", name: "Sign in" },
-  { n: 6, x: 42.8, y: 25.5, selector: ".btn-primary", role: "button", name: "Primary action" },
-  { n: 7, x: 56.3, y: 25.5, selector: ".btn-secondary", role: "button", name: "Secondary action" },
-  { n: 8, x: 22.3, y: 58.1, selector: ".panel:nth-child(1) .panel-cta", role: "link", name: "Learn more", issue: "missing-focus-indicator" },
-  { n: 9, x: 44.6, y: 58.1, selector: ".panel:nth-child(2) .panel-cta", role: "link", name: "Learn more", issue: "missing-focus-indicator" },
-  { n: 10, x: 66.9, y: 58.1, selector: ".panel:nth-child(3) .panel-cta", role: "link", name: "Learn more", issue: "missing-focus-indicator" },
-  { n: 11, x: 47.6, y: 77.7, selector: "input#email", role: "textbox", name: "Email address" },
-  { n: 12, x: 62.3, y: 77.7, selector: "form .btn-primary", role: "button", name: "Subscribe" },
-  { n: 13, x: 22.9, y: 90.7, selector: "footer a[href='#features']", role: "link", name: "Features" },
-  { n: 14, x: 22.9, y: 93, selector: "footer a[href='#pricing']", role: "link", name: "Pricing" },
-  { n: 15, x: 22.9, y: 95.4, selector: "footer a[href='#changelog']", role: "link", name: "Changelog" },
-  { n: 16, x: 41, y: 90.7, selector: "footer a[href='#about']", role: "link", name: "About" },
-  { n: 17, x: 41, y: 93, selector: "footer a[href='#careers']", role: "link", name: "Careers" },
-  { n: 18, x: 41, y: 95.4, selector: "footer a[href='#contact']", role: "link", name: "Contact" },
-  { n: 19, x: 59, y: 90.7, selector: "footer a[href='#docs']", role: "link", name: "Docs" },
-  { n: 20, x: 59, y: 93, selector: "footer a[href='#blog']", role: "link", name: "Blog" },
-  { n: 21, x: 59, y: 95.4, selector: "footer a[href='#support']", role: "link", name: "Support" },
-  { n: 22, x: 77.1, y: 90.7, selector: "footer a[href='#privacy']", role: "link", name: "Privacy" },
-  { n: 23, x: 77.1, y: 93, selector: "footer a[href='#terms']", role: "link", name: "Terms" },
+  {
+    n: 1,
+    x: 69,
+    y: 3.3,
+    selector: "nav a:nth-child(1)",
+    role: "link",
+    name: "Overview",
+  },
+  {
+    n: 2,
+    x: 75.9,
+    y: 3.3,
+    selector: "nav a:nth-child(2)",
+    role: "link",
+    name: "Features",
+  },
+  {
+    n: 3,
+    x: 82.1,
+    y: 3.3,
+    selector: "nav a:nth-child(3)",
+    role: "link",
+    name: "Pricing",
+  },
+  {
+    n: 4,
+    x: 87.4,
+    y: 3.3,
+    selector: "nav a:nth-child(4)",
+    role: "link",
+    name: "Docs",
+  },
+  {
+    n: 5,
+    x: 93.9,
+    y: 3.3,
+    selector: "nav a.cta",
+    role: "link",
+    name: "Sign in",
+  },
+  {
+    n: 6,
+    x: 42.8,
+    y: 25.5,
+    selector: ".btn-primary",
+    role: "button",
+    name: "Primary action",
+  },
+  {
+    n: 7,
+    x: 56.3,
+    y: 25.5,
+    selector: ".btn-secondary",
+    role: "button",
+    name: "Secondary action",
+  },
+  {
+    n: 8,
+    x: 22.3,
+    y: 58.1,
+    selector: ".panel:nth-child(1) .panel-cta",
+    role: "link",
+    name: "Learn more",
+    issue: "missing-focus-indicator",
+  },
+  {
+    n: 9,
+    x: 44.6,
+    y: 58.1,
+    selector: ".panel:nth-child(2) .panel-cta",
+    role: "link",
+    name: "Learn more",
+    issue: "missing-focus-indicator",
+  },
+  {
+    n: 10,
+    x: 66.9,
+    y: 58.1,
+    selector: ".panel:nth-child(3) .panel-cta",
+    role: "link",
+    name: "Learn more",
+    issue: "missing-focus-indicator",
+  },
+  {
+    n: 11,
+    x: 47.6,
+    y: 77.7,
+    selector: "input#email",
+    role: "textbox",
+    name: "Email address",
+  },
+  {
+    n: 12,
+    x: 62.3,
+    y: 77.7,
+    selector: "form .btn-primary",
+    role: "button",
+    name: "Subscribe",
+  },
+  {
+    n: 13,
+    x: 22.9,
+    y: 90.7,
+    selector: "footer a[href='#features']",
+    role: "link",
+    name: "Features",
+  },
+  {
+    n: 14,
+    x: 22.9,
+    y: 93,
+    selector: "footer a[href='#pricing']",
+    role: "link",
+    name: "Pricing",
+  },
+  {
+    n: 15,
+    x: 22.9,
+    y: 95.4,
+    selector: "footer a[href='#changelog']",
+    role: "link",
+    name: "Changelog",
+  },
+  {
+    n: 16,
+    x: 41,
+    y: 90.7,
+    selector: "footer a[href='#about']",
+    role: "link",
+    name: "About",
+  },
+  {
+    n: 17,
+    x: 41,
+    y: 93,
+    selector: "footer a[href='#careers']",
+    role: "link",
+    name: "Careers",
+  },
+  {
+    n: 18,
+    x: 41,
+    y: 95.4,
+    selector: "footer a[href='#contact']",
+    role: "link",
+    name: "Contact",
+  },
+  {
+    n: 19,
+    x: 59,
+    y: 90.7,
+    selector: "footer a[href='#docs']",
+    role: "link",
+    name: "Docs",
+  },
+  {
+    n: 20,
+    x: 59,
+    y: 93,
+    selector: "footer a[href='#blog']",
+    role: "link",
+    name: "Blog",
+  },
+  {
+    n: 21,
+    x: 59,
+    y: 95.4,
+    selector: "footer a[href='#support']",
+    role: "link",
+    name: "Support",
+  },
+  {
+    n: 22,
+    x: 77.1,
+    y: 90.7,
+    selector: "footer a[href='#privacy']",
+    role: "link",
+    name: "Privacy",
+  },
+  {
+    n: 23,
+    x: 77.1,
+    y: 93,
+    selector: "footer a[href='#terms']",
+    role: "link",
+    name: "Terms",
+  },
 ];
 
 const W = 1000;
@@ -120,13 +284,7 @@ onBeforeUnmount(stopTimer);
         focusable="false"
       >
         <g v-for="s in segments" :key="s.to" :class="{ on: s.to <= visible }">
-          <line
-            :x1="s.x1"
-            :y1="s.y1"
-            :x2="s.x2"
-            :y2="s.y2"
-            class="seg"
-          />
+          <line :x1="s.x1" :y1="s.y1" :x2="s.x2" :y2="s.y2" class="seg" />
           <polygon
             points="-9,-6 7,0 -9,6"
             class="arrow"
@@ -165,7 +323,6 @@ onBeforeUnmount(stopTimer);
         </span>
       </button>
     </div>
-
   </div>
 </template>
 
