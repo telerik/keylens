@@ -7,7 +7,8 @@
  * CTA links with no visible focus indicator, and no skip link) and captures
  * two artifacts for the docs homepage:
  *
- *  - docs/public/demo-cli-output.txt: the plain-text CLI report
+ *  - docs/public/demo-cli-output.html: the CLI report as a UTF-8 HTML page
+ *    (a bare .txt is served without a charset, which garbles the symbols)
  *  - docs/public/demo-focus-map.png: a screenshot of the HTML report's
  *    focus-order overlay (numbered markers + connecting lines), cropped to
  *    a representative top slice rather than the full (very tall) page
@@ -59,9 +60,27 @@ const cliOutput = await new Promise((resolveOutput, reject) => {
   child.on("error", reject);
 });
 
+const escapeHTML = (text) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 await writeFile(
-  resolve(publicDir, "demo-cli-output.txt"),
-  cliOutput.trimEnd() + "\n",
+  resolve(publicDir, "demo-cli-output.html"),
+  `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Keylens CLI output</title>
+    <style>
+      body { margin: 0; padding: 24px; background: #0a0d24; color: #dde6ff; }
+      pre { margin: 0; font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <pre>${escapeHTML(cliOutput.trimEnd().split(url).join("sample-interface-url"))}</pre>
+  </body>
+</html>
+`,
 );
 
 // Screenshot the HTML report's focus-map overlay, cropped to a
@@ -86,4 +105,4 @@ await page.screenshot({
 await browser.close();
 server.close();
 
-console.log("Wrote docs/public/demo-cli-output.txt and demo-focus-map.png");
+console.log("Wrote docs/public/demo-cli-output.html and demo-focus-map.png");

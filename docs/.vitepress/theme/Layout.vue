@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useData, withBase } from "vitepress";
 import DefaultTheme from "vitepress/theme";
+import FocusMapDemo from "./FocusMapDemo.vue";
 
 const { Layout } = DefaultTheme;
 const { page } = useData();
@@ -110,27 +111,15 @@ function resetHeroKeyShadow(event: PointerEvent) {
               </div>
 
               <div class="keylens-window keylens-browser">
-                <div class="keylens-window-bar">
-                  <span class="dot dot-red"></span>
-                  <span class="dot dot-yellow"></span>
-                  <span class="dot dot-green"></span>
-                  <span class="keylens-address-pill"
-                    >focus order · 23 stops</span
-                  >
-                </div>
-                <img
-                  class="keylens-browser-img"
-                  :src="withBase('/demo-focus-map.png')"
-                  alt="Numbered markers tracing the Tab order across a small generic sample page, with three markers highlighted in red where the focus indicator is invisible and one interactive control skipped entirely because it's unreachable by keyboard."
-                  width="1036"
-                  height="856"
-                  loading="lazy"
-                />
+                <FocusMapDemo />
               </div>
             </div>
 
             <p class="keylens-demo-footnote">
-              <a :href="withBase('/demo-cli-output.txt')"
+              <a
+                :href="withBase('/demo-cli-output.html')"
+                target="_blank"
+                rel="noopener"
                 >View the full CLI output</a
               >
             </p>
@@ -186,11 +175,12 @@ function resetHeroKeyShadow(event: PointerEvent) {
 }
 
 .keylens-install-copy {
-  flex: 1;
+  flex: 1 0 auto;
 }
 
 .keylens-install-eyebrow {
   margin: 0 0 3px;
+  white-space: nowrap;
   color: var(--vp-c-brand-1);
   font-size: 11px;
   font-weight: 700;
@@ -325,7 +315,6 @@ function resetHeroKeyShadow(event: PointerEvent) {
 }
 
 .keylens-address-pill {
-  margin-left: 8px;
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--klx-pill-bg);
@@ -413,11 +402,16 @@ function resetHeroKeyShadow(event: PointerEvent) {
   }
 
   .keylens-demo-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 640px) {
+  .keylens-terminal-body {
+    padding: 16px;
+    font-size: 11px;
+  }
+
   .keylens-install {
     display: block;
     margin-top: 0;

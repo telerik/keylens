@@ -1,10 +1,22 @@
-
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Keylens CLI output</title>
+    <style>
+      body { margin: 0; padding: 24px; background: #0a0d24; color: #dde6ff; }
+      pre { margin: 0; font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <pre>
 Keylens v1.0.0
 See your site through the lens of keyboard users.
 
-ℹ Starting deterministic Keylens audit for http://127.0.0.1:57334/
+ℹ Starting deterministic Keylens audit for sample-interface-url
 ℹ Launching chromium browser...
-ℹ Navigating to http://127.0.0.1:57334/
+ℹ Navigating to sample-interface-url
 ℹ Preparing page...
 ℹ Testing skip link...
 ℹ Discovering interactive elements...
@@ -25,7 +37,7 @@ See your site through the lens of keyboard users.
 
 🔍 Keylens v1.0.0 — Keyboard Navigation Audit
 ────────────────────────────────────────────────────────────
-URL: http://127.0.0.1:57334/
+URL: sample-interface-url
 Focusable elements: 23
 Interactive elements: 24
 Unreached: 1
@@ -38,14 +50,14 @@ Rules:
   ✓ keyboard-trap
   ✗ unreachable-elements — 1 issue(s)
   ● 1 interactive element(s) are not reachable via keyboard.
-    └─ section:nth-of-type(3) > form > div
+    └─ section:nth-of-type(3) &gt; form &gt; div
   ✓ focus-order-mismatch
   ✓ tabindex-abuse
   ✗ missing-focus-indicator — 1 issue(s)
   ● 3 element(s) show no visible change between focused and unfocused states.
-    └─ section:nth-of-type(2) > div > div:nth-of-type(1) > a
-    └─ section:nth-of-type(2) > div > div:nth-of-type(2) > a
-    └─ section:nth-of-type(2) > div > div:nth-of-type(3) > a
+    └─ section:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; a
+    └─ section:nth-of-type(2) &gt; div &gt; div:nth-of-type(2) &gt; a
+    └─ section:nth-of-type(2) &gt; div &gt; div:nth-of-type(3) &gt; a
   ✗ skip-link — 1 issue(s)
   ● No skip navigation link found among the first focusable elements. Keyboard users must tab through all navigation items to reach main content.
   ✓ focus-not-obscured
@@ -53,4 +65,6 @@ Rules:
   ✓ roving-tabindex-broken
 
 ────────────────────────────────────────────────────────────
-Result: 2 error(s), 1 warning(s)  — Score: 89/100
+Result: 2 error(s), 1 warning(s)  — Score: 89/100</pre>
+  </body>
+</html>
