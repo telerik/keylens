@@ -79,7 +79,7 @@ async function copyCommand() {
 .keylens-install-command {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  min-width: 0;
   gap: 12px;
   padding: 5px 6px 5px 12px;
   border: 1px solid var(--vp-c-border);
@@ -92,10 +92,18 @@ async function copyCommand() {
   padding: 0;
   border-radius: 0;
   background: transparent;
+  color: var(--vp-c-text-1);
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
   white-space: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.keylens-install-command code::-webkit-scrollbar {
+  display: none;
 }
 
 .keylens-install-command code span {
@@ -137,18 +145,7 @@ async function copyCommand() {
 
 @media (max-width: 640px) {
   .keylens-install-command {
-    display: block;
     margin: 14px 0;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  .keylens-install-command code {
-    display: inline-block;
-  }
-
-  .keylens-copy-button {
-    float: right;
   }
 }
 </style>

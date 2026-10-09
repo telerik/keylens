@@ -283,10 +283,6 @@
   margin-bottom: 32px;
 }
 
-.keylens-code-grid > div {
-  background: var(--vp-code-block-bg);
-}
-
 .keylens-code-grid a {
   color: var(--vp-c-brand-1);
   font-size: 13px;
@@ -314,7 +310,12 @@
 @media (max-width: 768px) {
   .keylens-comparison,
   .keylens-code-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .keylens-comparison article,
+  .keylens-code-grid > div {
+    padding: 18px;
   }
 
   .klx-hero-key {
