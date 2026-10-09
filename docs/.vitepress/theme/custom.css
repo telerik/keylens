@@ -72,7 +72,7 @@
   --klx-heading: #17224d;
   --klx-sub: #4c5a7c;
   --klx-body: #253154;
-  --klx-dim: #667392;
+  --klx-dim: #4c5a7c;
   --klx-pill-bg: rgba(61, 87, 216, 0.08);
   --klx-ok: #16803c;
   --klx-fail: #c53030;
@@ -156,7 +156,7 @@
   --klx-heading: #ffffff;
   --klx-sub: #b6bfe6;
   --klx-body: #dedeeb;
-  --klx-dim: #7d84ac;
+  --klx-dim: #a9b1d6;
   --klx-pill-bg: rgba(255, 255, 255, 0.06);
   --klx-ok: #4ade80;
   --klx-fail: #f87171;
@@ -360,4 +360,10 @@
   .demo-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Dark mode: the hover background is light, so switch to dark text */
+.dark .VPButton.brand:hover,
+.dark .VPButton.brand:active {
+  color: #0b1230;
 }

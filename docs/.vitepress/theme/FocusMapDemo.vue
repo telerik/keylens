@@ -236,6 +236,10 @@ function stopTimer() {
 function play() {
   stopTimer();
   selected.value = null;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    visible.value = stops.length;
+    return;
+  }
   visible.value = 0;
   timer = setInterval(() => {
     visible.value += 1;
