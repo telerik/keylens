@@ -9,7 +9,9 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { createServer, type Server } from "node:http";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { spawn } from "node:child_process";
 import { resolve, join } from "node:path";
 
 const MCP_SERVER_ENTRY = resolve(
@@ -196,4 +198,72 @@ describe("Integration: MCP server (stdio)", () => {
     expect(result.isError).toBe(true);
     expect(textOf(result as never)).toMatch(/invalid/i);
   });
+});
+
+describe("Integration: MCP server stdout hygiene", () => {
+  it("keeps stdout JSON-RPC only when the cli reporter is requested", async () => {
+    const { server, url } = await serveFixture("clean-page.html");
+    const outputDir = mkdtempSync(join(tmpdir(), "keylens-mcp-"));
+    const child = spawn(process.execPath, [TSX_CLI, MCP_SERVER_ENTRY], {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (d) => (stdout += d));
+    child.stderr.on("data", (d) => (stderr += d));
+
+    const send = (m: object) => child.stdin.write(JSON.stringify(m) + "\n");
+    send({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "stdout-test", version: "0.0.0" },
+      },
+    });
+    send({ jsonrpc: "2.0", method: "notifications/initialized" });
+    send({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: {
+        name: "keylens_audit",
+        arguments: {
+          url,
+          options: { profile: "fast", reporters: ["cli", "json"], outputDir },
+        },
+      },
+    });
+
+    try {
+      await new Promise<void>((resolveWait, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error("timed out waiting for audit response")),
+          60_000,
+        );
+        const poll = setInterval(() => {
+          if (stdout.includes('"id":2')) {
+            clearTimeout(timer);
+            clearInterval(poll);
+            resolveWait();
+          }
+        }, 100);
+      });
+
+      const lines = stdout.split("\n").filter((l) => l.trim() !== "");
+      expect(lines.length).toBeGreaterThanOrEqual(2);
+      for (const line of lines) {
+        const msg = JSON.parse(line);
+        expect(msg.jsonrpc).toBe("2.0");
+      }
+      expect(stdout).not.toContain("Keyboard Navigation Audit");
+      expect(stderr).toContain("Keyboard Navigation Audit");
+    } finally {
+      child.kill();
+      server.close();
+      rmSync(outputDir, { recursive: true, force: true });
+    }
+  }, 90_000);
 });
