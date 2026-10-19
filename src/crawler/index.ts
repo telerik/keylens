@@ -308,7 +308,16 @@ export async function crawlPage(
       logger.debug(
         `Skip link ${skipLinkResult.functionWorks ? "works" : "found but does not function correctly"}`,
       );
+    }
 
+    // The skip-link probe presses Tab, which moves the browser's sequential
+    // focus starting point. With positive tabindex on the page that would hide
+    // the element a fresh user reaches first, so crawl from a pristine page.
+    const hasPositiveTabindex =
+      ((await page.evaluate(
+        `Array.from(document.querySelectorAll("[tabindex]")).some((el) => el.tabIndex > 0)`,
+      )) as unknown) === true;
+    if (skipLinkResult.found || hasPositiveTabindex) {
       // Activating the skip link (Enter press) can leave custom elements/widgets
       // in a mutated state (e.g. a focus-trapping "activated" mode) that would
       // otherwise corrupt the full tab-order crawl below. Reload to a pristine
@@ -544,15 +553,24 @@ async function resetSequentialFocus(
   page: Page,
   tabDelay: number,
 ): Promise<void> {
+  // Focusing <body> moves the sequential-focus starting point to the document
+  // start, which makes the browser skip positive-tabindex elements that a fresh
+  // keyboard user would reach first. With positive tabindex present, leave the
+  // starting point untouched; callers then rely on a pristine (reloaded) page.
   await page.evaluate(`(() => {
-    const body = document.body;
-    const previousTabindex = body.getAttribute("tabindex");
-    body.setAttribute("tabindex", "-1");
-    body.focus({ preventScroll: true });
-    if (previousTabindex === null) {
-      body.removeAttribute("tabindex");
-    } else {
-      body.setAttribute("tabindex", previousTabindex);
+    const hasPositiveTabindex = Array.from(
+      document.querySelectorAll("[tabindex]"),
+    ).some((el) => el.tabIndex > 0);
+    if (!hasPositiveTabindex) {
+      const body = document.body;
+      const previousTabindex = body.getAttribute("tabindex");
+      body.setAttribute("tabindex", "-1");
+      body.focus({ preventScroll: true });
+      if (previousTabindex === null) {
+        body.removeAttribute("tabindex");
+      } else {
+        body.setAttribute("tabindex", previousTabindex);
+      }
     }
     window.scrollTo(0, 0);
   })()`);

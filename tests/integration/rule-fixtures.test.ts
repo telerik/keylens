@@ -75,6 +75,11 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       expect(status(report, "keyboard-trap")).toBe("passed");
     });
 
+    it("catches a positive-tabindex element a fresh user reaches first", async () => {
+      const report = await run("order-positive-tabindex-last");
+      expect(status(report, "focus-order-mismatch")).toBe("failed");
+    });
+
     it("does not raise focus-order-mismatch noise for a first-stop trap", async () => {
       const report = await run("first-control-trap");
       expect(status(report, "focus-order-mismatch")).toBe("passed");
