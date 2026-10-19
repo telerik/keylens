@@ -116,6 +116,44 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       const report = await run("single-control");
       expect(status(report, "missing-focus-indicator")).toBe("passed");
     });
+
+    it.each([
+      "focus-ind-transparent-outline",
+      "focus-ind-cursor-only",
+      "focus-ind-custom-property-only",
+      "focus-ind-pseudo-no-content",
+      "focus-ind-hidden-descendant",
+      "focus-ind-clipped-outline",
+      "focus-ind-ambient-animation",
+      "focus-ind-outline-same-as-background",
+      "focus-ind-transparent-shadow",
+      "focus-ind-zero-width-outline",
+    ])("flags a change the user cannot see: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "missing-focus-indicator")).toBe("failed");
+    });
+
+    it.each([
+      "focus-ind-border-change",
+      "focus-ind-background-change",
+      "focus-ind-box-shadow-ring",
+      "focus-ind-outline-offset",
+      "focus-ind-transition-outline",
+      "focus-ind-underline",
+      "focus-ind-outline-in-clip-with-room",
+    ])("passes a visible indicator: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "missing-focus-indicator")).toBe("passed");
+    });
+
+    // Known gap: the animation freeze rewinds to t=0, hiding an indicator that animates in on focus.
+    it.fails(
+      "passes an indicator animated in on focus (known false alarm)",
+      async () => {
+        const report = await run("focus-ind-animation-on-focus");
+        expect(status(report, "missing-focus-indicator")).toBe("passed");
+      },
+    );
   });
 
   describe("skip-link", () => {
