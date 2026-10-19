@@ -32,7 +32,7 @@ import {
   getRovingArrowKeys,
   getFallbackArrowKeys,
 } from "../utils/aria-orientation.js";
-import { hasVisibleFocusChange } from "../utils/focus-style-diff.js";
+import { classifyFocusChange } from "../utils/focus-style-diff.js";
 import { hasVisiblePixelDiff } from "../utils/pixel-diff.js";
 
 /** Shape returned by GET_FOCUSED_ELEMENT_INFO_SCRIPT inside the browser. */
@@ -959,6 +959,21 @@ const PIXEL_CONFIRMATION_MAX_ELEMENTS = 30;
 const PIXEL_CONFIRMATION_PADDING = 20;
 
 /**
+ * Rewinds and pauses running CSS animations so an ambient animation (one that
+ * runs regardless of focus) renders identically in the focused and blurred
+ * shots. CSS transitions are left alone: they are how many real indicators
+ * appear.
+ */
+const FREEZE_CSS_ANIMATIONS_SCRIPT = `(() => {
+  for (const a of document.getAnimations()) {
+    if (typeof CSSAnimation !== "undefined" && a instanceof CSSAnimation) {
+      a.pause();
+      a.currentTime = 0;
+    }
+  }
+})()`;
+
+/**
  * Captures a screenshot of an element's *current* bounding box, scrolled into
  * view and measured fresh at capture time (never a stale pageRect from
  * earlier in the crawl) — so it stays correct regardless of how much the
@@ -1009,10 +1024,10 @@ async function confirmMissingFocusIndicators(
     (el) =>
       el.focusedStyleSnapshot &&
       el.unfocusedStyleSnapshot &&
-      !hasVisibleFocusChange(
+      classifyFocusChange(
         el.focusedStyleSnapshot,
         el.unfocusedStyleSnapshot,
-      ),
+      ) !== "strong",
   );
   if (candidates.length === 0) return;
 
@@ -1025,6 +1040,7 @@ async function confirmMissingFocusIndicators(
     throwIfAborted(signal, "crawl", url);
     try {
       await page.locator(el.selector).first().focus({ timeout: 2000 });
+      await page.evaluate(FREEZE_CSS_ANIMATIONS_SCRIPT);
       const focusedShot = await captureLiveElementScreenshot(page, el.selector);
       if (!focusedShot) continue;
 
@@ -1032,6 +1048,7 @@ async function confirmMissingFocusIndicators(
         `(() => { const target = document.querySelector(${JSON.stringify(el.selector)}); if (target) target.blur(); })()`,
       );
       await page.waitForTimeout(config.tabDelay);
+      await page.evaluate(FREEZE_CSS_ANIMATIONS_SCRIPT);
       const unfocusedShot = await captureLiveElementScreenshot(
         page,
         el.selector,
