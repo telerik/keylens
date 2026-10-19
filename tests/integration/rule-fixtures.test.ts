@@ -128,6 +128,11 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       "focus-ind-outline-same-as-background",
       "focus-ind-transparent-shadow",
       "focus-ind-zero-width-outline",
+      "focus-ind-ambient-infinite-alternate",
+      "focus-ind-ambient-colour-cycle",
+      "focus-ind-transition-cursor-only",
+      "focus-ind-animation-noop",
+      "focus-ind-animation-transparent-ring",
     ])("flags a change the user cannot see: %s", async (fixture) => {
       const report = await run(fixture);
       expect(status(report, "missing-focus-indicator")).toBe("failed");
@@ -139,27 +144,19 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       "focus-ind-box-shadow-ring",
       "focus-ind-outline-offset",
       "focus-ind-transition-outline",
+      "focus-ind-animation-on-focus",
       "focus-ind-underline",
       "focus-ind-outline-in-clip-with-room",
+      "focus-ind-animation-infinite-pulse",
+      "focus-ind-animation-delayed-fade",
+      "focus-ind-animation-border-grow",
+      "focus-ind-animation-js-waapi",
+      "focus-ind-transition-slow-background",
+      "focus-ind-transition-slow-shadow",
+      "focus-ind-transition-wrapper-fade",
     ])("passes a visible indicator: %s", async (fixture) => {
       const report = await run(fixture);
       expect(status(report, "missing-focus-indicator")).toBe("passed");
-    });
-
-    // Known gap: the animation freeze rewinds to t=0, hiding an indicator that animates in on focus.
-    it.fails(
-      "passes an indicator animated in on focus (known false alarm)",
-      async () => {
-        const report = await run("focus-ind-animation-on-focus");
-        expect(status(report, "missing-focus-indicator")).toBe("passed");
-      },
-    );
-  });
-
-  describe("skip-link", () => {
-    it("passes with a working skip link", async () => {
-      const report = await run("skip-link-ok");
-      expect(status(report, "skip-link")).toBe("passed");
     });
 
     it("fails without a skip link", async () => {

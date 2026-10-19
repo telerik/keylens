@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 0;
+        padding: 10px 20px;
+      }
+      .wrap {
+        margin: 20px;
+        position: relative;
+        display: inline-block;
+      }
+      .wrap::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border: 3px solid rgb(0, 90, 220);
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+      }
+      .wrap:focus-within::after {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="wrap"><button id="a">Fading wrapper ring</button></span>
+    </main>
+  </body>
+</html>

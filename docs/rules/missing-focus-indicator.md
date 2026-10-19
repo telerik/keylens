@@ -53,8 +53,9 @@ The remaining change is classified:
 This runs by default — no flags required — because the crawler already focuses every
 element for real during the tab crawl; reading computed styles twice is inexpensive, and
 the screenshot confirmation only runs for elements the style diff could not fully prove
-(weak or no change), capped per audit. Running CSS animations are paused during the
-screenshots; transitions are not. It also catches indicators that a static HTML/CSS scan would miss,
+(weak or no change), capped per audit. CSS animations and transitions are
+fast-forwarded to their end state before each screenshot, so an indicator that animates in on
+focus is fully drawn while an ambient animation looks identical in both shots. It also catches indicators that a static HTML/CSS scan would miss,
 such as classes or attributes toggled by JavaScript (e.g. `data-focus-visible`) and
 `:focus-within` container highlighting.
 

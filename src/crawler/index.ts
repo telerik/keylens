@@ -959,17 +959,21 @@ const PIXEL_CONFIRMATION_MAX_ELEMENTS = 30;
 const PIXEL_CONFIRMATION_PADDING = 20;
 
 /**
- * Rewinds and pauses running CSS animations so an ambient animation (one that
- * runs regardless of focus) renders identically in the focused and blurred
- * shots. CSS transitions are left alone: they are how many real indicators
- * appear.
+ * Fast-forwards every CSS animation and transition to its end state before a
+ * confirmation screenshot. A focus-triggered ring is then fully drawn, while
+ * an ambient animation settles on the same frame in the focused and blurred
+ * shots (no false diff). Web Animations API animations are finished too.
  */
-const FREEZE_CSS_ANIMATIONS_SCRIPT = `(() => {
+const SETTLE_MOTION_SCRIPT = `(() => {
+  if (!document.getElementById("__keylens_settle_motion")) {
+    const style = document.createElement("style");
+    style.id = "__keylens_settle_motion";
+    style.textContent =
+      "*, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; animation-fill-mode: forwards !important; transition-duration: 0s !important; transition-delay: 0s !important; }";
+    document.documentElement.appendChild(style);
+  }
   for (const a of document.getAnimations()) {
-    if (typeof CSSAnimation !== "undefined" && a instanceof CSSAnimation) {
-      a.pause();
-      a.currentTime = 0;
-    }
+    try { a.finish(); } catch {}
   }
 })()`;
 
@@ -1036,11 +1040,13 @@ async function confirmMissingFocusIndicators(
     `Confirming ${capped.length} of ${candidates.length} possible missing focus indicator(s) via screenshot diff`,
   );
 
+  await page.evaluate(SETTLE_MOTION_SCRIPT).catch(() => undefined);
+
   for (const el of capped) {
     throwIfAborted(signal, "crawl", url);
     try {
       await page.locator(el.selector).first().focus({ timeout: 2000 });
-      await page.evaluate(FREEZE_CSS_ANIMATIONS_SCRIPT);
+      await page.evaluate(SETTLE_MOTION_SCRIPT);
       const focusedShot = await captureLiveElementScreenshot(page, el.selector);
       if (!focusedShot) continue;
 
@@ -1048,7 +1054,7 @@ async function confirmMissingFocusIndicators(
         `(() => { const target = document.querySelector(${JSON.stringify(el.selector)}); if (target) target.blur(); })()`,
       );
       await page.waitForTimeout(config.tabDelay);
-      await page.evaluate(FREEZE_CSS_ANIMATIONS_SCRIPT);
+      await page.evaluate(SETTLE_MOTION_SCRIPT);
       const unfocusedShot = await captureLiveElementScreenshot(
         page,
         el.selector,

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          outline: 2px solid rgb(0, 90, 220);
+        }
+        50% {
+          outline: 6px solid rgb(0, 90, 220);
+        }
+      }
+      button:focus-visible {
+        animation: pulse 1s infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Pulsing ring</button></main>
+  </body>
+</html>

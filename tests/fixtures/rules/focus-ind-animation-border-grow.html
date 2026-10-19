@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      @keyframes slide {
+        from {
+          border-bottom: 0 solid rgb(0, 90, 220);
+        }
+        to {
+          border-bottom: 5px solid rgb(0, 90, 220);
+        }
+      }
+      button:focus-visible {
+        animation: slide 0.25s ease-out both;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Animated underline border</button></main>
+  </body>
+</html>
