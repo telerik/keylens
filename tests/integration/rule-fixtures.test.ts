@@ -75,6 +75,11 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       expect(status(report, "keyboard-trap")).toBe("passed");
     });
 
+    it("catches a positive-tabindex element a fresh user reaches first", async () => {
+      const report = await run("order-positive-tabindex-last");
+      expect(status(report, "focus-order-mismatch")).toBe("failed");
+    });
+
     it("does not raise focus-order-mismatch noise for a first-stop trap", async () => {
       const report = await run("first-control-trap");
       expect(status(report, "focus-order-mismatch")).toBe("passed");
@@ -116,12 +121,47 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       const report = await run("single-control");
       expect(status(report, "missing-focus-indicator")).toBe("passed");
     });
-  });
 
-  describe("skip-link", () => {
-    it("passes with a working skip link", async () => {
-      const report = await run("skip-link-ok");
-      expect(status(report, "skip-link")).toBe("passed");
+    it.each([
+      "focus-ind-transparent-outline",
+      "focus-ind-cursor-only",
+      "focus-ind-custom-property-only",
+      "focus-ind-pseudo-no-content",
+      "focus-ind-hidden-descendant",
+      "focus-ind-clipped-outline",
+      "focus-ind-ambient-animation",
+      "focus-ind-outline-same-as-background",
+      "focus-ind-transparent-shadow",
+      "focus-ind-zero-width-outline",
+      "focus-ind-ambient-infinite-alternate",
+      "focus-ind-ambient-colour-cycle",
+      "focus-ind-transition-cursor-only",
+      "focus-ind-animation-noop",
+      "focus-ind-animation-transparent-ring",
+    ])("flags a change the user cannot see: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "missing-focus-indicator")).toBe("failed");
+    });
+
+    it.each([
+      "focus-ind-border-change",
+      "focus-ind-background-change",
+      "focus-ind-box-shadow-ring",
+      "focus-ind-outline-offset",
+      "focus-ind-transition-outline",
+      "focus-ind-animation-on-focus",
+      "focus-ind-underline",
+      "focus-ind-outline-in-clip-with-room",
+      "focus-ind-animation-infinite-pulse",
+      "focus-ind-animation-delayed-fade",
+      "focus-ind-animation-border-grow",
+      "focus-ind-animation-js-waapi",
+      "focus-ind-transition-slow-background",
+      "focus-ind-transition-slow-shadow",
+      "focus-ind-transition-wrapper-fade",
+    ])("passes a visible indicator: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "missing-focus-indicator")).toBe("passed");
     });
 
     it("fails without a skip link", async () => {

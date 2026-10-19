@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Script-driven ring</button></main>
+    <script>
+      const a = document.getElementById("a");
+      a.addEventListener("focus", () => {
+        a.animate(
+          [
+            { outline: "0 solid rgb(0,90,220)" },
+            { outline: "4px solid rgb(0,90,220)" },
+          ],
+          { duration: 300, fill: "forwards" },
+        );
+      });
+      a.addEventListener("blur", () => {
+        a.getAnimations().forEach((x) => x.cancel());
+      });
+    </script>
+  </body>
+</html>

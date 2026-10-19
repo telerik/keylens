@@ -32,7 +32,7 @@ import {
   getRovingArrowKeys,
   getFallbackArrowKeys,
 } from "../utils/aria-orientation.js";
-import { hasVisibleFocusChange } from "../utils/focus-style-diff.js";
+import { classifyFocusChange } from "../utils/focus-style-diff.js";
 import { hasVisiblePixelDiff } from "../utils/pixel-diff.js";
 
 /** Shape returned by GET_FOCUSED_ELEMENT_INFO_SCRIPT inside the browser. */
@@ -308,7 +308,16 @@ export async function crawlPage(
       logger.debug(
         `Skip link ${skipLinkResult.functionWorks ? "works" : "found but does not function correctly"}`,
       );
+    }
 
+    // The skip-link probe presses Tab, which moves the browser's sequential
+    // focus starting point. With positive tabindex on the page that would hide
+    // the element a fresh user reaches first, so crawl from a pristine page.
+    const hasPositiveTabindex =
+      ((await page.evaluate(
+        `Array.from(document.querySelectorAll("[tabindex]")).some((el) => el.tabIndex > 0)`,
+      )) as unknown) === true;
+    if (skipLinkResult.found || hasPositiveTabindex) {
       // Activating the skip link (Enter press) can leave custom elements/widgets
       // in a mutated state (e.g. a focus-trapping "activated" mode) that would
       // otherwise corrupt the full tab-order crawl below. Reload to a pristine
@@ -544,15 +553,24 @@ async function resetSequentialFocus(
   page: Page,
   tabDelay: number,
 ): Promise<void> {
+  // Focusing <body> moves the sequential-focus starting point to the document
+  // start, which makes the browser skip positive-tabindex elements that a fresh
+  // keyboard user would reach first. With positive tabindex present, leave the
+  // starting point untouched; callers then rely on a pristine (reloaded) page.
   await page.evaluate(`(() => {
-    const body = document.body;
-    const previousTabindex = body.getAttribute("tabindex");
-    body.setAttribute("tabindex", "-1");
-    body.focus({ preventScroll: true });
-    if (previousTabindex === null) {
-      body.removeAttribute("tabindex");
-    } else {
-      body.setAttribute("tabindex", previousTabindex);
+    const hasPositiveTabindex = Array.from(
+      document.querySelectorAll("[tabindex]"),
+    ).some((el) => el.tabIndex > 0);
+    if (!hasPositiveTabindex) {
+      const body = document.body;
+      const previousTabindex = body.getAttribute("tabindex");
+      body.setAttribute("tabindex", "-1");
+      body.focus({ preventScroll: true });
+      if (previousTabindex === null) {
+        body.removeAttribute("tabindex");
+      } else {
+        body.setAttribute("tabindex", previousTabindex);
+      }
     }
     window.scrollTo(0, 0);
   })()`);
@@ -959,6 +977,25 @@ const PIXEL_CONFIRMATION_MAX_ELEMENTS = 30;
 const PIXEL_CONFIRMATION_PADDING = 20;
 
 /**
+ * Fast-forwards every CSS animation and transition to its end state before a
+ * confirmation screenshot. A focus-triggered ring is then fully drawn, while
+ * an ambient animation settles on the same frame in the focused and blurred
+ * shots (no false diff). Web Animations API animations are finished too.
+ */
+const SETTLE_MOTION_SCRIPT = `(() => {
+  if (!document.getElementById("__keylens_settle_motion")) {
+    const style = document.createElement("style");
+    style.id = "__keylens_settle_motion";
+    style.textContent =
+      "*, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; animation-fill-mode: forwards !important; transition-duration: 0s !important; transition-delay: 0s !important; }";
+    document.documentElement.appendChild(style);
+  }
+  for (const a of document.getAnimations()) {
+    try { a.finish(); } catch {}
+  }
+})()`;
+
+/**
  * Captures a screenshot of an element's *current* bounding box, scrolled into
  * view and measured fresh at capture time (never a stale pageRect from
  * earlier in the crawl) — so it stays correct regardless of how much the
@@ -1009,10 +1046,10 @@ async function confirmMissingFocusIndicators(
     (el) =>
       el.focusedStyleSnapshot &&
       el.unfocusedStyleSnapshot &&
-      !hasVisibleFocusChange(
+      classifyFocusChange(
         el.focusedStyleSnapshot,
         el.unfocusedStyleSnapshot,
-      ),
+      ) !== "strong",
   );
   if (candidates.length === 0) return;
 
@@ -1021,10 +1058,13 @@ async function confirmMissingFocusIndicators(
     `Confirming ${capped.length} of ${candidates.length} possible missing focus indicator(s) via screenshot diff`,
   );
 
+  await page.evaluate(SETTLE_MOTION_SCRIPT).catch(() => undefined);
+
   for (const el of capped) {
     throwIfAborted(signal, "crawl", url);
     try {
       await page.locator(el.selector).first().focus({ timeout: 2000 });
+      await page.evaluate(SETTLE_MOTION_SCRIPT);
       const focusedShot = await captureLiveElementScreenshot(page, el.selector);
       if (!focusedShot) continue;
 
@@ -1032,6 +1072,7 @@ async function confirmMissingFocusIndicators(
         `(() => { const target = document.querySelector(${JSON.stringify(el.selector)}); if (target) target.blur(); })()`,
       );
       await page.waitForTimeout(config.tabDelay);
+      await page.evaluate(SETTLE_MOTION_SCRIPT);
       const unfocusedShot = await captureLiveElementScreenshot(
         page,
         el.selector,
