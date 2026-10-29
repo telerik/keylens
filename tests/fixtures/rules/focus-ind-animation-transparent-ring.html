@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      @keyframes ring {
+        from {
+          outline: 0 solid transparent;
+        }
+        to {
+          outline: 4px solid transparent;
+        }
+      }
+      button:focus-visible {
+        animation: ring 0.2s forwards;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Animated transparent outline</button></main>
+  </body>
+</html>

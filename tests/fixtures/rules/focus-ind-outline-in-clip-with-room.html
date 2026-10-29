@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      .clip {
+        overflow: hidden;
+        display: flex;
+        width: max-content;
+        margin: 20px;
+        padding: 8px;
+      }
+      button {
+        margin: 0;
+        padding: 10px 20px;
+        outline: none;
+      }
+      button:focus-visible {
+        outline: 4px solid red;
+        outline-offset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="clip"><button id="a">Outline with room to paint</button></div>
+    </main>
+  </body>
+</html>

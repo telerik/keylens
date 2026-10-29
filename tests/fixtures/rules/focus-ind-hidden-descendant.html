@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      button .ring {
+        display: none;
+        border: 3px solid black;
+      }
+      button:focus-visible .ring {
+        border-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <button id="a">Hidden ring <span class="ring">ring</span></button>
+    </main>
+  </body>
+</html>
