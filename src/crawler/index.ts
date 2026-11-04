@@ -1130,7 +1130,9 @@ function isInteractionCandidate(element: FocusedElement): boolean {
   const type = /type=["']?([^"'\s>]+)/i
     .exec(element.outerHTML)?.[1]
     ?.toLowerCase();
-  return ["button", "checkbox", "radio"].includes(type ?? "");
+  return ["button", "submit", "reset", "checkbox", "radio"].includes(
+    type ?? "",
+  );
 }
 
 async function matchesAnySelector(
@@ -1409,11 +1411,20 @@ async function crawlInteractions(
               if (!element || element === document.body) return null;
               const rect = element.getBoundingClientRect();
               const style = window.getComputedStyle(element);
+              let opacity = 1;
+              for (let n = element; n; n = n.parentElement) {
+                opacity *= parseFloat(window.getComputedStyle(n).opacity);
+              }
+              const offscreen =
+                rect.right + window.scrollX <= 0 ||
+                rect.bottom + window.scrollY <= 0;
               const visible =
                 rect.width > 0 &&
                 rect.height > 0 &&
                 style.visibility !== "hidden" &&
-                style.display !== "none";
+                style.display !== "none" &&
+                opacity > 0 &&
+                !offscreen;
               const interactive = element.matches(
                 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"]),[contenteditable="true"],[role="button"],[role="menuitem"],[role="option"],[role="tab"]'
               );
@@ -1430,12 +1441,18 @@ async function crawlInteractions(
             } | null)
           : null;
         const sameControl = focusAfter?.selector === element.selector;
+        const sameControlVisible = sameControl && focusState?.visible === true;
         const validMovedFocus =
           focusState?.visible === true &&
           (focusState.interactive === true || focusState.managed === true);
-        const status = sameControl || validMovedFocus ? "passed" : "failed";
+        const status =
+          sameControlVisible || (!sameControl && validMovedFocus)
+            ? "passed"
+            : "failed";
         const reason = sameControl
-          ? "focus-preserved"
+          ? sameControlVisible
+            ? "focus-preserved"
+            : "focus-invisible"
           : validMovedFocus
             ? "focus-moved"
             : focusAfter

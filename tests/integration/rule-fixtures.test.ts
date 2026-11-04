@@ -224,6 +224,36 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
     });
   });
 
+  describe("focus-after-interaction: invisible focus", () => {
+    it.each([
+      "interaction-opacity-zero-same-control",
+      "interaction-scale-zero-same-control",
+      "interaction-offscreen-same-control",
+      "interaction-ancestor-opacity-zero",
+      "interaction-moved-to-opacity-zero-heading",
+    ])("fails when focus ends up invisible: %s", async (fixture) => {
+      const report = await run(fixture, true);
+      expect(status(report, "focus-after-interaction")).toBe("failed");
+    });
+
+    it("tests input type=submit and flags a self-destroying handler", async () => {
+      const report = await run("interaction-submit-input-destroyed", true);
+      expect(status(report, "focus-after-interaction")).toBe("failed");
+    });
+
+    it("passes when focus moves to a visible heading", async () => {
+      const report = await run("interaction-moved-to-visible-heading", true);
+      expect(status(report, "focus-after-interaction")).toBe("passed");
+    });
+  });
+
+  describe("tabindex-abuse: dynamic", () => {
+    it("flags a positive tabindex added by script after load", async () => {
+      const report = await run("tabindex-dynamic-positive");
+      expect(status(report, "tabindex-abuse")).toBe("failed");
+    });
+  });
+
   describe("roving-tabindex-broken: widget variants", () => {
     it.each(["roving-native-button-tab-broken", "roving-toolbar-broken"])(
       "flags a broken widget: %s",

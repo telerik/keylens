@@ -632,6 +632,7 @@ export interface InteractionResult {
     | "focus-moved"
     | "focus-lost"
     | "unexpected-focus"
+    | "focus-invisible"
     | "excluded"
     | "destructive"
     | "limit-reached"
