@@ -152,6 +152,7 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       "focus-ind-animation-on-focus",
       "focus-ind-underline",
       "focus-ind-outline-in-clip-with-room",
+      "focus-ind-wrapper-two-controls",
       "focus-ind-animation-infinite-pulse",
       "focus-ind-animation-delayed-fade",
       "focus-ind-animation-border-grow",

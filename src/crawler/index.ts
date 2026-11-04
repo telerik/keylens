@@ -922,8 +922,12 @@ async function crawlTabOrder(
   if (focusSequence.length > 0) {
     const lastEl = focusSequence[focusSequence.length - 1];
     if (!lastEl.unfocusedStyleSnapshot) {
-      // Tab once more so the last element loses focus
-      await page.keyboard.press("Tab");
+      // Blur instead of pressing Tab: when the cycle wrapped, focus sits on the
+      // first element and another Tab would land on the second one, which can
+      // be the last element itself.
+      await page.evaluate(
+        `(() => { const a = document.activeElement; if (a && a !== document.body) a.blur(); })()`,
+      );
       await page.waitForTimeout(tabDelay);
 
       try {
