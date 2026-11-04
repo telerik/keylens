@@ -99,6 +99,40 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
     });
   });
 
+  describe("unreachable-elements: native radio groups", () => {
+    it.each([
+      "unreachable-native-radio-group",
+      "unreachable-radio-disabled-and-separate",
+    ])("does not flag arrow-key members: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "unreachable-elements")).toBe("passed");
+    });
+  });
+
+  describe("unreachable-elements: disabled controls with role/tabindex", () => {
+    it("ignores natively disabled controls", async () => {
+      const report = await run("unreachable-disabled-with-role");
+      expect(report.focusSequence.map((e) => e.selector)).toEqual(["#ok"]);
+      expect(status(report, "unreachable-elements")).toBe("passed");
+    });
+  });
+
+  describe("unreachable-elements: inert and non-editable content", () => {
+    it.each(["unreachable-inert-region", "unreachable-contenteditable-false"])(
+      "ignores non-interactive content: %s",
+      async (fixture) => {
+        const report = await run(fixture);
+        expect(report.focusSequence.map((e) => e.selector)).toEqual(["#ok"]);
+        expect(status(report, "unreachable-elements")).toBe("passed");
+      },
+    );
+
+    it("still flags an editable region that is not reachable", async () => {
+      const report = await run("unreachable-contenteditable-tabindex-off");
+      expect(status(report, "unreachable-elements")).toBe("failed");
+    });
+  });
+
   describe("tabindex-abuse", () => {
     it("flags positive tabindex", async () => {
       const report = await run("positive-tabindex");
@@ -187,6 +221,26 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
     it("passes when focus stays on the control", async () => {
       const report = await run("focus-kept", true);
       expect(status(report, "focus-after-interaction")).toBe("passed");
+    });
+  });
+
+  describe("roving-tabindex-broken: widget variants", () => {
+    it.each(["roving-native-button-tab-broken", "roving-toolbar-broken"])(
+      "flags a broken widget: %s",
+      async (fixture) => {
+        const report = await run(fixture);
+        expect(status(report, "roving-tabindex-broken")).toBe("failed");
+      },
+    );
+
+    it.each([
+      "roving-toolbar-working",
+      "roving-grid-3x3-working",
+      "roving-tablist-disabled-member",
+    ])("passes a working widget: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "roving-tabindex-broken")).toBe("passed");
+      expect(status(report, "unreachable-elements")).toBe("passed");
     });
   });
 

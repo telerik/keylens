@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <div role="toolbar" id="tb" aria-label="Format">
+        <button id="b1">Bold</button
+        ><button id="b2" tabindex="-1">Italic</button
+        ><button id="b3" tabindex="-1">Underline</button>
+      </div>
+      <script>
+        const tb = document.getElementById("tb");
+        tb.addEventListener("keydown", (e) => {
+          const t = [...tb.querySelectorAll("button")];
+          const i = t.indexOf(document.activeElement);
+          if (i < 0) return;
+          let n = null;
+          if (e.key === "ArrowRight") n = t[(i + 1) % t.length];
+          if (e.key === "ArrowLeft") n = t[(i + t.length - 1) % t.length];
+          if (n) {
+            e.preventDefault();
+            t.forEach((x) => (x.tabIndex = -1));
+            n.tabIndex = 0;
+            n.focus();
+          }
+        });
+      </script>
+    </main>
+  </body>
+</html>

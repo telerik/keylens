@@ -22,4 +22,10 @@ describe("isRealTabStop", () => {
   it("should return true for a positive tabindex", () => {
     expect(isRealTabStop(3)).toBe(true);
   });
+
+  it("treats a native control with no tabindex attribute as a Tab stop", () => {
+    expect(isRealTabStop(null, "button")).toBe(true);
+    expect(isRealTabStop(null, "div")).toBe(false);
+    expect(isRealTabStop(-1, "button")).toBe(false);
+  });
 });

@@ -1495,6 +1495,9 @@ export function markReachedElements(
  */
 const ROVING_TABINDEX_MIN_PRESSES = 50;
 
+/** Bounds the multi-step expansion so a huge partially-wired widget stays cheap. */
+const ROVING_TABINDEX_MAX_EXPANSIONS = 40;
+
 /**
  * Verifies that every member of each roving-tabindex composite widget (e.g. a
  * tablist) is actually reachable via arrow keys from the active member, not
@@ -1509,9 +1512,23 @@ const ROVING_TABINDEX_MIN_PRESSES = 50;
 // `tabindexAttr` is `null` when the attribute is absent entirely (common for
 // container-retains-focus widgets, e.g. a Kendo Calendar's day cells) -
 // treating null as "not -1" would wrongly pick such a member as focusable.
-export function isRealTabStop(tabindexAttr: number | null): boolean {
-  return tabindexAttr !== null && tabindexAttr !== -1;
+export function isRealTabStop(
+  tabindexAttr: number | null,
+  tagName?: string,
+): boolean {
+  if (tabindexAttr === null) {
+    return tagName !== undefined && NATIVELY_TABBABLE_TAGS.has(tagName);
+  }
+  return tabindexAttr !== -1;
 }
+
+// Native controls are Tab stops even with no tabindex attribute.
+const NATIVELY_TABBABLE_TAGS = new Set([
+  "button",
+  "input",
+  "select",
+  "textarea",
+]);
 
 async function verifyRovingTabindexGroups(
   page: Page,
@@ -1521,7 +1538,7 @@ async function verifyRovingTabindexGroups(
 ): Promise<RovingTabindexGroupResult[]> {
   const groups = new Map<string, InteractiveElement[]>();
   for (const el of interactiveElements) {
-    if (!el.rovingContainerSelector) continue;
+    if (!el.rovingContainerSelector || el.ariaDisabled) continue;
     const members = groups.get(el.rovingContainerSelector) ?? [];
     members.push(el);
     groups.set(el.rovingContainerSelector, members);
@@ -1549,10 +1566,11 @@ async function verifyRovingTabindexGroups(
   }
   for (const entries of containersByMemberRole.values()) {
     const hosts = entries.filter(([, members]) =>
-      members.some((el) => isRealTabStop(el.tabindexAttr)),
+      members.some((el) => isRealTabStop(el.tabindexAttr, el.tagName)),
     );
     const orphans = entries.filter(
-      ([, members]) => !members.some((el) => isRealTabStop(el.tabindexAttr)),
+      ([, members]) =>
+        !members.some((el) => isRealTabStop(el.tabindexAttr, el.tagName)),
     );
     if (hosts.length === 1 && orphans.length > 0) {
       const [, hostMembers] = hosts[0];
@@ -1589,7 +1607,9 @@ async function verifyRovingTabindexGroups(
       // internal highlight via arrow keys instead) - skip rather than force-
       // focus an arbitrary member, which wouldn't reflect real keyboard use and
       // would produce a misleading "broken" result.
-      const activeMember = members.find((el) => isRealTabStop(el.tabindexAttr));
+      const activeMember = members.find((el) =>
+        isRealTabStop(el.tabindexAttr, el.tagName),
+      );
       if (!activeMember) continue;
       const activeLocator = page.locator(activeMember.selector).first();
       if ((await activeLocator.count()) === 0) continue;
@@ -1630,6 +1650,39 @@ async function verifyRovingTabindexGroups(
           i < maxPresses && reached.size < memberSelectors.size;
           i++
         ) {
+          await page.keyboard.press(key);
+          const info = (await page.evaluate(
+            `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
+          )) as FocusedElementInfo | null;
+          if (info && memberSelectors.has(info.selector)) {
+            reached.set(info.selector, info.pageRect);
+          }
+        }
+      }
+
+      // Multi-step navigation (e.g. a grid cell off the start row/column is
+      // only reachable by combining axes): continue from every reached member.
+      const allKeys = [
+        ...new Set([
+          ...keyAttempts,
+          "ArrowRight",
+          "ArrowLeft",
+          "ArrowDown",
+          "ArrowUp",
+        ]),
+      ];
+      const expanded = new Set<string>();
+      while (
+        reached.size < memberSelectors.size &&
+        expanded.size < ROVING_TABINDEX_MAX_EXPANSIONS
+      ) {
+        const next = [...reached.keys()].find((sel) => !expanded.has(sel));
+        if (next === undefined) break;
+        expanded.add(next);
+        throwIfAborted(signal, "crawl", url);
+        for (const key of allKeys) {
+          if (reached.size === memberSelectors.size) break;
+          await page.locator(next).first().focus({ timeout: 1000 });
           await page.keyboard.press(key);
           const info = (await page.evaluate(
             `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
