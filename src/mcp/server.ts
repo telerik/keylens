@@ -10,6 +10,12 @@ const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
 // Silence stdout logging — MCP uses stdio for JSON-RPC
 setLogLevel("silent");
 
+// Reporters (e.g. "cli") print with console.log; keep stdout protocol-only by
+// routing every console stdout writer to stderr. The transport uses process.stdout directly.
+console.log = console.error;
+console.info = console.error;
+console.debug = console.error;
+
 const server = new McpServer({
   name: "keylens",
   version: VERSION,

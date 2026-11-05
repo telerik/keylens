@@ -103,6 +103,9 @@ By default, MCP returns a compact semantic response and writes nothing. Passing
 }
 ```
 
+The `cli` reporter prints its human-readable report to the server's stderr, never stdout,
+so the stdio protocol stays clean; it is not included in the tool result.
+
 Compact responses omit image assets, echoed config, geometry, element HTML, and other
 large fields. File reporters contain their normal output.
 
