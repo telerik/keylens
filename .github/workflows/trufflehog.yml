@@ -17,12 +17,12 @@ jobs:
 
     steps:
       - name: Clone Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
       - name: TruffleHog scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@93633ac70c28603931c365b6ef530cab878f4286 # main
         with:
           path: ./
           extra_args: --results=verified --log-level=4
