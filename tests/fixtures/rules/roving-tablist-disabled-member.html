@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <div role="tablist" id="tl" aria-label="x">
+        <span role="tab" id="t1" tabindex="0">One</span
+        ><span role="tab" id="t2" tabindex="-1" aria-disabled="true"
+          >Two (disabled)</span
+        ><span role="tab" id="t3" tabindex="-1">Three</span>
+      </div>
+      <script>
+        const tl = document.getElementById("tl");
+        tl.addEventListener("keydown", (e) => {
+          const t = [
+            ...tl.querySelectorAll("[role=tab]:not([aria-disabled=true])"),
+          ];
+          const i = t.indexOf(document.activeElement);
+          if (i < 0) return;
+          let n = null;
+          if (e.key === "ArrowRight") n = t[(i + 1) % t.length];
+          if (e.key === "ArrowLeft") n = t[(i + t.length - 1) % t.length];
+          if (n) {
+            e.preventDefault();
+            tl.querySelectorAll("[role=tab]").forEach((x) => (x.tabIndex = -1));
+            n.tabIndex = 0;
+            n.focus();
+          }
+        });
+      </script>
+    </main>
+  </body>
+</html>

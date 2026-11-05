@@ -4,7 +4,10 @@ import type {
   RuleResult,
   FocusedElement,
 } from "../types/index.js";
-import { hasVisibleFocusChange } from "../utils/focus-style-diff.js";
+import {
+  classifyFocusChange,
+  hasVisibleFocusChange,
+} from "../utils/focus-style-diff.js";
 
 export { hasVisibleFocusChange };
 
@@ -18,7 +21,10 @@ export { hasVisibleFocusChange };
  * this catches CSS pseudo-class styles, JS/attribute-driven indicators, and
  * :focus-within container patterns (including ones applied several levels up
  * the tree, not just the direct parent), regardless of which CSS property
- * was used to implement them, without needing screenshots.
+ * was used to implement them. Only properties that can actually paint count
+ * (cursor, custom properties and transparent/zero-width decorations do not).
+ * Outline/box-shadow-only changes can be clipped or covered, so they are
+ * confirmed by the crawler's screenshot pass when it ran.
  */
 export class MissingFocusIndicatorRule implements Rule {
   id = "missing-focus-indicator";
@@ -37,11 +43,16 @@ export class MissingFocusIndicatorRule implements Rule {
         el.hasFocusIndicator = null;
         continue;
       }
+      const strength = classifyFocusChange(
+        el.focusedStyleSnapshot,
+        el.unfocusedStyleSnapshot,
+      );
+      // Weak changes (outline/box-shadow only) are trusted unless the
+      // screenshot pass ran and saw no pixels change.
       const hasIndicator =
-        hasVisibleFocusChange(
-          el.focusedStyleSnapshot,
-          el.unfocusedStyleSnapshot,
-        ) || el.focusIndicatorPixelConfirmed === true;
+        strength === "strong" ||
+        (strength === "weak" && el.focusIndicatorPixelConfirmed !== false) ||
+        el.focusIndicatorPixelConfirmed === true;
       el.hasFocusIndicator = hasIndicator;
       if (!hasIndicator) {
         noIndicatorElements.push(el);

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      @keyframes bob {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(2px);
+        }
+      }
+      button {
+        animation: bob 0.5s infinite alternate;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Ambient bobbing</button></main>
+  </body>
+</html>

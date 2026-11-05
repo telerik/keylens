@@ -22,4 +22,10 @@ describe("isRealTabStop", () => {
   it("should return true for a positive tabindex", () => {
     expect(isRealTabStop(3)).toBe(true);
   });
+
+  it("treats a natively tabbable element with no tabindex attribute as a Tab stop", () => {
+    expect(isRealTabStop(null, true)).toBe(true);
+    expect(isRealTabStop(null, false)).toBe(false);
+    expect(isRealTabStop(-1, true)).toBe(false);
+  });
 });

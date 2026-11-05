@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <button id="A">A</button><button id="B">B</button
+      ><button id="C">C</button>
+      <script>
+        document
+          .getElementById("A")
+          .addEventListener(
+            "focus",
+            () => document.getElementById("C").setAttribute("tabindex", "2"),
+            { once: true },
+          );
+      </script>
+    </main>
+  </body>
+</html>

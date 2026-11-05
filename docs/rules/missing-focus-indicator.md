@@ -28,18 +28,34 @@ focus moves away. The snapshot covers:
   focusable element itself — e.g. a toggle switch whose visible ring is drawn on its
   inner track `<span>` via a `.switch:focus .track { outline: ... }` rule)
 
-If **any** of these properties differ between the focused and unfocused snapshots, the
-element is considered to have a visible focus indicator. If none differ, the crawler runs
-one more check before flagging it: it re-focuses the element and pixel-diffs a screenshot
-of its focused vs. blurred state (pixelmatch). This catches indicators that live entirely
-outside the computed-style diff's reach — most notably a focus ring drawn inside a
-`<canvas>` bitmap by page JS, or styling applied via a sibling/portaled element. Only if
-both the style diff _and_ the pixel diff find no change is the element flagged.
+Only properties that can actually paint count (outline, border, box-shadow, text-shadow,
+text-decoration, background, color, opacity, filter, transform, clip-path, fill/stroke, and a
+few more). Changes to `cursor`, custom properties, transitions and similar never count.
+Decorations that cannot render are ignored too: a transparent or zero-width outline or border,
+a transparent shadow, a `::before`/`::after` without `content`, an element that is
+`display:none` or `visibility:hidden`, and an element running the same CSS animation in both
+states (its style changes come from time, not focus).
+
+The remaining change is classified:
+
+- **Strong** (border, background, color, text-decoration, transform, ... changed): the element
+  has a visible focus indicator.
+- **Weak** (only `outline` or `box-shadow` changed): these paint outside the element box and
+  can be clipped by an ancestor or covered, so the crawler re-focuses the element and
+  pixel-diffs a screenshot of its focused vs. blurred state (pixelmatch). No pixel change
+  means the element is flagged. If the screenshot pass did not run (cap reached or capture
+  failed) the style diff is trusted.
+- **None**: the same screenshot check runs. It catches indicators the style diff cannot see,
+  most notably a focus ring drawn inside a `<canvas>` bitmap by page JS, or styling applied
+  via a sibling/portaled element. Only if the pixel diff also finds no change is the element
+  flagged.
 
 This runs by default — no flags required — because the crawler already focuses every
 element for real during the tab crawl; reading computed styles twice is inexpensive, and
-the pixel-diff confirmation only runs for the (typically small) set of elements the style
-diff already flagged. It also catches indicators that a static HTML/CSS scan would miss,
+the screenshot confirmation only runs for elements the style diff could not fully prove
+(weak or no change), capped per audit. CSS animations and transitions are
+fast-forwarded to their end state before each screenshot, so an indicator that animates in on
+focus is fully drawn while an ambient animation looks identical in both shots. It also catches indicators that a static HTML/CSS scan would miss,
 such as classes or attributes toggled by JavaScript (e.g. `data-focus-visible`) and
 `:focus-within` container highlighting.
 
