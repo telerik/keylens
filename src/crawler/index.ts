@@ -1415,16 +1415,23 @@ async function crawlInteractions(
               for (let n = element; n; n = n.parentElement) {
                 opacity *= parseFloat(window.getComputedStyle(n).opacity);
               }
+              const doc = document.documentElement;
               const offscreen =
                 rect.right + window.scrollX <= 0 ||
-                rect.bottom + window.scrollY <= 0;
+                rect.bottom + window.scrollY <= 0 ||
+                rect.left + window.scrollX >= Math.max(doc.scrollWidth, window.innerWidth) ||
+                rect.top + window.scrollY >= Math.max(doc.scrollHeight, window.innerHeight);
+              const clipped =
+                /rect\\(\\s*0(px)?[ ,]+0(px)?[ ,]+0(px)?[ ,]+0(px)?\\s*\\)/.test(style.clip) ||
+                /^inset\\((50|100)%/.test(style.clipPath);
               const visible =
                 rect.width > 0 &&
                 rect.height > 0 &&
                 style.visibility !== "hidden" &&
                 style.display !== "none" &&
-                opacity > 0 &&
-                !offscreen;
+                opacity >= 0.1 &&
+                !offscreen &&
+                !clipped;
               const interactive = element.matches(
                 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"]),[contenteditable="true"],[role="button"],[role="menuitem"],[role="option"],[role="tab"]'
               );
@@ -1531,21 +1538,11 @@ const ROVING_TABINDEX_MAX_EXPANSIONS = 40;
 // treating null as "not -1" would wrongly pick such a member as focusable.
 export function isRealTabStop(
   tabindexAttr: number | null,
-  tagName?: string,
+  nativelyTabbable = false,
 ): boolean {
-  if (tabindexAttr === null) {
-    return tagName !== undefined && NATIVELY_TABBABLE_TAGS.has(tagName);
-  }
+  if (tabindexAttr === null) return nativelyTabbable;
   return tabindexAttr !== -1;
 }
-
-// Native controls are Tab stops even with no tabindex attribute.
-const NATIVELY_TABBABLE_TAGS = new Set([
-  "button",
-  "input",
-  "select",
-  "textarea",
-]);
 
 async function verifyRovingTabindexGroups(
   page: Page,
@@ -1583,11 +1580,13 @@ async function verifyRovingTabindexGroups(
   }
   for (const entries of containersByMemberRole.values()) {
     const hosts = entries.filter(([, members]) =>
-      members.some((el) => isRealTabStop(el.tabindexAttr, el.tagName)),
+      members.some((el) => isRealTabStop(el.tabindexAttr, el.nativelyTabbable)),
     );
     const orphans = entries.filter(
       ([, members]) =>
-        !members.some((el) => isRealTabStop(el.tabindexAttr, el.tagName)),
+        !members.some((el) =>
+          isRealTabStop(el.tabindexAttr, el.nativelyTabbable),
+        ),
     );
     if (hosts.length === 1 && orphans.length > 0) {
       const [, hostMembers] = hosts[0];
@@ -1625,7 +1624,7 @@ async function verifyRovingTabindexGroups(
       // focus an arbitrary member, which wouldn't reflect real keyboard use and
       // would produce a misleading "broken" result.
       const activeMember = members.find((el) =>
-        isRealTabStop(el.tabindexAttr, el.tagName),
+        isRealTabStop(el.tabindexAttr, el.nativelyTabbable),
       );
       if (!activeMember) continue;
       const activeLocator = page.locator(activeMember.selector).first();

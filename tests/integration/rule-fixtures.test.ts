@@ -231,6 +231,11 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       "interaction-offscreen-same-control",
       "interaction-ancestor-opacity-zero",
       "interaction-moved-to-opacity-zero-heading",
+      "interaction-opacity-low-same-control",
+      "interaction-offscreen-right",
+      "interaction-offscreen-bottom",
+      "interaction-clip-rect-zero",
+      "interaction-clip-path-inset",
     ])("fails when focus ends up invisible: %s", async (fixture) => {
       const report = await run(fixture, true);
       expect(status(report, "focus-after-interaction")).toBe("failed");
@@ -239,6 +244,11 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
     it("tests input type=submit and flags a self-destroying handler", async () => {
       const report = await run("interaction-submit-input-destroyed", true);
       expect(status(report, "focus-after-interaction")).toBe("failed");
+    });
+
+    it("passes when the control is only partly transparent", async () => {
+      const report = await run("interaction-opacity-visible-control", true);
+      expect(status(report, "focus-after-interaction")).toBe("passed");
     });
 
     it("passes when focus moves to a visible heading", async () => {
@@ -255,16 +265,18 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
   });
 
   describe("roving-tabindex-broken: widget variants", () => {
-    it.each(["roving-native-button-tab-broken", "roving-toolbar-broken"])(
-      "flags a broken widget: %s",
-      async (fixture) => {
-        const report = await run(fixture);
-        expect(status(report, "roving-tabindex-broken")).toBe("failed");
-      },
-    );
+    it.each([
+      "roving-native-button-tab-broken",
+      "roving-toolbar-broken",
+      "roving-toolbar-link-first",
+    ])("flags a broken widget: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "roving-tabindex-broken")).toBe("failed");
+    });
 
     it.each([
       "roving-toolbar-working",
+      "roving-toolbar-link-first-working",
       "roving-grid-3x3-working",
       "roving-tablist-disabled-member",
     ])("passes a working widget: %s", async (fixture) => {

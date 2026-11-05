@@ -428,6 +428,7 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
           rovingContainerSelector: getRovingContainerSelector(el),
           nativeRadioGroup: getNativeRadioGroup(el),
           ariaDisabled: el.getAttribute('aria-disabled') === 'true',
+          nativelyTabbable: el.tabIndex >= 0,
         };
       });
   }

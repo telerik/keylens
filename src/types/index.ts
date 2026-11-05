@@ -511,6 +511,8 @@ export interface InteractiveElement {
   nativeRadioGroup?: string | null;
   /** `aria-disabled="true"`: arrow-key navigation may legitimately skip it. */
   ariaDisabled?: boolean;
+  /** The browser's own verdict that this element is a Tab stop (`el.tabIndex >= 0`). */
+  nativelyTabbable?: boolean;
 }
 
 export interface SkipLinkResult {

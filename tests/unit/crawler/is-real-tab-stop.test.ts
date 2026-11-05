@@ -23,9 +23,9 @@ describe("isRealTabStop", () => {
     expect(isRealTabStop(3)).toBe(true);
   });
 
-  it("treats a native control with no tabindex attribute as a Tab stop", () => {
-    expect(isRealTabStop(null, "button")).toBe(true);
-    expect(isRealTabStop(null, "div")).toBe(false);
-    expect(isRealTabStop(-1, "button")).toBe(false);
+  it("treats a natively tabbable element with no tabindex attribute as a Tab stop", () => {
+    expect(isRealTabStop(null, true)).toBe(true);
+    expect(isRealTabStop(null, false)).toBe(false);
+    expect(isRealTabStop(-1, true)).toBe(false);
   });
 });
