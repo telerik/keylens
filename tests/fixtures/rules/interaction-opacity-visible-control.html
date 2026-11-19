@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <button id="b">Click me</button>
+      <script>
+        document.getElementById("b").addEventListener("click", (e) => {
+          const s = e.target.style;
+          s.opacity = "0.6";
+        });
+      </script>
+    </main>
+  </body>
+</html>

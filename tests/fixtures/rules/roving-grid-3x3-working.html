@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <table role="grid" id="g">
+        <tbody>
+          <tr role="row">
+            <td role="gridcell" id="c00" tabindex="0" data-r="0" data-c="0">
+              00
+            </td>
+            <td role="gridcell" id="c01" tabindex="-1" data-r="0" data-c="1">
+              01
+            </td>
+            <td role="gridcell" id="c02" tabindex="-1" data-r="0" data-c="2">
+              02
+            </td>
+          </tr>
+          <tr role="row">
+            <td role="gridcell" id="c10" tabindex="-1" data-r="1" data-c="0">
+              10
+            </td>
+            <td role="gridcell" id="c11" tabindex="-1" data-r="1" data-c="1">
+              11
+            </td>
+            <td role="gridcell" id="c12" tabindex="-1" data-r="1" data-c="2">
+              12
+            </td>
+          </tr>
+          <tr role="row">
+            <td role="gridcell" id="c20" tabindex="-1" data-r="2" data-c="0">
+              20
+            </td>
+            <td role="gridcell" id="c21" tabindex="-1" data-r="2" data-c="1">
+              21
+            </td>
+            <td role="gridcell" id="c22" tabindex="-1" data-r="2" data-c="2">
+              22
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <script>
+        const g = document.getElementById("g");
+        g.addEventListener("keydown", (e) => {
+          const a = document.activeElement;
+          if (!a.dataset || a.dataset.r === undefined) return;
+          let r = +a.dataset.r,
+            c = +a.dataset.c;
+          if (e.key === "ArrowRight") c++;
+          else if (e.key === "ArrowLeft") c--;
+          else if (e.key === "ArrowDown") r++;
+          else if (e.key === "ArrowUp") r--;
+          else return;
+          const n = document.getElementById("c" + r + c);
+          if (!n) return;
+          e.preventDefault();
+          g.querySelectorAll("[role=gridcell]").forEach(
+            (x) => (x.tabIndex = -1),
+          );
+          n.tabIndex = 0;
+          n.focus();
+        });
+      </script>
+    </main>
+  </body>
+</html>

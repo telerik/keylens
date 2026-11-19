@@ -75,6 +75,11 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       expect(status(report, "keyboard-trap")).toBe("passed");
     });
 
+    it("catches a positive-tabindex element a fresh user reaches first", async () => {
+      const report = await run("order-positive-tabindex-last");
+      expect(status(report, "focus-order-mismatch")).toBe("failed");
+    });
+
     it("does not raise focus-order-mismatch noise for a first-stop trap", async () => {
       const report = await run("first-control-trap");
       expect(status(report, "focus-order-mismatch")).toBe("passed");
@@ -91,6 +96,40 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       const report = await run("hidden-disabled");
       expect(report.focusSequence.map((e) => e.selector)).toEqual(["#a", "#b"]);
       expect(status(report, "unreachable-elements")).toBe("passed");
+    });
+  });
+
+  describe("unreachable-elements: native radio groups", () => {
+    it.each([
+      "unreachable-native-radio-group",
+      "unreachable-radio-disabled-and-separate",
+    ])("does not flag arrow-key members: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "unreachable-elements")).toBe("passed");
+    });
+  });
+
+  describe("unreachable-elements: disabled controls with role/tabindex", () => {
+    it("ignores natively disabled controls", async () => {
+      const report = await run("unreachable-disabled-with-role");
+      expect(report.focusSequence.map((e) => e.selector)).toEqual(["#ok"]);
+      expect(status(report, "unreachable-elements")).toBe("passed");
+    });
+  });
+
+  describe("unreachable-elements: inert and non-editable content", () => {
+    it.each(["unreachable-inert-region", "unreachable-contenteditable-false"])(
+      "ignores non-interactive content: %s",
+      async (fixture) => {
+        const report = await run(fixture);
+        expect(report.focusSequence.map((e) => e.selector)).toEqual(["#ok"]);
+        expect(status(report, "unreachable-elements")).toBe("passed");
+      },
+    );
+
+    it("still flags an editable region that is not reachable", async () => {
+      const report = await run("unreachable-contenteditable-tabindex-off");
+      expect(status(report, "unreachable-elements")).toBe("failed");
     });
   });
 
@@ -116,12 +155,48 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
       const report = await run("single-control");
       expect(status(report, "missing-focus-indicator")).toBe("passed");
     });
-  });
 
-  describe("skip-link", () => {
-    it("passes with a working skip link", async () => {
-      const report = await run("skip-link-ok");
-      expect(status(report, "skip-link")).toBe("passed");
+    it.each([
+      "focus-ind-transparent-outline",
+      "focus-ind-cursor-only",
+      "focus-ind-custom-property-only",
+      "focus-ind-pseudo-no-content",
+      "focus-ind-hidden-descendant",
+      "focus-ind-clipped-outline",
+      "focus-ind-ambient-animation",
+      "focus-ind-outline-same-as-background",
+      "focus-ind-transparent-shadow",
+      "focus-ind-zero-width-outline",
+      "focus-ind-ambient-infinite-alternate",
+      "focus-ind-ambient-colour-cycle",
+      "focus-ind-transition-cursor-only",
+      "focus-ind-animation-noop",
+      "focus-ind-animation-transparent-ring",
+    ])("flags a change the user cannot see: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "missing-focus-indicator")).toBe("failed");
+    });
+
+    it.each([
+      "focus-ind-border-change",
+      "focus-ind-background-change",
+      "focus-ind-box-shadow-ring",
+      "focus-ind-outline-offset",
+      "focus-ind-transition-outline",
+      "focus-ind-animation-on-focus",
+      "focus-ind-underline",
+      "focus-ind-outline-in-clip-with-room",
+      "focus-ind-wrapper-two-controls",
+      "focus-ind-animation-infinite-pulse",
+      "focus-ind-animation-delayed-fade",
+      "focus-ind-animation-border-grow",
+      "focus-ind-animation-js-waapi",
+      "focus-ind-transition-slow-background",
+      "focus-ind-transition-slow-shadow",
+      "focus-ind-transition-wrapper-fade",
+    ])("passes a visible indicator: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "missing-focus-indicator")).toBe("passed");
     });
 
     it("fails without a skip link", async () => {
@@ -146,6 +221,68 @@ describe("Integration: rule behaviour on small HTML fixtures", () => {
     it("passes when focus stays on the control", async () => {
       const report = await run("focus-kept", true);
       expect(status(report, "focus-after-interaction")).toBe("passed");
+    });
+  });
+
+  describe("focus-after-interaction: invisible focus", () => {
+    it.each([
+      "interaction-opacity-zero-same-control",
+      "interaction-scale-zero-same-control",
+      "interaction-offscreen-same-control",
+      "interaction-ancestor-opacity-zero",
+      "interaction-moved-to-opacity-zero-heading",
+      "interaction-opacity-low-same-control",
+      "interaction-offscreen-right",
+      "interaction-offscreen-bottom",
+      "interaction-clip-rect-zero",
+      "interaction-clip-path-inset",
+    ])("fails when focus ends up invisible: %s", async (fixture) => {
+      const report = await run(fixture, true);
+      expect(status(report, "focus-after-interaction")).toBe("failed");
+    });
+
+    it("tests input type=submit and flags a self-destroying handler", async () => {
+      const report = await run("interaction-submit-input-destroyed", true);
+      expect(status(report, "focus-after-interaction")).toBe("failed");
+    });
+
+    it("passes when the control is only partly transparent", async () => {
+      const report = await run("interaction-opacity-visible-control", true);
+      expect(status(report, "focus-after-interaction")).toBe("passed");
+    });
+
+    it("passes when focus moves to a visible heading", async () => {
+      const report = await run("interaction-moved-to-visible-heading", true);
+      expect(status(report, "focus-after-interaction")).toBe("passed");
+    });
+  });
+
+  describe("tabindex-abuse: dynamic", () => {
+    it("flags a positive tabindex added by script after load", async () => {
+      const report = await run("tabindex-dynamic-positive");
+      expect(status(report, "tabindex-abuse")).toBe("failed");
+    });
+  });
+
+  describe("roving-tabindex-broken: widget variants", () => {
+    it.each([
+      "roving-native-button-tab-broken",
+      "roving-toolbar-broken",
+      "roving-toolbar-link-first",
+    ])("flags a broken widget: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "roving-tabindex-broken")).toBe("failed");
+    });
+
+    it.each([
+      "roving-toolbar-working",
+      "roving-toolbar-link-first-working",
+      "roving-grid-3x3-working",
+      "roving-tablist-disabled-member",
+    ])("passes a working widget: %s", async (fixture) => {
+      const report = await run(fixture);
+      expect(status(report, "roving-tabindex-broken")).toBe("passed");
+      expect(status(report, "unreachable-elements")).toBe("passed");
     });
   });
 

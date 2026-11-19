@@ -3,6 +3,7 @@ import {
   MissingFocusIndicatorRule,
   hasVisibleFocusChange,
 } from "@/rules/missing-focus-indicator.js";
+import { classifyFocusChange } from "@/utils/focus-style-diff.js";
 import {
   makeFocusedElement,
   makeCrawlResult,
@@ -159,7 +160,10 @@ describe("MissingFocusIndicatorRule", () => {
         focusSequence: [
           makeFocusedElement({
             focusedStyleSnapshot: makeFocusStyleSnapshot({
-              before: { "background-color": "rgb(0, 100, 255)", width: "40px" },
+              before: {
+                content: '""',
+                "background-color": "rgb(0, 100, 255)",
+              },
             }),
             unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
           }),
@@ -271,10 +275,18 @@ describe("MissingFocusIndicatorRule", () => {
 
     it("still detects outline-offset changes once outline-style is actually rendered", () => {
       const focused = makeFocusStyleSnapshot({
-        self: { "outline-style": "solid", "outline-offset": "2px" },
+        self: {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-offset": "2px",
+        },
       });
       const unfocused = makeFocusStyleSnapshot({
-        self: { "outline-style": "solid", "outline-offset": "0px" },
+        self: {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-offset": "0px",
+        },
       });
       expect(hasVisibleFocusChange(focused, unfocused)).toBe(true);
     });
@@ -335,6 +347,150 @@ describe("MissingFocusIndicatorRule", () => {
       const focused = makeFocusStyleSnapshot({ descendants: [{}, {}] });
       const unfocused = makeFocusStyleSnapshot({ descendants: [{}, {}] });
       expect(hasVisibleFocusChange(focused, unfocused)).toBe(false);
+    });
+  });
+
+  describe("classifyFocusChange (visual-property filter)", () => {
+    const none = makeFocusStyleSnapshot();
+    const classify = (focused: Parameters<typeof makeFocusStyleSnapshot>[0]) =>
+      classifyFocusChange(makeFocusStyleSnapshot(focused), none);
+
+    it("ignores cursor changes", () => {
+      expect(classify({ self: { cursor: "help" } })).toBe("none");
+    });
+
+    it("ignores custom property changes", () => {
+      expect(classify({ self: { "--ring": "1" } })).toBe("none");
+    });
+
+    it("ignores a fully transparent outline", () => {
+      expect(
+        classify({
+          self: {
+            "outline-style": "solid",
+            "outline-width": "3px",
+            "outline-color": "rgba(0, 0, 0, 0)",
+          },
+        }),
+      ).toBe("none");
+    });
+
+    it("ignores a fully transparent box-shadow", () => {
+      expect(
+        classify({
+          self: { "box-shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 3px" },
+        }),
+      ).toBe("none");
+    });
+
+    it("ignores ::before changes when the pseudo-element has no content", () => {
+      expect(
+        classify({
+          before: {
+            content: "none",
+            "border-top-style": "solid",
+            "border-top-width": "4px",
+          },
+        }),
+      ).toBe("none");
+    });
+
+    it("ignores changes on a descendant that is display:none in both states", () => {
+      const hidden = { display: "none" };
+      expect(
+        classifyFocusChange(
+          makeFocusStyleSnapshot({
+            descendants: [{ ...hidden, color: "rgb(255, 0, 0)" }],
+          }),
+          makeFocusStyleSnapshot({ descendants: [hidden] }),
+        ),
+      ).toBe("none");
+    });
+
+    it("ignores changes on an element running the same animation in both states", () => {
+      const anim = { "animation-name": "pulse" };
+      expect(
+        classifyFocusChange(
+          makeFocusStyleSnapshot({
+            self: { ...anim, "background-color": "rgb(156, 205, 254)" },
+          }),
+          makeFocusStyleSnapshot({
+            self: { ...anim, "background-color": "rgb(238, 238, 238)" },
+          }),
+        ),
+      ).toBe("none");
+    });
+
+    it("classifies an outline-only change as weak", () => {
+      expect(
+        classify({
+          self: {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgb(255, 0, 0)",
+          },
+        }),
+      ).toBe("weak");
+    });
+
+    it("classifies a box-shadow-only change as weak", () => {
+      expect(
+        classify({ self: { "box-shadow": "rgb(0, 0, 255) 0px 0px 0px 2px" } }),
+      ).toBe("weak");
+    });
+
+    it("classifies a border, background or color change as strong", () => {
+      expect(classify({ self: { color: "rgb(255, 0, 0)" } })).toBe("strong");
+      expect(classify({ self: { "background-color": "rgb(0, 0, 255)" } })).toBe(
+        "strong",
+      );
+    });
+
+    it("is strong when an outline change is accompanied by an inner change", () => {
+      expect(
+        classify({
+          self: {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgb(255, 0, 0)",
+            "background-color": "rgb(0, 0, 255)",
+          },
+        }),
+      ).toBe("strong");
+    });
+  });
+
+  describe("weak changes and screenshot confirmation", () => {
+    const weakFocused = makeFocusStyleSnapshot({
+      self: {
+        "outline-style": "solid",
+        "outline-width": "2px",
+        "outline-color": "rgb(255, 0, 0)",
+      },
+    });
+    const run = (confirmed?: boolean) =>
+      rule.evaluate(
+        makeCrawlResult({
+          focusSequence: [
+            makeFocusedElement({
+              focusedStyleSnapshot: weakFocused,
+              unfocusedStyleSnapshot: makeFocusStyleSnapshot(),
+              focusIndicatorPixelConfirmed: confirmed,
+            }),
+          ],
+        }),
+      );
+
+    it("fails when the screenshot pass saw no pixel change (e.g. clipped outline)", async () => {
+      expect((await run(false)).passed).toBe(false);
+    });
+
+    it("passes when the screenshot pass confirmed it", async () => {
+      expect((await run(true)).passed).toBe(true);
+    });
+
+    it("trusts the style diff when the screenshot pass did not run", async () => {
+      expect((await run(undefined)).passed).toBe(true);
     });
   });
 });

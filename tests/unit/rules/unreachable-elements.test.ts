@@ -168,4 +168,51 @@ describe("UnreachableElementsRule", () => {
     expect(result.passed).toBe(true);
     expect(result.violations).toHaveLength(0);
   });
+
+  it("should not flag native radios when another member of the group was reached", async () => {
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({
+            selector: "#r1",
+            reached: true,
+            nativeRadioGroup: "|s",
+          }),
+          makeInteractiveElement({
+            selector: "#r2",
+            nativeRadioGroup: "|s",
+          }),
+        ],
+      }),
+    );
+    expect(result.passed).toBe(true);
+  });
+
+  it("should flag native radios when no member of the group was reached", async () => {
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({ selector: "#r1", nativeRadioGroup: "|s" }),
+          makeInteractiveElement({ selector: "#r2", nativeRadioGroup: "|s" }),
+        ],
+      }),
+    );
+    expect(result.passed).toBe(false);
+  });
+
+  it("should not merge radio groups with different names", async () => {
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({
+            selector: "#a",
+            reached: true,
+            nativeRadioGroup: "|x",
+          }),
+          makeInteractiveElement({ selector: "#b", nativeRadioGroup: "|y" }),
+        ],
+      }),
+    );
+    expect(result.passed).toBe(false);
+  });
 });

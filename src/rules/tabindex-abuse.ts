@@ -14,13 +14,32 @@ export class TabindexAbuseRule implements Rule {
 
   async evaluate(crawlResult: CrawlResult): Promise<RuleResult> {
     const violations: RuleResult["violations"] = [];
-    const { interactiveElements } = crawlResult;
+    const { interactiveElements, focusSequence } = crawlResult;
 
     // Check all interactive elements on the page (not just those reached via Tab),
     // since positive tabindex is a static HTML issue detectable from the DOM.
-    const positiveTabindex = interactiveElements.filter(
+    const positiveTabindex: Array<{
+      selector: string;
+      outerHTML: string;
+      accessibleName: string;
+      tabindexAttr: number | null;
+    }> = interactiveElements.filter(
       (el) => el.tabindexAttr !== null && el.tabindexAttr > 0,
     );
+
+    // Scripts can add a positive tabindex after the initial snapshot, so also
+    // check the tabindex observed on each element when it actually took focus.
+    const seen = new Set(positiveTabindex.map((el) => el.selector));
+    for (const el of focusSequence) {
+      if (
+        el.tabindexAttr !== null &&
+        el.tabindexAttr > 0 &&
+        !seen.has(el.selector)
+      ) {
+        seen.add(el.selector);
+        positiveTabindex.push(el);
+      }
+    }
 
     if (positiveTabindex.length > 0) {
       violations.push({

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <form id="f"><input id="b" type="submit" value="Send" /></form>
+      <script>
+        document.getElementById("f").addEventListener("submit", (e) => {
+          e.preventDefault();
+          e.target.innerHTML = "Done";
+        });
+      </script>
+    </main>
+  </body>
+</html>
