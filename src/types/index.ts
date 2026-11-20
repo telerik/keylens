@@ -292,6 +292,13 @@ export interface RuleRemediation {
 
 export type ReporterType = "cli" | "json" | "html" | "markdown";
 
+/** A report file written to disk by a file reporter. */
+export interface WrittenReport {
+  type: Exclude<ReporterType, "cli">;
+  /** Absolute path of the written file */
+  path: string;
+}
+
 // ─── Execution Contracts ─────────────────────────────────────────
 
 export const AUDIT_REPORT_SCHEMA_VERSION = "1.0" as const;

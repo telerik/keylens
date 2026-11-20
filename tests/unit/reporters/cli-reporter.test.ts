@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { reportCLI } from "@/reporters/cli-reporter.js";
+import {
+  printSavedReports,
+  renderScoreBar,
+  reportCLI,
+  reportCLISummary,
+  shortenPath,
+} from "@/reporters/cli-reporter.js";
 import { makeAuditReport } from "@tests/helpers/factories.js";
 import { setLogLevel } from "@/utils/logger.js";
 import type { RuleResult } from "@/types/index.js";
@@ -81,7 +87,7 @@ describe("CLI Reporter", () => {
     const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
     expect(allOutput).toContain("bad-rule");
     expect(allOutput).toContain("Something is wrong");
-    expect(allOutput).toContain("button.bad");
+    expect(allOutput).toContain("<button>Bad</button>");
   });
 
   it("should not report success when a rule evaluation errored", () => {
@@ -174,7 +180,7 @@ describe("CLI Reporter", () => {
     expect(allOutput).toContain("1 skipped, 0 failed");
   });
 
-  it("should truncate elements to 5 and show overflow count", () => {
+  it("should list every affected element without truncation", () => {
     const elements = Array.from({ length: 8 }, (_, i) => ({
       selector: `el-${i}`,
       outerHTML: `<div>${i}</div>`,
@@ -199,10 +205,9 @@ describe("CLI Reporter", () => {
     reportCLI(report);
 
     const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(allOutput).toContain("el-0");
-    expect(allOutput).toContain("el-4");
-    expect(allOutput).not.toContain("el-5");
-    expect(allOutput).toContain("3 more");
+    expect(allOutput).toContain("<div>0</div>");
+    expect(allOutput).toContain("<div>7</div>");
+    expect(allOutput).not.toContain("more");
   });
 
   it("should show scroll container expansion details when present", () => {
@@ -278,5 +283,129 @@ describe("CLI Reporter", () => {
     expect(allOutput).toContain(
       "Consent banner selector matched but click timed out",
     );
+  });
+  it("summarizes failing rules by severity and lists top fixes from the guidance catalog", () => {
+    const element = { selector: "a.nav", outerHTML: "<a>Nav</a>" };
+    const report = makeAuditReport({
+      rules: [
+        {
+          ruleId: "keyboard-trap",
+          passed: true,
+          violations: [],
+          duration: 1,
+        },
+        {
+          ruleId: "focus-order-mismatch",
+          passed: false,
+          violations: [
+            {
+              ruleId: "focus-order-mismatch",
+              ruleName: "Focus Order",
+              severity: "warning",
+              message: "Out of order",
+              elements: [element],
+              impact: "Medium",
+            },
+          ],
+          duration: 1,
+        },
+        {
+          ruleId: "unreachable-elements",
+          passed: false,
+          violations: ["a", "b"].map((id) => ({
+            ruleId: "unreachable-elements",
+            ruleName: "Unreachable",
+            severity: "error" as const,
+            message: `Unreachable ${id}`,
+            elements: [element],
+            impact: "High",
+          })),
+          duration: 1,
+        },
+      ],
+    });
+
+    reportCLI(report);
+
+    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(allOutput).toMatch(/unreachable-elements\s.*2 errors/);
+    expect(allOutput).toMatch(/focus-order-mismatch\s.*1 warning/);
+    const topFixes = allOutput.slice(allOutput.indexOf("Top fixes"));
+    expect(topFixes.indexOf("(unreachable-elements)")).toBeLessThan(
+      topFixes.indexOf("(focus-order-mismatch)"),
+    );
+    expect(topFixes).not.toContain("(keyboard-trap)");
+  });
+
+  it("fills the score bar proportionally and clamps out-of-range scores", () => {
+    const filled = (score: number) =>
+      [...renderScoreBar(score)].filter((char) => char === "█").length;
+    expect(filled(0)).toBe(0);
+    expect(filled(50)).toBe(12);
+    expect(filled(100)).toBe(24);
+    expect(filled(150)).toBe(24);
+  });
+
+  it("summary omits issue details and hints at -o cli when rules fail", () => {
+    const report = makeAuditReport({
+      rules: [
+        {
+          ruleId: "bad-rule",
+          passed: false,
+          violations: [
+            {
+              ruleId: "bad-rule",
+              ruleName: "Bad Rule",
+              severity: "error",
+              message: "Something is wrong",
+              elements: [{ selector: "a", outerHTML: "<a>Bad</a>" }],
+              impact: "High",
+            },
+          ],
+          duration: 1,
+        },
+      ],
+    });
+
+    reportCLISummary(report, { hintFullReport: true });
+
+    const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(allOutput).toContain("bad-rule");
+    expect(allOutput).not.toContain("<a>Bad</a>");
+    expect(allOutput).toContain("-o cli");
+  });
+
+  describe("saved reports", () => {
+    it("shortens paths relative to cwd, else to ~", () => {
+      expect(
+        shortenPath("/work/app/keylens-report/r.html", "/work/app", "/home/me"),
+      ).toBe("keylens-report/r.html");
+      expect(shortenPath("/home/me/out/r.json", "/work/app", "/home/me")).toBe(
+        "~/out/r.json",
+      );
+      expect(shortenPath("/tmp/r.md", "/work/app", "/home/me")).toBe(
+        "/tmp/r.md",
+      );
+    });
+
+    it("lists each report with a clickable file:// link", () => {
+      const path = `${process.cwd()}/keylens-report/r.html`;
+      printSavedReports([{ type: "html", path }], { links: true });
+
+      const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+      expect(allOutput).toContain("Reports saved");
+      expect(allOutput).toContain("keylens-report/r.html");
+      expect(allOutput).toContain(`\u001B]8;;file://${path}\u0007`);
+    });
+
+    it("omits links when disabled", () => {
+      printSavedReports([{ type: "json", path: `${process.cwd()}/r.json` }], {
+        links: false,
+      });
+
+      const allOutput = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+      expect(allOutput).toContain("r.json");
+      expect(allOutput).not.toContain("\u001B]8;;");
+    });
   });
 });
