@@ -175,11 +175,16 @@ export async function crawlPage(
   }
 
   // Ensure browser cleanup on process termination
-  const cleanup = async () => {
+  const cleanup = async (signalName: NodeJS.Signals) => {
     try {
       await browser?.close();
     } catch {
       // Ignore close errors during forced shutdown
+    }
+    // Registering a listener disables Node's default exit-on-signal; re-raise
+    // it when nobody else (e.g. the CLI) is handling the signal.
+    if (process.listenerCount(signalName) === 0) {
+      process.kill(process.pid, signalName);
     }
   };
   if (ownsBrowser) {

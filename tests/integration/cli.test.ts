@@ -904,4 +904,36 @@ describe("Integration: CLI entry point", () => {
     );
     expect(preserveResult?.status).toBe("skipped");
   });
+  it("cancels the audit and exits 130 on Ctrl+C (SIGINT)", async () => {
+    // Run node with tsx's loader directly (no tsx wrapper process) so the
+    // signal reaches the CLI itself, as it does for an installed binary.
+    const child = spawn(process.execPath, [
+      "--import",
+      "tsx",
+      CLI_ENTRY,
+      "audit",
+      cleanUrl,
+      "--wait",
+      "15000",
+      "--verbose",
+    ]);
+    let output = "";
+    let interruptedAt = 0;
+    const onData = (chunk: Buffer) => {
+      output += chunk;
+      if (!interruptedAt && output.includes("Navigating to")) {
+        interruptedAt = Date.now();
+        setTimeout(() => child.kill("SIGINT"), 500);
+      }
+    };
+    child.stdout.on("data", onData);
+    child.stderr.on("data", onData);
+    const status = await new Promise<number | null>((resolvePromise) =>
+      child.on("close", resolvePromise),
+    );
+
+    expect(status).toBe(130);
+    expect(output).toContain("Audit cancelled.");
+    expect(Date.now() - interruptedAt).toBeLessThan(10_000);
+  });
 });

@@ -66,7 +66,8 @@ const html = renderHTML(report);
 const markdown = renderMarkdown(report);
 ```
 
-- `renderAuditReport()` prints/writes selected reporters.
+- `renderAuditReport()` prints/writes selected reporters and resolves to the
+  written files as `WrittenReport[]` (`{ type, path }`, absolute paths).
 - `serializeJSON()` returns semantic JSON with assets omitted.
 - `renderHTML()` and `renderMarkdown()` return strings without writing.
 - `renderAuditReport()` accepts an `AbortSignal`, timeout, and log level through

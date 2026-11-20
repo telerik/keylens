@@ -54,7 +54,7 @@ export async function writeReportFile(
   reportLabel: string,
   signal?: AbortSignal,
   url?: string,
-): Promise<void> {
+): Promise<string> {
   throwIfAborted(signal, "reporters", url);
   const dir = outputDir || process.cwd();
   await mkdir(dir, { recursive: true });
@@ -69,5 +69,6 @@ export async function writeReportFile(
   }
   await writeFile(filePath, content, { encoding: "utf-8", signal });
 
-  logger.success(`${reportLabel} report saved to ${filePath}`);
+  logger.debug(`${reportLabel} report saved to ${filePath}`);
+  return filePath;
 }

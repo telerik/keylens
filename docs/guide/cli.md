@@ -1,5 +1,11 @@
 # CLI reference
 
+Running `keylens` with no arguments prints a welcome screen with quick-start
+commands. In an interactive terminal at least 62 columns wide, the welcome
+screen and the first `keylens audit` on a machine show the Keylens ASCII logo;
+afterwards (and in CI, piped output, or narrow terminals) a compact one-line
+banner is used. The first-run state is stored at `~/.keylens/welcome-shown`.
+
 ## Commands
 
 ### `keylens audit [url]`
@@ -8,30 +14,30 @@ Alias: `keylens scan [url]`. An HTTP(S) URL can also be passed directly as short
 The URL argument overrides `url` from the config file. Without an argument, the
 configured `url` is audited.
 
-| Option                          | Default                | Description                                                                                                                                                |
-| ------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-c, --config <path>`           | —                      | Load a JSON configuration file. CLI values override values from this file; without this flag, Keylens looks only for a URL argument.                       |
-| `--profile <profile>`           | `balanced`             | Select `fast`, `balanced`, or `thorough` defaults for tab count, tab settling, and post-load wait. Explicit flags and config values override the profile.  |
-| `-o, --output <reporters>`      | `cli`                  | Select one or more comma-separated reporters: `cli`, `json`, `html`, or `markdown`. File reporters write artifacts; `cli` writes to stdout.                |
-| `-d, --output-dir <dir>`        | `./keylens-report`     | Choose the directory for JSON, HTML, and Markdown files. It has no effect on terminal-only output.                                                         |
-| `--output-name <name>`          | `keylens-report`       | Set the base filename for file reports. Extensions and the timestamp suffix are added automatically.                                                       |
-| `--no-timestamp`                | `false` (timestamp on) | Remove the timestamp suffix from file reports. Repeated runs then overwrite files with the same name.                                                      |
-| `-b, --browser <browser>`       | `chromium`             | Choose the Playwright engine: `chromium`, `firefox`, or `webkit`. Use the same engine as your supported user environment when behavior differs by browser. |
-| `--headed`                      | `false`                | Run with a visible browser window instead of headless mode. Useful for local debugging; CI environments usually require headless mode.                     |
-| `--wait-for <selector>`         | —                      | Wait for a CSS selector to appear before the profile's fixed post-load delay. Use this for an app-ready marker or asynchronously rendered shell.           |
-| `--wait <ms>`                   | profile value          | Set the fixed delay after page load and after `--wait-for` resolves. Use it for animations or late content that has no reliable ready selector.            |
-| `--keep-overlays`               | `false`                | Keep cookie/consent banners and other automatically detected overlays so the audit can test them. Custom `--dismiss` selectors still run.                  |
-| `--no-expand-scroll-containers` | `false` (expansion on) | Disable the heuristic that expands full-page faux-scroll containers. Use this when an inner scroll region must remain a legitimate scrollable region.      |
-| `--dismiss <selector>`          | —                      | Click an additional CSS selector before the crawl. Repeat the option for multiple selectors, such as a custom tour or newsletter modal close button.       |
-| `--consent <preference>`        | `reject`               | Choose the preferred banner action: `reject`, `accept`, or `close`. `reject` avoids silently opting into tracking during an audit.                         |
-| `--max-tabs <n>`                | profile value          | Set the maximum number of Tab attempts. Increase it for pages with long or dynamically revealed focus sequences; it bounds audit time and coverage.        |
-| `--tab-delay <ms>`              | profile value          | Set the delay after each Tab so focus and layout changes can settle. The minimum is 10 ms; increase it for animated or highly dynamic interfaces.          |
-| `--viewport <WxH>`              | `1280x720`             | Set the browser viewport, for example `1440x900`. This affects responsive layout, visibility, overlays, and focus-obscured checks.                         |
-| `--timeout <ms>`                | `30000`                | Set the navigation timeout in milliseconds. This covers page navigation, not the total audit budget or every crawl phase.                                  |
-| `--page-screenshot <mode>`      | capability-based       | Capture no image, the viewport, or the full page with `none`, `viewport`, or `full`. HTML defaults to `full`; other reporter selections default to `none`. |
-| `--interactions`                | `false`                | Enable opt-in, bounded post-activation focus checks. Review the interaction policy before enabling it against stateful or destructive pages.               |
-| `-q, --quiet`                   | `false`                | Suppress nonessential terminal output while preserving errors and the selected report output.                                                              |
-| `-v, --verbose`                 | `false`                | Enable debug-level diagnostics, including detailed phase and browser progress information.                                                                 |
+| Option                          | Default                | Description                                                                                                                                                                                                    |
+| ------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-c, --config <path>`           | —                      | Load a JSON configuration file. CLI values override values from this file; without this flag, Keylens looks only for a URL argument.                                                                           |
+| `--profile <profile>`           | `balanced`             | Select `fast`, `balanced`, or `thorough` defaults for tab count, tab settling, and post-load wait. Explicit flags and config values override the profile.                                                      |
+| `-o, --output <reporters>`      | `cli`                  | Select one or more comma-separated reporters: `cli`, `json`, `html`, or `markdown`. File reporters write artifacts. Without `-o`, a summary is printed; `-o cli` prints the full report with issues and fixes. |
+| `-d, --output-dir <dir>`        | `./keylens-report`     | Choose the directory for JSON, HTML, and Markdown files. It has no effect on terminal-only output.                                                                                                             |
+| `--output-name <name>`          | `keylens-report`       | Set the base filename for file reports. Extensions and the timestamp suffix are added automatically.                                                                                                           |
+| `--no-timestamp`                | `false` (timestamp on) | Remove the timestamp suffix from file reports. Repeated runs then overwrite files with the same name.                                                                                                          |
+| `-b, --browser <browser>`       | `chromium`             | Choose the Playwright engine: `chromium`, `firefox`, or `webkit`. Use the same engine as your supported user environment when behavior differs by browser.                                                     |
+| `--headed`                      | `false`                | Run with a visible browser window instead of headless mode. Useful for local debugging; CI environments usually require headless mode.                                                                         |
+| `--wait-for <selector>`         | —                      | Wait for a CSS selector to appear before the profile's fixed post-load delay. Use this for an app-ready marker or asynchronously rendered shell.                                                               |
+| `--wait <ms>`                   | profile value          | Set the fixed delay after page load and after `--wait-for` resolves. Use it for animations or late content that has no reliable ready selector.                                                                |
+| `--keep-overlays`               | `false`                | Keep cookie/consent banners and other automatically detected overlays so the audit can test them. Custom `--dismiss` selectors still run.                                                                      |
+| `--no-expand-scroll-containers` | `false` (expansion on) | Disable the heuristic that expands full-page faux-scroll containers. Use this when an inner scroll region must remain a legitimate scrollable region.                                                          |
+| `--dismiss <selector>`          | —                      | Click an additional CSS selector before the crawl. Repeat the option for multiple selectors, such as a custom tour or newsletter modal close button.                                                           |
+| `--consent <preference>`        | `reject`               | Choose the preferred banner action: `reject`, `accept`, or `close`. `reject` avoids silently opting into tracking during an audit.                                                                             |
+| `--max-tabs <n>`                | profile value          | Set the maximum number of Tab attempts. Increase it for pages with long or dynamically revealed focus sequences; it bounds audit time and coverage.                                                            |
+| `--tab-delay <ms>`              | profile value          | Set the delay after each Tab so focus and layout changes can settle. The minimum is 10 ms; increase it for animated or highly dynamic interfaces.                                                              |
+| `--viewport <WxH>`              | `1280x720`             | Set the browser viewport, for example `1440x900`. This affects responsive layout, visibility, overlays, and focus-obscured checks.                                                                             |
+| `--timeout <ms>`                | `30000`                | Set the navigation timeout in milliseconds. This covers page navigation, not the total audit budget or every crawl phase.                                                                                      |
+| `--page-screenshot <mode>`      | capability-based       | Capture no image, the viewport, or the full page with `none`, `viewport`, or `full`. HTML defaults to `full`; other reporter selections default to `none`.                                                     |
+| `--interactions`                | `false`                | Enable opt-in, bounded post-activation focus checks. Review the interaction policy before enabling it against stateful or destructive pages.                                                                   |
+| `-q, --quiet`                   | `false`                | Suppress nonessential terminal output while preserving errors and the selected report output.                                                                                                                  |
+| `-v, --verbose`                 | `false`                | Enable debug-level diagnostics, including detailed phase and browser progress information.                                                                                                                     |
 
 CLI values override config values. `--headed` and `--interactions` enable their
 features; they do not provide `--no-*` forms.
