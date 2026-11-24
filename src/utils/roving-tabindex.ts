@@ -3,6 +3,9 @@ import type { InteractiveElement } from "../types/index.js";
 /**
  * Returns interactive elements that are genuinely unreachable via keyboard.
  *
+ * Native radio groups (same name and form) expose one Tab stop, so the other
+ * radios are reachable by arrow keys whenever one member was reached.
+ *
  * Roving-tabindex composite widgets (e.g. role="tablist") only expose one Tab
  * stop; other members (tabindex="-1") are reached via arrow keys, not Tab. An
  * element is excluded here if another member of its same composite container
@@ -82,8 +85,18 @@ export function getUnreachedInteractiveElements(
     }
   }
 
+  // A native radio group has one Tab stop; arrow keys reach the other radios.
+  const reachedRadioGroups = new Set(
+    interactiveElements
+      .filter((el) => el.reached && el.nativeRadioGroup)
+      .map((el) => el.nativeRadioGroup),
+  );
+
   return interactiveElements.filter((el) => {
     if (el.reached) return false;
+    if (el.nativeRadioGroup && reachedRadioGroups.has(el.nativeRadioGroup)) {
+      return false;
+    }
     if (
       el.rovingContainerSelector &&
       (reachedRovingContainers.has(el.rovingContainerSelector) ||

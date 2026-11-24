@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <div role="toolbar" id="tb" aria-label="Links">
+        <a href="#a" id="b1">One</a><a href="#b" id="b2" tabindex="-1">Two</a
+        ><a href="#c" id="b3" tabindex="-1">Three</a>
+      </div>
+      <script>
+        const tb = document.getElementById("tb");
+        tb.addEventListener("keydown", (e) => {
+          const t = [...tb.querySelectorAll("a")];
+          const i = t.indexOf(document.activeElement);
+          if (i < 0) return;
+          let n = null;
+          if (e.key === "ArrowRight") n = t[(i + 1) % t.length];
+          if (e.key === "ArrowLeft") n = t[(i + t.length - 1) % t.length];
+          if (n) {
+            e.preventDefault();
+            t.forEach((x) => (x.tabIndex = -1));
+            n.tabIndex = 0;
+            n.focus();
+          }
+        });
+      </script>
+    </main>
+  </body>
+</html>

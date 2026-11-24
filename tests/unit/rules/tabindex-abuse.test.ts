@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { TabindexAbuseRule } from "@/rules/tabindex-abuse.js";
 import {
+  makeFocusedElement,
   makeInteractiveElement,
   makeCrawlResult,
 } from "@tests/helpers/factories.js";
@@ -91,5 +92,36 @@ describe("TabindexAbuseRule", () => {
 
     expect(result.passed).toBe(true);
     expect(result.violations).toHaveLength(0);
+  });
+
+  it("should flag a positive tabindex only seen on a focused element", async () => {
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({ selector: "#c", tabindexAttr: null }),
+        ],
+        focusSequence: [
+          makeFocusedElement({ selector: "#c", tabindexAttr: 2 }),
+        ],
+      }),
+    );
+
+    expect(result.passed).toBe(false);
+    expect(result.violations[0].elements).toHaveLength(1);
+  });
+
+  it("should not double-count an element present in both lists", async () => {
+    const result = await rule.evaluate(
+      makeCrawlResult({
+        interactiveElements: [
+          makeInteractiveElement({ selector: "#c", tabindexAttr: 2 }),
+        ],
+        focusSequence: [
+          makeFocusedElement({ selector: "#c", tabindexAttr: 2 }),
+        ],
+      }),
+    );
+
+    expect(result.violations[0].elements).toHaveLength(1);
   });
 });

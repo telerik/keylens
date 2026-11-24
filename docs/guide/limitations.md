@@ -77,13 +77,21 @@ was handled. Use `--dismiss <selector>` for a known banner the built-ins miss, o
 `missing-focus-indicator` diffs a computed-style snapshot (outline, box-shadow, border,
 background, color, `::before`/`::after`, up to four ancestors for `:focus-within`
 patterns, and up to twenty descendants) taken while an element was focused against
-one taken once focus moved away — always, with no flag required. Any difference
-counts as a visible indicator.
+one taken once focus moved away — always, with no flag required. Only properties
+that can paint a visible indicator count; changes that cannot render (a transparent
+or zero-width outline, `cursor`, unused custom properties) are ignored.
 
 This is more reliable than a text-based CSS scan (it reflects the real cascade,
 including JS/attribute-toggled classes). A targeted pixel comparison is also used for
 style-diff candidates that may be painted outside the inspected style relationships.
 This is not a contrast measurement or proof of WCAG Focus Appearance conformance.
+
+**Short-lived animated indicators.** Before each confirmation screenshot, CSS
+animations and transitions are fast-forwarded to their end state with `fill-mode:
+forwards`. An indicator that only exists _during_ a finite animation (for example a
+ring that animates in for 0.2s and then disappears because `fill-mode` is `none`) is
+therefore reported as present, although a keyboard user would see it vanish. Fixture:
+`tests/fixtures/rules/focus-ind-animation-no-fill-mode.html`.
 
 ## Page screenshots and HTML maps
 

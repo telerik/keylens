@@ -254,7 +254,7 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
       '[role="listbox"]',
       '[role="slider"]',
       '[role="switch"]',
-      '[contenteditable]',
+      '[contenteditable]:not([contenteditable="false"])',
       'details > summary:first-of-type',
       'audio[controls]',
       'video[controls]',
@@ -307,18 +307,31 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
     };
     const getEffectiveRole = (el) =>
       el.getAttribute('role') || getImplicitRole(el);
+    // A toolbar's members are ordinary controls (buttons, links, checkboxes...)
+    // rather than dedicated widget-member roles.
+    const toolbarMemberRoles = ['button', 'link', 'checkbox', 'switch'];
     const getRovingContainerSelector = (el) => {
       const role = getEffectiveRole(el);
-      if (!role || rovingWidgetMemberRoles.indexOf(role) === -1) return null;
+      if (!role) return null;
+      const isMemberRole = rovingWidgetMemberRoles.indexOf(role) !== -1;
+      const isToolbarMemberRole = toolbarMemberRoles.indexOf(role) !== -1;
+      if (!isMemberRole && !isToolbarMemberRole) return null;
       let parent = el.parentElement;
       while (parent && parent !== document.body) {
         const parentRole = getEffectiveRole(parent);
         if (parentRole && rovingContainerRoles.indexOf(parentRole) !== -1) {
-          return getSelector(parent);
+          if (isMemberRole || parentRole === 'toolbar') return getSelector(parent);
+          return null;
         }
         parent = parent.parentElement;
       }
       return null;
+    };
+
+    const getNativeRadioGroup = (el) => {
+      if (el.tagName !== 'INPUT' || (el.getAttribute('type') || '').toLowerCase() !== 'radio') return null;
+      if (!el.name) return null;
+      return (el.form ? getSelector(el.form) : '') + '|' + el.name;
     };
 
     // Check if an element is inside a disabled fieldset (but not inside its legend)
@@ -377,6 +390,13 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
         // Skip elements inside disabled fieldsets (unless inside legend)
         if (isInDisabledFieldset(el)) return false;
 
+        // A natively disabled control is inert even when a role/tabindex
+        // attribute makes the generic selectors match it.
+        if (el.matches(':disabled')) return false;
+
+        // Content inside an inert subtree cannot be focused or operated.
+        if (el.closest('[inert]')) return false;
+
         if (isAriaHidden(el)) return false;
         if (isEmptyStructuralCell(el)) return false;
 
@@ -406,6 +426,9 @@ export const GET_INTERACTIVE_ELEMENTS_SCRIPT = `
             : null,
           outerHTML: el.outerHTML.substring(0, ${HTML_PREVIEW_LENGTH}),
           rovingContainerSelector: getRovingContainerSelector(el),
+          nativeRadioGroup: getNativeRadioGroup(el),
+          ariaDisabled: el.getAttribute('aria-disabled') === 'true',
+          nativelyTabbable: el.tabIndex >= 0,
         };
       });
   }

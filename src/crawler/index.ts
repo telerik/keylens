@@ -32,7 +32,7 @@ import {
   getRovingArrowKeys,
   getFallbackArrowKeys,
 } from "../utils/aria-orientation.js";
-import { hasVisibleFocusChange } from "../utils/focus-style-diff.js";
+import { classifyFocusChange } from "../utils/focus-style-diff.js";
 import { hasVisiblePixelDiff } from "../utils/pixel-diff.js";
 
 /** Shape returned by GET_FOCUSED_ELEMENT_INFO_SCRIPT inside the browser. */
@@ -308,7 +308,16 @@ export async function crawlPage(
       logger.debug(
         `Skip link ${skipLinkResult.functionWorks ? "works" : "found but does not function correctly"}`,
       );
+    }
 
+    // The skip-link probe presses Tab, which moves the browser's sequential
+    // focus starting point. With positive tabindex on the page that would hide
+    // the element a fresh user reaches first, so crawl from a pristine page.
+    const hasPositiveTabindex =
+      ((await page.evaluate(
+        `Array.from(document.querySelectorAll("[tabindex]")).some((el) => el.tabIndex > 0)`,
+      )) as unknown) === true;
+    if (skipLinkResult.found || hasPositiveTabindex) {
       // Activating the skip link (Enter press) can leave custom elements/widgets
       // in a mutated state (e.g. a focus-trapping "activated" mode) that would
       // otherwise corrupt the full tab-order crawl below. Reload to a pristine
@@ -544,15 +553,24 @@ async function resetSequentialFocus(
   page: Page,
   tabDelay: number,
 ): Promise<void> {
+  // Focusing <body> moves the sequential-focus starting point to the document
+  // start, which makes the browser skip positive-tabindex elements that a fresh
+  // keyboard user would reach first. With positive tabindex present, leave the
+  // starting point untouched; callers then rely on a pristine (reloaded) page.
   await page.evaluate(`(() => {
-    const body = document.body;
-    const previousTabindex = body.getAttribute("tabindex");
-    body.setAttribute("tabindex", "-1");
-    body.focus({ preventScroll: true });
-    if (previousTabindex === null) {
-      body.removeAttribute("tabindex");
-    } else {
-      body.setAttribute("tabindex", previousTabindex);
+    const hasPositiveTabindex = Array.from(
+      document.querySelectorAll("[tabindex]"),
+    ).some((el) => el.tabIndex > 0);
+    if (!hasPositiveTabindex) {
+      const body = document.body;
+      const previousTabindex = body.getAttribute("tabindex");
+      body.setAttribute("tabindex", "-1");
+      body.focus({ preventScroll: true });
+      if (previousTabindex === null) {
+        body.removeAttribute("tabindex");
+      } else {
+        body.setAttribute("tabindex", previousTabindex);
+      }
     }
     window.scrollTo(0, 0);
   })()`);
@@ -904,8 +922,12 @@ async function crawlTabOrder(
   if (focusSequence.length > 0) {
     const lastEl = focusSequence[focusSequence.length - 1];
     if (!lastEl.unfocusedStyleSnapshot) {
-      // Tab once more so the last element loses focus
-      await page.keyboard.press("Tab");
+      // Blur instead of pressing Tab: when the cycle wrapped, focus sits on the
+      // first element and another Tab would land on the second one, which can
+      // be the last element itself.
+      await page.evaluate(
+        `(() => { const a = document.activeElement; if (a && a !== document.body) a.blur(); })()`,
+      );
       await page.waitForTimeout(tabDelay);
 
       try {
@@ -959,6 +981,25 @@ const PIXEL_CONFIRMATION_MAX_ELEMENTS = 30;
 const PIXEL_CONFIRMATION_PADDING = 20;
 
 /**
+ * Fast-forwards every CSS animation and transition to its end state before a
+ * confirmation screenshot. A focus-triggered ring is then fully drawn, while
+ * an ambient animation settles on the same frame in the focused and blurred
+ * shots (no false diff). Web Animations API animations are finished too.
+ */
+const SETTLE_MOTION_SCRIPT = `(() => {
+  if (!document.getElementById("__keylens_settle_motion")) {
+    const style = document.createElement("style");
+    style.id = "__keylens_settle_motion";
+    style.textContent =
+      "*, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; animation-fill-mode: forwards !important; transition-duration: 0s !important; transition-delay: 0s !important; }";
+    document.documentElement.appendChild(style);
+  }
+  for (const a of document.getAnimations()) {
+    try { a.finish(); } catch {}
+  }
+})()`;
+
+/**
  * Captures a screenshot of an element's *current* bounding box, scrolled into
  * view and measured fresh at capture time (never a stale pageRect from
  * earlier in the crawl) — so it stays correct regardless of how much the
@@ -1009,10 +1050,10 @@ async function confirmMissingFocusIndicators(
     (el) =>
       el.focusedStyleSnapshot &&
       el.unfocusedStyleSnapshot &&
-      !hasVisibleFocusChange(
+      classifyFocusChange(
         el.focusedStyleSnapshot,
         el.unfocusedStyleSnapshot,
-      ),
+      ) !== "strong",
   );
   if (candidates.length === 0) return;
 
@@ -1021,10 +1062,13 @@ async function confirmMissingFocusIndicators(
     `Confirming ${capped.length} of ${candidates.length} possible missing focus indicator(s) via screenshot diff`,
   );
 
+  await page.evaluate(SETTLE_MOTION_SCRIPT).catch(() => undefined);
+
   for (const el of capped) {
     throwIfAborted(signal, "crawl", url);
     try {
       await page.locator(el.selector).first().focus({ timeout: 2000 });
+      await page.evaluate(SETTLE_MOTION_SCRIPT);
       const focusedShot = await captureLiveElementScreenshot(page, el.selector);
       if (!focusedShot) continue;
 
@@ -1032,6 +1076,7 @@ async function confirmMissingFocusIndicators(
         `(() => { const target = document.querySelector(${JSON.stringify(el.selector)}); if (target) target.blur(); })()`,
       );
       await page.waitForTimeout(config.tabDelay);
+      await page.evaluate(SETTLE_MOTION_SCRIPT);
       const unfocusedShot = await captureLiveElementScreenshot(
         page,
         el.selector,
@@ -1085,7 +1130,9 @@ function isInteractionCandidate(element: FocusedElement): boolean {
   const type = /type=["']?([^"'\s>]+)/i
     .exec(element.outerHTML)?.[1]
     ?.toLowerCase();
-  return ["button", "checkbox", "radio"].includes(type ?? "");
+  return ["button", "submit", "reset", "checkbox", "radio"].includes(
+    type ?? "",
+  );
 }
 
 async function matchesAnySelector(
@@ -1364,11 +1411,27 @@ async function crawlInteractions(
               if (!element || element === document.body) return null;
               const rect = element.getBoundingClientRect();
               const style = window.getComputedStyle(element);
+              let opacity = 1;
+              for (let n = element; n; n = n.parentElement) {
+                opacity *= parseFloat(window.getComputedStyle(n).opacity);
+              }
+              const doc = document.documentElement;
+              const offscreen =
+                rect.right + window.scrollX <= 0 ||
+                rect.bottom + window.scrollY <= 0 ||
+                rect.left + window.scrollX >= Math.max(doc.scrollWidth, window.innerWidth) ||
+                rect.top + window.scrollY >= Math.max(doc.scrollHeight, window.innerHeight);
+              const clipped =
+                /rect\\(\\s*0(px)?[ ,]+0(px)?[ ,]+0(px)?[ ,]+0(px)?\\s*\\)/.test(style.clip) ||
+                /^inset\\((50|100)%/.test(style.clipPath);
               const visible =
                 rect.width > 0 &&
                 rect.height > 0 &&
                 style.visibility !== "hidden" &&
-                style.display !== "none";
+                style.display !== "none" &&
+                opacity >= 0.1 &&
+                !offscreen &&
+                !clipped;
               const interactive = element.matches(
                 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"]),[contenteditable="true"],[role="button"],[role="menuitem"],[role="option"],[role="tab"]'
               );
@@ -1385,12 +1448,18 @@ async function crawlInteractions(
             } | null)
           : null;
         const sameControl = focusAfter?.selector === element.selector;
+        const sameControlVisible = sameControl && focusState?.visible === true;
         const validMovedFocus =
           focusState?.visible === true &&
           (focusState.interactive === true || focusState.managed === true);
-        const status = sameControl || validMovedFocus ? "passed" : "failed";
+        const status =
+          sameControlVisible || (!sameControl && validMovedFocus)
+            ? "passed"
+            : "failed";
         const reason = sameControl
-          ? "focus-preserved"
+          ? sameControlVisible
+            ? "focus-preserved"
+            : "focus-invisible"
           : validMovedFocus
             ? "focus-moved"
             : focusAfter
@@ -1450,6 +1519,9 @@ export function markReachedElements(
  */
 const ROVING_TABINDEX_MIN_PRESSES = 50;
 
+/** Bounds the multi-step expansion so a huge partially-wired widget stays cheap. */
+const ROVING_TABINDEX_MAX_EXPANSIONS = 40;
+
 /**
  * Verifies that every member of each roving-tabindex composite widget (e.g. a
  * tablist) is actually reachable via arrow keys from the active member, not
@@ -1464,8 +1536,12 @@ const ROVING_TABINDEX_MIN_PRESSES = 50;
 // `tabindexAttr` is `null` when the attribute is absent entirely (common for
 // container-retains-focus widgets, e.g. a Kendo Calendar's day cells) -
 // treating null as "not -1" would wrongly pick such a member as focusable.
-export function isRealTabStop(tabindexAttr: number | null): boolean {
-  return tabindexAttr !== null && tabindexAttr !== -1;
+export function isRealTabStop(
+  tabindexAttr: number | null,
+  nativelyTabbable = false,
+): boolean {
+  if (tabindexAttr === null) return nativelyTabbable;
+  return tabindexAttr !== -1;
 }
 
 async function verifyRovingTabindexGroups(
@@ -1476,7 +1552,7 @@ async function verifyRovingTabindexGroups(
 ): Promise<RovingTabindexGroupResult[]> {
   const groups = new Map<string, InteractiveElement[]>();
   for (const el of interactiveElements) {
-    if (!el.rovingContainerSelector) continue;
+    if (!el.rovingContainerSelector || el.ariaDisabled) continue;
     const members = groups.get(el.rovingContainerSelector) ?? [];
     members.push(el);
     groups.set(el.rovingContainerSelector, members);
@@ -1504,10 +1580,13 @@ async function verifyRovingTabindexGroups(
   }
   for (const entries of containersByMemberRole.values()) {
     const hosts = entries.filter(([, members]) =>
-      members.some((el) => isRealTabStop(el.tabindexAttr)),
+      members.some((el) => isRealTabStop(el.tabindexAttr, el.nativelyTabbable)),
     );
     const orphans = entries.filter(
-      ([, members]) => !members.some((el) => isRealTabStop(el.tabindexAttr)),
+      ([, members]) =>
+        !members.some((el) =>
+          isRealTabStop(el.tabindexAttr, el.nativelyTabbable),
+        ),
     );
     if (hosts.length === 1 && orphans.length > 0) {
       const [, hostMembers] = hosts[0];
@@ -1544,7 +1623,9 @@ async function verifyRovingTabindexGroups(
       // internal highlight via arrow keys instead) - skip rather than force-
       // focus an arbitrary member, which wouldn't reflect real keyboard use and
       // would produce a misleading "broken" result.
-      const activeMember = members.find((el) => isRealTabStop(el.tabindexAttr));
+      const activeMember = members.find((el) =>
+        isRealTabStop(el.tabindexAttr, el.nativelyTabbable),
+      );
       if (!activeMember) continue;
       const activeLocator = page.locator(activeMember.selector).first();
       if ((await activeLocator.count()) === 0) continue;
@@ -1585,6 +1666,39 @@ async function verifyRovingTabindexGroups(
           i < maxPresses && reached.size < memberSelectors.size;
           i++
         ) {
+          await page.keyboard.press(key);
+          const info = (await page.evaluate(
+            `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,
+          )) as FocusedElementInfo | null;
+          if (info && memberSelectors.has(info.selector)) {
+            reached.set(info.selector, info.pageRect);
+          }
+        }
+      }
+
+      // Multi-step navigation (e.g. a grid cell off the start row/column is
+      // only reachable by combining axes): continue from every reached member.
+      const allKeys = [
+        ...new Set([
+          ...keyAttempts,
+          "ArrowRight",
+          "ArrowLeft",
+          "ArrowDown",
+          "ArrowUp",
+        ]),
+      ];
+      const expanded = new Set<string>();
+      while (
+        reached.size < memberSelectors.size &&
+        expanded.size < ROVING_TABINDEX_MAX_EXPANSIONS
+      ) {
+        const next = [...reached.keys()].find((sel) => !expanded.has(sel));
+        if (next === undefined) break;
+        expanded.add(next);
+        throwIfAborted(signal, "crawl", url);
+        for (const key of allKeys) {
+          if (reached.size === memberSelectors.size) break;
+          await page.locator(next).first().focus({ timeout: 1000 });
           await page.keyboard.press(key);
           const info = (await page.evaluate(
             `(${GET_FOCUSED_ELEMENT_INFO_SCRIPT})()`,

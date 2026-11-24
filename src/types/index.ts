@@ -503,6 +503,16 @@ export interface InteractiveElement {
    * when this element is a roving-tabindex member (e.g. `[role="tab"]`). Null otherwise.
    */
   rovingContainerSelector: string | null;
+  /**
+   * Key shared by native `<input type="radio">` elements of one group (same
+   * name and form). Browsers expose a single Tab stop per group; arrow keys
+   * reach the rest. Null for anything else.
+   */
+  nativeRadioGroup?: string | null;
+  /** `aria-disabled="true"`: arrow-key navigation may legitimately skip it. */
+  ariaDisabled?: boolean;
+  /** The browser's own verdict that this element is a Tab stop (`el.tabIndex >= 0`). */
+  nativelyTabbable?: boolean;
 }
 
 export interface SkipLinkResult {
@@ -624,6 +634,7 @@ export interface InteractionResult {
     | "focus-moved"
     | "focus-lost"
     | "unexpected-focus"
+    | "focus-invisible"
     | "excluded"
     | "destructive"
     | "limit-reached"

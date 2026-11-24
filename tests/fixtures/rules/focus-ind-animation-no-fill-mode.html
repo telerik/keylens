@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      @keyframes ring {
+        from {
+          outline: 0 solid rgb(0, 90, 220);
+        }
+        to {
+          outline: 4px solid rgb(0, 90, 220);
+        }
+      }
+      button:focus-visible {
+        animation: ring 0.2s;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Ring without fill-mode</button></main>
+  </body>
+</html>

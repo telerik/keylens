@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+  </head>
+  <body>
+    <main>
+      <button id="b">Open</button>
+      <h2 id="h" tabindex="-1">Visible heading</h2>
+      <script>
+        document
+          .getElementById("b")
+          .addEventListener("click", () =>
+            document.getElementById("h").focus(),
+          );
+      </script>
+    </main>
+  </body>
+</html>

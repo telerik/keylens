@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      @keyframes fade {
+        from {
+          box-shadow: 0 0 0 4px rgba(0, 90, 220, 0);
+        }
+        to {
+          box-shadow: 0 0 0 4px rgba(0, 90, 220, 1);
+        }
+      }
+      button:focus-visible {
+        animation: fade 0.3s 0.1s ease-in forwards;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Delayed fade-in ring</button></main>
+  </body>
+</html>

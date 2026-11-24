@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>t</title>
+    <style>
+      button {
+        outline: none;
+        margin: 20px;
+        padding: 10px 20px;
+      }
+      @keyframes spin {
+        from {
+          background-color: #eee;
+        }
+        to {
+          background-color: #ddd;
+        }
+      }
+      button {
+        animation: spin 1s infinite alternate;
+      }
+      button:focus-visible {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main><button id="a">Ambient colour cycle, cursor on focus</button></main>
+  </body>
+</html>
