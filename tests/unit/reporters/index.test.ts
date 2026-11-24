@@ -149,4 +149,21 @@ describe("runReporters", () => {
       runReporters(makeAuditReport(), ["json"], "./output"),
     ).rejects.toBe(original);
   });
+
+  it("returns the files written by file reporters in order", async () => {
+    const runReporters = await getRunReporters();
+    mockHTML.mockResolvedValueOnce("/out/r.html");
+    mockJSON.mockResolvedValueOnce("/out/r.json");
+
+    const written = await runReporters(
+      makeAuditReport(),
+      ["cli", "html", "json"],
+      "./output",
+    );
+
+    expect(written).toEqual([
+      { type: "html", path: "/out/r.html" },
+      { type: "json", path: "/out/r.json" },
+    ]);
+  });
 });

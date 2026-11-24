@@ -3,6 +3,10 @@ import ora from "ora";
 import chalk from "chalk";
 import { audit, renderAuditReport } from "../index.js";
 import {
+  printSavedReports,
+  reportCLISummary,
+} from "../reporters/cli-reporter.js";
+import {
   loadConfigInput,
   DEFAULT_CONFIG,
   normalizeConfig,
@@ -10,6 +14,14 @@ import {
 import { ConfigError } from "../errors.js";
 import { createExecutionScope } from "../utils/execution.js";
 import { setLogLevel } from "../utils/logger.js";
+import {
+  markWelcomeSeen,
+  renderCompactBanner,
+  renderAuditBanner,
+  renderWelcome,
+  type BannerEnvironment,
+} from "./banner.js";
+import { AUDIT_HELP_FOOTER, HELP_STYLE, PROGRAM_HELP_FOOTER } from "./help.js";
 import type {
   KeylensConfig,
   KeylensConfigInput,
@@ -23,10 +35,13 @@ import type {
 declare const __VERSION__: string | undefined;
 const VERSION = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
 
-const BANNER = `
-${chalk.cyan.bold("Keylens")} ${chalk.gray(`v${VERSION}`)}
-${chalk.gray("See your site through the lens of keyboard users.")}
-`;
+function bannerEnvironment(): BannerEnvironment {
+  return {
+    isTTY: Boolean(process.stdout.isTTY),
+    columns: process.stdout.columns,
+    env: process.env,
+  };
+}
 
 function parseViewport(value: string): { width: number; height: number } {
   const match = /^(\d+)x(\d+)$/i.exec(value);
@@ -68,15 +83,21 @@ program
   .description(
     "Keyboard navigation testing CLI. Audits your website for keyboard accessibility issues.",
   )
-  .version(VERSION);
+  .version(VERSION)
+  .configureHelp(HELP_STYLE)
+  .addHelpText("beforeAll", () => renderCompactBanner(VERSION))
+  .addHelpText("after", PROGRAM_HELP_FOOTER);
 
 program
   .command("audit")
   .alias("scan")
   .description("Run a keyboard navigation audit on a URL")
   .argument("[url]", "URL to audit (reads from config if omitted)")
+  .addHelpText("after", AUDIT_HELP_FOOTER)
+  .optionsGroup("Setup:")
   .option("-c, --config <path>", "path to keylens.config.json")
   .option("--profile <profile>", "execution profile (fast, balanced, thorough)")
+  .optionsGroup("Reports:")
   .option(
     "-o, --output <reporters>",
     "reporters to use (comma-separated: cli,json,html,markdown)",
@@ -91,25 +112,28 @@ program
     "do not append a timestamp to report file names (they will be overwritten on each run)",
   )
   .option(
+    "--page-screenshot <mode>",
+    "page screenshot mode (none, viewport, full); defaults to full for HTML reports",
+  )
+  .optionsGroup("Browser & page load:")
+  .option(
     "-b, --browser <browser>",
     "browser engine (chromium, firefox, webkit)",
   )
   .option("--headed", "run in headed mode (visible browser)", false)
-  .option("--wait-for <selector>", "wait for this CSS selector before auditing")
-  .option("--wait <ms>", "wait this many ms after page load")
-  .option("--max-tabs <n>", "maximum tab presses")
-  .option("--tab-delay <ms>", "delay between tab presses in ms (min: 10)")
   .option("--viewport <WxH>", "viewport dimensions (e.g., 1280x720)")
   .option("--timeout <ms>", "navigation timeout in ms")
-  .option(
-    "--page-screenshot <mode>",
-    "page screenshot mode (none, viewport, full); defaults to full for HTML reports",
-  )
+  .option("--wait-for <selector>", "wait for this CSS selector before auditing")
+  .option("--wait <ms>", "wait this many ms after page load")
+  .optionsGroup("Crawl:")
+  .option("--max-tabs <n>", "maximum tab presses")
+  .option("--tab-delay <ms>", "delay between tab presses in ms (min: 10)")
   .option(
     "--interactions",
     "enable experimental bounded activation and focus checks",
     false,
   )
+  .optionsGroup("Overlays & page preparation:")
   .option(
     "--keep-overlays",
     "skip automatic cookie/consent banner dismissal before auditing",
@@ -129,12 +153,28 @@ program
     "--consent <preference>",
     "preferred consent action: reject, accept, or close",
   )
+  .optionsGroup("Logging:")
   .option("-q, --quiet", "suppress non-essential output", false)
   .option("-v, --verbose", "enable verbose/debug output", false)
   .action(async (url: string | undefined, options) => {
-    console.log(BANNER);
+    console.log(
+      options.quiet
+        ? renderCompactBanner(VERSION)
+        : renderAuditBanner(VERSION, bannerEnvironment()),
+    );
     let spinner: ReturnType<typeof ora> | undefined;
     let totalScope: ReturnType<typeof createExecutionScope> | undefined;
+    const interrupt = new AbortController();
+    const onInterrupt = () => {
+      if (interrupt.signal.aborted) process.exit(130);
+      spinner?.stop();
+      console.error(
+        chalk.yellow("\nCancelling audit… press Ctrl+C again to force quit."),
+      );
+      interrupt.abort();
+    };
+    process.on("SIGINT", onInterrupt);
+    process.on("SIGTERM", onInterrupt);
 
     try {
       // Set log level
@@ -159,6 +199,11 @@ program
       const reporters = options.output
         ? (options.output.split(",") as ReporterType[])
         : [...(fileConfig.reporters ?? DEFAULT_CONFIG.reporters)];
+      // Without an explicit reporter choice the terminal shows the summary;
+      // the full issue list and fixes need an explicit `cli` reporter.
+      const fullCliReport =
+        reporters.includes("cli") &&
+        Boolean(options.output ?? fileConfig.reporters);
 
       const targetUrl = url ?? fileConfig.url;
 
@@ -253,6 +298,7 @@ program
       }).start();
       const activeSpinner = spinner;
       totalScope = createExecutionScope({
+        parentSignal: interrupt.signal,
         timeout: config.timeouts.total,
         phase: "setup",
         timeoutKind: "total",
@@ -261,18 +307,28 @@ program
         updateProgress(activeSpinner, event);
       };
 
+      // Progress is shown by the spinner; per-step logs only with --verbose.
       const report = await audit(targetUrl, {
         ...config,
-        logLevel,
+        logLevel: options.verbose ? "debug" : "warn",
         signal: totalScope.signal,
         onEvent,
         telemetrySurface: "cli",
       });
       spinner.stop();
-      await renderAuditReport(report, config.reporters, config.outputDir, {
-        logLevel,
-        signal: totalScope.signal,
-      });
+      const summaryOnly = config.reporters.includes("cli") && !fullCliReport;
+      if (summaryOnly || (!options.quiet && !fullCliReport)) {
+        reportCLISummary(report, { hintFullReport: summaryOnly });
+      }
+      const written = await renderAuditReport(
+        report,
+        summaryOnly
+          ? config.reporters.filter((r) => r !== "cli")
+          : config.reporters,
+        config.outputDir,
+        { logLevel, signal: totalScope.signal },
+      );
+      if (!options.quiet) printSavedReports(written);
 
       if (report.summary.errors > 0) {
         process.exitCode = 2;
@@ -280,6 +336,12 @@ program
         process.exitCode = 1;
       }
     } catch (error) {
+      if (interrupt.signal.aborted) {
+        spinner?.stop();
+        console.error(chalk.yellow("Audit cancelled."));
+        process.exitCode = 130;
+        return;
+      }
       spinner?.fail(chalk.red(`Audit failed: ${(error as Error).message}`));
       if (!spinner) {
         console.error(chalk.red(`Audit failed: ${(error as Error).message}`));
@@ -289,6 +351,8 @@ program
       }
       process.exitCode = 2;
     } finally {
+      process.off("SIGINT", onInterrupt);
+      process.off("SIGTERM", onInterrupt);
       totalScope?.dispose();
     }
   });
@@ -333,8 +397,15 @@ program
     console.log(chalk.gray("  Edit the file, then run: keylens audit <url>"));
   });
 
-// Allow `keylens <url>` as shorthand for `keylens audit <url>`
+// Bare `keylens` shows a welcome screen with quick-start hints instead of help.
 const args = process.argv.slice(2);
+if (args.length === 0) {
+  const environment = bannerEnvironment();
+  console.log(renderWelcome(VERSION, environment));
+  if (environment.isTTY) markWelcomeSeen();
+}
+
+// Allow `keylens <url>` as shorthand for `keylens audit <url>`
 const firstArg = args[0];
 if (
   firstArg !== undefined &&
@@ -347,9 +418,11 @@ if (
   process.argv.splice(2, 0, "audit");
 }
 
-try {
-  await program.parseAsync();
-} catch (error) {
-  console.error(chalk.red((error as Error).message));
-  process.exitCode = 2;
+if (args.length > 0) {
+  try {
+    await program.parseAsync();
+  } catch (error) {
+    console.error(chalk.red((error as Error).message));
+    process.exitCode = 2;
+  }
 }

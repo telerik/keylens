@@ -6,6 +6,7 @@ import type {
   CrawlResult,
   ReporterType,
   RenderOptions,
+  WrittenReport,
   RuleResult,
   AuditEvent,
 } from "./types/index.js";
@@ -266,16 +267,19 @@ export async function audit(
   }
 }
 
-/** Explicitly render or write configured report formats. */
+/**
+ * Explicitly render or write configured report formats.
+ * Resolves to the files written by the file reporters (json/html/markdown).
+ */
 export async function renderAuditReport(
   report: AuditReport,
   reporters: ReporterType[],
   outputDir: string,
   options: LogLevel | RenderOptions = "silent",
-): Promise<void> {
+): Promise<WrittenReport[]> {
   const resolved =
     typeof options === "string" ? { logLevel: options } : options;
-  await withLogLevel(resolved.logLevel ?? "silent", async () => {
+  return withLogLevel(resolved.logLevel ?? "silent", async () => {
     const scope = createExecutionScope({
       parentSignal: resolved.signal,
       timeout: resolved.timeout ?? report.config.timeouts.reporters,
@@ -283,7 +287,7 @@ export async function renderAuditReport(
       url: report.url,
     });
     try {
-      await runReporters(report, reporters, outputDir, scope.signal);
+      return await runReporters(report, reporters, outputDir, scope.signal);
     } finally {
       scope.dispose();
     }
@@ -345,6 +349,7 @@ export type {
   LogLevel,
   RuleConfig,
   ReporterType,
+  WrittenReport,
   Severity,
   Rule,
   BoundingRect,

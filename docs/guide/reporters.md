@@ -22,15 +22,23 @@ the CI job should also upload a visual artifact.
 
 ## CLI reporter
 
-The CLI reporter writes a concise summary to stdout. It is useful for local work and
-for showing the result directly in CI logs. Use `--quiet` to suppress nonessential
-output or `--verbose` to include debug diagnostics.
+Without `-o`, the terminal shows a summary: score bar, crawl stats, a rules table
+with WCAG references, and the result line. Select the CLI reporter explicitly
+(`-o cli`, or `"reporters": ["cli"]` in a config file) to also print every affected
+element (as its HTML markup) and the top fixes. Explicit `cli` is the better choice
+for CI logs or when an agent reads the output.
+
+When only file reporters are selected (for example `-o html,json`), the summary is
+followed by a "Reports saved" list of the written files. In terminals that support
+hyperlinks the paths are Cmd/Ctrl+clickable. Use `--quiet` to suppress nonessential
+output or `--verbose` to include step-by-step progress and debug diagnostics.
 
 The process exit code is independent of the selected output format:
 
 - `0`: the audit completed without error-severity violations;
 - `1`: the audit completed and found at least one error-severity violation;
 - `2`: the audit was incomplete or a reporter failed.
+- `130`: the audit was cancelled with Ctrl+C (SIGINT); a second Ctrl+C force-quits.
 
 ## JSON reporter
 

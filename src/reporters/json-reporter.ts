@@ -20,8 +20,8 @@ export async function reportJSON(
   report: AuditReport,
   outputDir: string,
   signal?: AbortSignal,
-): Promise<void> {
-  await writeReportFile(
+): Promise<string> {
+  return writeReportFile(
     outputDir,
     buildReportFileName(
       "keylens-report",
